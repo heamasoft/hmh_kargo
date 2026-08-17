@@ -930,6 +930,20 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirm => 'Are you sure you want to log out?';
 
   @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountConfirm =>
+      'This permanently deletes your account and personal data (profile, addresses, cart, saved items). This can\'t be undone. Completed order records may be kept as required by law.';
+
+  @override
+  String get deleteAccountDone => 'Your account has been deleted.';
+
+  @override
+  String get deleteAccountError =>
+      'Could not delete your account. Please try again.';
+
+  @override
   String get fastpayShort => 'FastPay';
 
   @override

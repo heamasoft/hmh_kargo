@@ -425,6 +425,9 @@ class _MenuList extends StatelessWidget {
           soon: false, onTap: () => showLanguageSheet(context)),
       (icon: Icons.logout, label: l.logout, soon: false,
           onTap: () => _confirmLogout(context, l)),
+      // App Store requirement: users must be able to delete their account in-app.
+      (icon: Icons.delete_outline, label: l.deleteAccount, soon: false,
+          onTap: () => _confirmDeleteAccount(context, l)),
     ];
 
     return Padding(
@@ -505,6 +508,48 @@ class _MenuList extends StatelessWidget {
               Navigator.pushNamedAndRemoveUntil(context, Routes.welcome, (r) => false);
             },
             child: Text(l.logout,
+                style: AppFonts.body(
+                    fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Permanently deletes the account after a strong confirmation, then returns
+  /// to the welcome screen. (App Store requirement.)
+  void _confirmDeleteAccount(BuildContext context, AppLocalizations l) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l.deleteAccount, style: AppFonts.display(fontSize: 17)),
+        content: Text(l.deleteAccountConfirm,
+            style: AppFonts.body(fontSize: 13.5, color: AppColors.muted, height: 1.4)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel,
+                style: AppFonts.body(fontSize: 13, color: AppColors.muted)),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final messenger = ScaffoldMessenger.of(context);
+              final auth = context.read<AuthProvider>();
+              final push = context.read<PushService>();
+              try {
+                await push.unregister();
+                await auth.deleteAccount();
+                if (!context.mounted) return;
+                Navigator.pushNamedAndRemoveUntil(context, Routes.welcome, (r) => false);
+                messenger.showSnackBar(SnackBar(content: Text(l.deleteAccountDone)));
+              } catch (_) {
+                messenger.showSnackBar(SnackBar(content: Text(l.deleteAccountError)));
+              }
+            },
+            child: Text(l.deleteAccount,
                 style: AppFonts.body(
                     fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
           ),

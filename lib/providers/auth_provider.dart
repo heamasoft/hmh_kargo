@@ -125,6 +125,15 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  /// Permanently deletes the account, then clears the local session. Rethrows
+  /// on failure so the UI can show the error (nothing is cleared in that case).
+  Future<void> deleteAccount() async {
+    await _auth.deleteAccount();
+    await _clearToken();
+    _user = null;
+    notifyListeners();
+  }
+
   Future<void> _clearToken() async {
     _client.setToken(null);
     final prefs = await SharedPreferences.getInstance();

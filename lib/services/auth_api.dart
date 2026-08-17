@@ -88,4 +88,9 @@ class AuthApi {
   Future<void> logout() async {
     await _client.post('/auth/logout');
   }
+
+  /// Permanently deletes the signed-in user's account (App Store requirement).
+  Future<void> deleteAccount() async {
+    await _client.delete('/auth/account');
+  }
 }

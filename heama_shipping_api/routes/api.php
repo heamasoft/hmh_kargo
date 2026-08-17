@@ -92,6 +92,8 @@ Route::prefix('v1')->group(function () {
         Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
         Route::post('/auth/password', [AuthController::class, 'setPassword']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
+        // Permanent account deletion (App Store requirement).
+        Route::delete('/auth/account', [AuthController::class, 'deleteAccount']);
 
         // Scrape a product URL server-side, then price it (web + mobile).
         Route::post('/scrape', [CaptureController::class, 'scrape']);

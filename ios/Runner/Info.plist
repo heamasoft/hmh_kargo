@@ -49,5 +49,15 @@
 		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<!-- Schemes the app opens externally (store links, WhatsApp support,
+		     phone dialer, email) so iOS lets url_launcher open them. -->
+		<key>LSApplicationQueriesSchemes</key>
+		<array>
+			<string>https</string>
+			<string>http</string>
+			<string>tel</string>
+			<string>mailto</string>
+			<string>whatsapp</string>
+		</array>
 	</dict>
 </plist>

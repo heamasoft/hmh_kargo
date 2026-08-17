@@ -922,6 +922,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get logoutConfirm => 'هل أنت متأكد من تسجيل الخروج؟';
 
   @override
+  String get deleteAccount => 'حذف الحساب';
+
+  @override
+  String get deleteAccountConfirm =>
+      'سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائياً (الملف الشخصي، العناوين، السلة، المحفوظات). لا يمكن التراجع عن ذلك. قد نحتفظ بسجلات الطلبات المكتملة وفقاً للقانون.';
+
+  @override
+  String get deleteAccountDone => 'تم حذف حسابك.';
+
+  @override
+  String get deleteAccountError => 'تعذّر حذف الحساب. حاول مرة أخرى.';
+
+  @override
   String get fastpayShort => 'فاست باي';
 
   @override

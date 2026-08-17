@@ -151,6 +151,57 @@ class AuthController extends Controller
         return response()->json(['message' => 'Logged out.']);
     }
 
+    /**
+     * DELETE /auth/account — permanently delete the signed-in user's account.
+     *
+     * Required by the App Store: an app that lets users create an account must
+     * let them delete it in-app. We remove all personal data (login tokens,
+     * cart, addresses, favourites, device tokens, OTP codes) and anonymise the
+     * user record. Completed order/transaction records are kept (detached from
+     * identity) for legal/accounting purposes, as stated in the Privacy Policy.
+     * The original phone/email are freed so the person can register again.
+     */
+    public function deleteAccount(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $oldPhone = (string) $user->phone;
+
+        DB::transaction(function () use ($user, $oldPhone) {
+            // Revoke every login token (signs the user out everywhere).
+            $user->tokens()->delete();
+
+            // Personal data tied to the account.
+            $cart = Cart::where('user_id', $user->id)->first();
+            if ($cart) {
+                $cart->items()->delete();
+                $cart->delete();
+            }
+            foreach (['addresses', 'favorites', 'device_tokens', 'customer_status'] as $t) {
+                try {
+                    DB::table($t)->where('user_id', $user->id)->delete();
+                } catch (\Throwable $e) { /* table may not exist — ignore */ }
+            }
+            // Outstanding OTP codes for this phone.
+            try {
+                DB::table('otp_codes')->where('identifier', preg_replace('/\D+/', '', $oldPhone))->delete();
+            } catch (\Throwable $e) {}
+
+            // Anonymise the user row (kept so order/wallet records stay valid),
+            // freeing the phone/email for a future sign-up.
+            $user->forceFill([
+                'name' => 'Deleted user',
+                'email' => null,
+                'phone' => 'deleted_'.$user->id,
+                'password' => Hash::make(bin2hex(random_bytes(20))),
+                'remember_token' => null,
+                'phone_verified_at' => null,
+                'email_verified_at' => null,
+            ])->save();
+        });
+
+        return response()->json(['message' => 'Your account has been deleted.']);
+    }
+
     private function findOrCreateUser(array $data): User
     {
         $channel = $data['channel'];

@@ -933,6 +933,20 @@ class AppLocalizationsKu extends AppLocalizations {
   String get logoutConfirm => 'دڵنیایت لە چوونەدەرەوە؟';
 
   @override
+  String get deleteAccount => 'سڕینەوەی هەژمار';
+
+  @override
+  String get deleteAccountConfirm =>
+      'ئەمە هەژمار و زانیارییە کەسییەکانت بە یەکجاری دەسڕێتەوە (پرۆفایل، ناونیشان، سەبەتە، هەڵگیراوەکان). ناگەڕێتەوە. لەوانەیە تۆماری داواکارییە تەواوبووەکان بەپێی یاسا بهێڵینەوە.';
+
+  @override
+  String get deleteAccountDone => 'هەژمارەکەت سڕایەوە.';
+
+  @override
+  String get deleteAccountError =>
+      'نەتوانرا هەژمارەکە بسڕدرێتەوە. دووبارە هەوڵ بدەرەوە.';
+
+  @override
   String get fastpayShort => 'فاست پەی';
 
   @override
