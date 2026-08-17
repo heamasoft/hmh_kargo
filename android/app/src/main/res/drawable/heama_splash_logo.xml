@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The Heama monogram, sized to sit inside the Android 12 splash circle.
+     Mirrors lib/widgets/heama_logo.dart (midnight tile · saffron arc ·
+     pomegranate dot · white parcel). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- rounded tile -->
+    <path
+        android:fillColor="#322A5A"
+        android:pathData="M42,24 L66,24 A18,18 0 0 1 84,42 L84,66 A18,18 0 0 1 66,84 L42,84 A18,18 0 0 1 24,66 L24,42 A18,18 0 0 1 42,24 Z" />
+
+    <!-- saffron arc -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#F2A33C"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:pathData="M37.5,61.5 Q54,48 70.5,61.5" />
+
+    <!-- pomegranate dot -->
+    <path
+        android:fillColor="#D6443A"
+        android:pathData="M47.55,45 a6.45,6.45 0 1 0 12.9,0 a6.45,6.45 0 1 0 -12.9,0 Z" />
+
+    <!-- white parcel -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M49.65,60.75 L58.35,60.75 A2.4,2.4 0 0 1 60.75,63.15 L60.75,68.85 A2.4,2.4 0 0 1 58.35,71.25 L49.65,71.25 A2.4,2.4 0 0 1 47.25,68.85 L47.25,63.15 A2.4,2.4 0 0 1 49.65,60.75 Z" />
+</vector>

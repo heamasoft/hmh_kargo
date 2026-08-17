@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light blue launch splash background (matches the in-app splash). -->
+    <color name="heama_splash_bg">#EAF2FF</color>
+	<color name="ic_launcher_background">#FFFFFF</color>
+</resources>

@@ -1,0 +1,74 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# The .vscode folder contains launch configuration and tasks you configure in
+# VS Code which you may wish to be included in version control, so this line
+# is commented out by default.
+#.vscode/
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android Studio will place build artifacts here
+/android/app/debug
+/android/app/profile
+/android/app/release
+
+# ===========================================================================
+# SECRETS — never commit these (passwords, tokens, signing keys, DB creds)
+# ===========================================================================
+# Android signing key + its passwords
+**/key.properties
+**/*.jks
+**/*.keystore
+# Firebase config (contains API keys) — added to CI separately
+**/google-services.json
+**/GoogleService-Info.plist
+# Laravel backend environment (DB password, WhatsApp token, etc.)
+**/.env
+**/.env.*
+!**/.env.example
+# Firebase service-account / private keys
+**/firebase-*.json
+**/*service-account*.json
+**/*.pem
+
+# Build outputs / local artifacts
+/heama_shipping_api/vendor/
+/heama_shipping_api/storage/*.key
+/heama_shipping_api/bootstrap/cache/*.php
+# Marketing working files (optional to keep; ignore the rendered images)
+feature-graphic*.html
+tablet-promo*.html
+*.aab
+*.apk
