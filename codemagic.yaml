@@ -24,7 +24,7 @@ workflows:
         bundle_identifier: com.hmhkargo.app
       vars:
         BUNDLE_ID: "com.hmhkargo.app"
-        APP_STORE_APPLE_ID: 0000000000       # <-- replace with your app's Apple ID (numeric, from App Store Connect → App Information)
+        APP_STORE_APPLE_ID: 6802223643       # HMH Kargo — Apple ID (App Store Connect → App Information)
       flutter: stable
       xcode: latest
       cocoapods: default
