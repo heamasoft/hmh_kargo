@@ -19,6 +19,13 @@ workflows:
     integrations:
       app_store_connect: HMH_ASC_API_KEY   # <-- must match the integration name in Codemagic
     environment:
+      # Codemagic's automatic iOS signing: with the App Store Connect API key
+      # (Admin role) it CREATES a fresh distribution certificate — generating and
+      # storing its private key — plus the provisioning profile, and writes the
+      # export options plist. Needs the Admin key to create the certificate.
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.hmhkargo.app
       vars:
         BUNDLE_ID: "com.hmhkargo.app"
         APP_STORE_APPLE_ID: 6802223643       # HMH Kargo — Apple ID (App Store Connect → App Information)
@@ -26,16 +33,6 @@ workflows:
       xcode: latest
       cocoapods: default
     scripts:
-      - name: Set up code signing (fetch OR create the App Store profile)
-        script: |
-          keychain initialize
-          # --create makes the distribution certificate + provisioning profile
-          # if they don't exist yet (fixes "No matching profiles found").
-          app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --create
-          keychain add-certificates
-          xcode-project use-profiles
       - name: Get Flutter packages
         script: flutter pub get
       - name: Install CocoaPods dependencies
