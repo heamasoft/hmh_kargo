@@ -49,6 +49,10 @@
 		<true/>
 		<key>UIViewControllerBasedStatusBarAppearance</key>
 		<false/>
+		<!-- App uses only standard HTTPS/TLS encryption, which is exempt — so
+		     TestFlight/App Store won't ask the export-compliance question. -->
+		<key>ITSAppUsesNonExemptEncryption</key>
+		<false/>
 		<!-- Schemes the app opens externally (store links, WhatsApp support,
 		     phone dialer, email) so iOS lets url_launcher open them. -->
 		<key>LSApplicationQueriesSchemes</key>
