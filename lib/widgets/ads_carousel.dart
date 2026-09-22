@@ -21,7 +21,18 @@ class AdsCarousel extends StatefulWidget {
 
 class _AdsCarouselState extends State<AdsCarousel> {
   late final AdsApi _api = AdsApi(context.read<ApiClient>());
-  final _page = PageController(viewportFraction: 0.92);
+
+  /// Each slide is 94% of the slider's width; a sliver of the next peeks in.
+  static const _fraction = 0.94;
+
+  /// The slot has the images' own shape, so an image fills it with nothing
+  /// cut on any screen. Upload ads at 1600 × 800 px (any 2:1 size works).
+  static const _aspect = 2.0;
+
+  /// On tablets the slider stops widening here, so it doesn't fill the screen.
+  static const _maxWidth = 760.0;
+
+  final _page = PageController(viewportFraction: _fraction);
   List<Ad> _ads = const [];
   int _index = 0;
   Timer? _auto;
@@ -52,8 +63,11 @@ class _AdsCarouselState extends State<AdsCarousel> {
     if (ads.length > 1) {
       _auto = Timer.periodic(const Duration(seconds: 5), (_) {
         if (!mounted || !_page.hasClients) return;
-        _page.animateToPage((_index + 1) % _ads.length,
-            duration: const Duration(milliseconds: 450), curve: Curves.easeOutCubic);
+        _page.animateToPage(
+          (_index + 1) % _ads.length,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOutCubic,
+        );
       });
     }
   }
@@ -68,59 +82,65 @@ class _AdsCarouselState extends State<AdsCarousel> {
   @override
   Widget build(BuildContext context) {
     if (_ads.isEmpty) return const SizedBox.shrink();
-    final width = MediaQuery.sizeOf(context).width;
-    // A little taller than the 2:1 images (they fill it, trimming the plain
-    // side margins), capped so it doesn't swallow a tablet screen.
-    final height = (width * 0.92 / 1.7).clamp(150.0, 320.0);
+    final boxWidth = MediaQuery.sizeOf(context).width.clamp(0.0, _maxWidth);
+    // Exactly the images' 2:1 shape — the earlier taller slot (1.7:1) made
+    // the cover-fit trim the sides of every banner.
+    // (Each slide has 5 px of spacing on either side — the image is 10 px narrower.)
+    final height = (boxWidth * _fraction - 10) / _aspect;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),
-      child: Column(
-        children: [
-          SizedBox(
-            height: height,
-            child: PageView.builder(
-              controller: _page,
-              itemCount: _ads.length,
-              onPageChanged: (i) => setState(() => _index = i),
-              itemBuilder: (context, i) {
-                final ad = _ads[i];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 5),
-                  child: GestureDetector(
-                    onTap: ad.linkUrl == null ? null : () => openUrl(ad.linkUrl!),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(20),
-                      child: ProductImage(
-                        url: ad.imageUrl,
-                        gradient: const [AppColors.cloud, AppColors.line],
+      child: Center(
+        child: SizedBox(
+          width: boxWidth,
+          child: Column(
+            children: [
+              SizedBox(
+                height: height,
+                child: PageView.builder(
+                  controller: _page,
+                  itemCount: _ads.length,
+                  onPageChanged: (i) => setState(() => _index = i),
+                  itemBuilder: (context, i) {
+                    final ad = _ads[i];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: GestureDetector(
+                        onTap: ad.linkUrl == null ? null : () => openUrl(ad.linkUrl!),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: ProductImage(
+                            url: ad.imageUrl,
+                            gradient: const [AppColors.cloud, AppColors.line],
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          if (_ads.length > 1) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                for (var i = 0; i < _ads.length; i++)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 250),
-                    margin: const EdgeInsets.symmetric(horizontal: 3),
-                    width: i == _index ? 18 : 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: i == _index ? AppColors.pomegranate : AppColors.line,
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                  ),
+                    );
+                  },
+                ),
+              ),
+              if (_ads.length > 1) ...[
+                const SizedBox(height: 8),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    for (var i = 0; i < _ads.length; i++)
+                      AnimatedContainer(
+                        duration: const Duration(milliseconds: 250),
+                        margin: const EdgeInsets.symmetric(horizontal: 3),
+                        width: i == _index ? 18 : 6,
+                        height: 6,
+                        decoration: BoxDecoration(
+                          color: i == _index ? AppColors.pomegranate : AppColors.line,
+                          borderRadius: BorderRadius.circular(3),
+                        ),
+                      ),
+                  ],
+                ),
               ],
-            ),
-          ],
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

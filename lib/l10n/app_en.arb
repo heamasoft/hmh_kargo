@@ -448,7 +448,7 @@
   "couponExpired": "Expired",
   "couponOnePerCustomer": "Each customer can use a coupon once.",
   "adsTitle": "Home ads",
-  "adsSub": "Images shown in the slider at the top of the Home page. Wide images (2:1) look best.",
+  "adsSub": "Images shown in the slider at the top of the Home page. Use 1600 × 800 px (2:1) so nothing is cut on any screen.",
   "adsEmpty": "No ads yet. Tap + to add an image.",
   "adsLinkTitle": "Link when tapped",
   "adsLinkHint": "https://… (optional)",

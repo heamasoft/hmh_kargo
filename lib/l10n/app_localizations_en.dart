@@ -1283,7 +1283,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get adsSub =>
-      'Images shown in the slider at the top of the Home page. Wide images (2:1) look best.';
+      'Images shown in the slider at the top of the Home page. Use 1600 × 800 px (2:1) so nothing is cut on any screen.';
 
   @override
   String get adsEmpty => 'No ads yet. Tap + to add an image.';

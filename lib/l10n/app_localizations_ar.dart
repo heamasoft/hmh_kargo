@@ -1271,7 +1271,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get adsSub =>
-      'صور تظهر في الشريط أعلى الصفحة الرئيسية. الصور العريضة (2:1) تبدو أفضل.';
+      'صور تظهر في الشريط أعلى الصفحة الرئيسية. استخدم مقاس 1600 × 800 بكسل (2:1) حتى لا يُقصّ شيء على أي شاشة.';
 
   @override
   String get adsEmpty => 'لا توجد إعلانات بعد. اضغط + لإضافة صورة.';

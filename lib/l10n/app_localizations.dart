@@ -2425,7 +2425,7 @@ abstract class AppLocalizations {
   /// No description provided for @adsSub.
   ///
   /// In en, this message translates to:
-  /// **'Images shown in the slider at the top of the Home page. Wide images (2:1) look best.'**
+  /// **'Images shown in the slider at the top of the Home page. Use 1600 × 800 px (2:1) so nothing is cut on any screen.'**
   String get adsSub;
 
   /// No description provided for @adsEmpty.
