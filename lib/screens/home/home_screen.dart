@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -80,8 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  static String _langShort(String code) =>
-      code == 'ar' ? 'AR' : (code == 'ku' ? 'KU' : 'EN');
+  static String _langShort(String code) => code == 'ar' ? 'AR' : (code == 'ku' ? 'KU' : 'EN');
 
   PopupMenuItem<String> _langMenuItem(String code, String name, String current) {
     final sel = code == current;
@@ -90,10 +90,10 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Row(
         children: [
           Expanded(
-            child: Text(name,
-                style: AppFonts.body(
-                    fontSize: 14,
-                    fontWeight: sel ? FontWeight.w700 : FontWeight.w600)),
+            child: Text(
+              name,
+              style: AppFonts.body(fontSize: 14, fontWeight: sel ? FontWeight.w700 : FontWeight.w600),
+            ),
           ),
           if (sel) const Icon(Icons.check, size: 18, color: AppColors.pomegranate),
         ],
@@ -111,52 +111,78 @@ class _HomeScreenState extends State<HomeScreen> {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false,
+      // Light status-bar icons over the navy header.
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
         child: ListView(
           padding: const EdgeInsets.only(bottom: 24),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 6, 18, 14),
-              child: Row(
-                children: [
-                  Image.asset('assets/logo/hmh_kargo_emblem.png', width: 34, height: 34),
-                  const SizedBox(width: 9),
-                  Text(l.appName, style: AppFonts.display(fontSize: 20)),
-                  const Spacer(),
-                  PopupMenuButton<String>(
-                    offset: const Offset(0, 42),
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                    onSelected: (code) =>
-                        context.read<LocaleProvider>().setLocale(Locale(code)),
-                    itemBuilder: (_) => [
-                      _langMenuItem('en', 'English', langCode),
-                      _langMenuItem('ar', 'العربية', langCode),
-                      _langMenuItem('ku', 'کوردی', langCode),
-                    ],
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: AppColors.cloud,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
+            // The brand header — the Me page's navy gradient, with the ads on it.
+            Container(
+              margin: const EdgeInsets.only(bottom: 18),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [AppColors.midnight, AppColors.midnight700],
+                ),
+                borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
+              ),
+              child: SafeArea(
+                bottom: false,
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
                       child: Row(
                         children: [
-                          const Icon(Icons.language, size: 15, color: AppColors.ink),
-                          const SizedBox(width: 5),
-                          Text(_langShort(langCode),
-                              style: AppFonts.body(fontSize: 11.5, fontWeight: FontWeight.w700)),
-                          const Icon(Icons.expand_more, size: 16, color: AppColors.muted),
+                          Image.asset('assets/logo/hmh_kargo_emblem_white.png', width: 34, height: 34),
+                          const SizedBox(width: 9),
+                          Text(l.appName, style: AppFonts.display(fontSize: 20, color: Colors.white)),
+                          const Spacer(),
+                          PopupMenuButton<String>(
+                            offset: const Offset(0, 42),
+                            color: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                            onSelected: (code) => context.read<LocaleProvider>().setLocale(Locale(code)),
+                            itemBuilder: (_) => [
+                              _langMenuItem('en', 'English', langCode),
+                              _langMenuItem('ar', 'العربية', langCode),
+                              _langMenuItem('ku', 'کوردی', langCode),
+                            ],
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(999),
+                                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.language, size: 15, color: Colors.white),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    _langShort(langCode),
+                                    style: AppFonts.body(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                  const Icon(Icons.expand_more, size: 16, color: AppColors.onDarkMuted),
+                                ],
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                    // Ads the admins publish (Me → Home ads); nothing shows without any.
+                    const AdsCarousel(),
+                  ],
+                ),
               ),
             ),
-            // Ads the admins publish (Me → Home ads); nothing shows without any.
-            const AdsCarousel(),
             SectionHeader(
               title: l.shopFavStores,
               action: l.seeAll,
@@ -216,10 +242,12 @@ class _HomeScreenState extends State<HomeScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(l.readyNowTitle, style: AppFonts.display(fontSize: 16)),
-                          Text(l.readyNowSub,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: AppFonts.body(fontSize: 11, color: AppColors.muted)),
+                          Text(
+                            l.readyNowSub,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFonts.body(fontSize: 11, color: AppColors.muted),
+                          ),
                         ],
                       ),
                     ),
@@ -235,11 +263,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Text(l.seeAll,
-                                style: AppFonts.body(
-                                    fontSize: 11.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white)),
+                            Text(
+                              l.seeAll,
+                              style: AppFonts.body(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                            ),
                             const SizedBox(width: 3),
                             const Icon(Icons.arrow_forward, size: 13, color: Colors.white),
                           ],
@@ -294,14 +325,11 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Widget> _buildTrending(AppLocalizations l, CatalogProvider catalog) {
     // Prefer curated trending; fall back to the full catalog so each store still
     // shows items even before anything is flagged as trending.
-    final source =
-        catalog.trending.isNotEmpty ? catalog.trending : catalog.allProducts;
+    final source = catalog.trending.isNotEmpty ? catalog.trending : catalog.allProducts;
 
     if (source.isEmpty) {
       if (catalog.loadingTrending || catalog.stores.isEmpty) {
-        return const [
-          SizedBox(height: 250, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-        ];
+        return const [SizedBox(height: 250, child: Center(child: CircularProgressIndicator(strokeWidth: 2)))];
       }
       return const [];
     }
@@ -314,9 +342,11 @@ class _HomeScreenState extends State<HomeScreen> {
     for (final s in catalog.stores) {
       if (!trendingStores.contains(s.id.toLowerCase())) continue;
       final items = source
-          .where((p) =>
-              (p.storeId != null && p.storeId == s.storeId) ||
-              p.store.toLowerCase() == s.name.toLowerCase())
+          .where(
+            (p) =>
+                (p.storeId != null && p.storeId == s.storeId) ||
+                p.store.toLowerCase() == s.name.toLowerCase(),
+          )
           .take(10)
           .toList();
       if (items.isNotEmpty) sections.add(MapEntry(s, items));
@@ -328,11 +358,13 @@ class _HomeScreenState extends State<HomeScreen> {
     final widgets = <Widget>[];
     for (final entry in sections) {
       widgets.add(const SizedBox(height: 22));
-      widgets.add(SectionHeader(
-        title: l.trendingOn(entry.key.name),
-        action: l.seeAll,
-        onAction: () => openStore(context, entry.key),
-      ));
+      widgets.add(
+        SectionHeader(
+          title: l.trendingOn(entry.key.name),
+          action: l.seeAll,
+          onAction: () => openStore(context, entry.key),
+        ),
+      );
       widgets.add(_trendingRow(entry.value));
     }
     return widgets;
@@ -359,7 +391,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-
 class _StoresGrid extends StatelessWidget {
   final List stores;
   final bool loading;
@@ -368,10 +399,7 @@ class _StoresGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (loading && stores.isEmpty) {
-      return const SizedBox(
-        height: 120,
-        child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-      );
+      return const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
     }
     // Wrap (not a fixed-aspect grid) so each card sizes to its own content —
     // it can never overflow, whatever the device width or text scale.
@@ -379,16 +407,18 @@ class _StoresGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: LayoutBuilder(
         builder: (context, c) {
-          const gap = 11.0;
+          const gap = 8.0;
           final w = (c.maxWidth - gap * 2) / 3;
           return Wrap(
             spacing: gap,
             runSpacing: gap,
             children: [
-              ...stores.map((s) => SizedBox(
-                    width: w,
-                    child: StoreTile(store: s, onTap: () => openStore(context, s)),
-                  )),
+              ...stores.map(
+                (s) => SizedBox(
+                  width: w,
+                  child: StoreTile(store: s, onTap: () => openStore(context, s)),
+                ),
+              ),
               SizedBox(width: w, child: const _MoreStoresTile()),
             ],
           );
@@ -398,7 +428,7 @@ class _StoresGrid extends StatelessWidget {
   }
 }
 
-/// The "+ More" card that matches [StoreTile]'s shape.
+/// The "+ More" tile, shaped like [StoreTile] (icon + name, no card).
 class _MoreStoresTile extends StatelessWidget {
   const _MoreStoresTile();
 
@@ -408,36 +438,35 @@ class _MoreStoresTile extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.read<ShellController>().goToTab(1),
       behavior: HitTestBehavior.opaque,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(8, 16, 8, 13),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.line),
-        ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 48,
-              height: 48,
+              width: StoreTile.iconSize,
+              height: StoreTile.iconSize,
               decoration: BoxDecoration(
                 color: AppColors.midnight,
-                borderRadius: BorderRadius.circular(15),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.midnight.withValues(alpha: 0.25),
+                    blurRadius: 12,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
               ),
               alignment: Alignment.center,
-              child: const Icon(Icons.add, color: Colors.white, size: 22),
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
-            const SizedBox(height: 10),
-            Text(l.moreStores,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700)),
-            const SizedBox(height: 2),
-            Text(l.twentyPlusStores,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppFonts.body(fontSize: 10, color: AppColors.muted)),
+            const SizedBox(height: 9),
+            Text(
+              l.moreStores,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
+            ),
           ],
         ),
       ),

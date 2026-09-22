@@ -19,6 +19,9 @@ class StoreResource extends JsonResource
             'base_url' => $this->base_url,
             'currency' => $this->currency,
             'region' => $this->region,
+            // The store's logo for the app's tiles (stores.logo_url). Null →
+            // the app uses the store website's own icon, then the glyph.
+            'logo_url' => $this->logo_url ?: null,
         ];
     }
 }
