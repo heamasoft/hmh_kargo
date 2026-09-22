@@ -446,17 +446,7 @@ class _MoreStoresTile extends StatelessWidget {
             Container(
               width: StoreTile.iconSize,
               height: StoreTile.iconSize,
-              decoration: BoxDecoration(
-                color: AppColors.midnight,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.midnight.withValues(alpha: 0.25),
-                    blurRadius: 12,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
+              decoration: StoreTile.iconDecoration(color: AppColors.midnight),
               alignment: Alignment.center,
               child: const Icon(Icons.add, color: Colors.white, size: 28),
             ),
@@ -466,6 +456,13 @@ class _MoreStoresTile extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              l.twentyPlusStores,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppFonts.body(fontSize: 10.5, color: AppColors.muted),
             ),
           ],
         ),

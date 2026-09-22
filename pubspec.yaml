@@ -135,6 +135,7 @@ flutter:
   # Logo assets (emblem, wordmark lockup, and generated variants).
   assets:
     - assets/logo/
+    - assets/stores/
 
   # To add assets to your application, add an assets section, like this:
   # assets:

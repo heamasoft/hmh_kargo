@@ -47,6 +47,22 @@ class Store {
 }
 
 extension StoreLogo on Store {
+  /// Logos shipped inside the app (assets/stores/), so the known stores show
+  /// theirs instantly — first launch and offline included. Taken from each
+  /// store's own site icon, or its official logo where the icon is tiny.
+  static const _bundled = {
+    'shein', 'trendyol', 'zara', 'mango', 'hm', 'karaca', 'polo',
+    'hepsiburada', 'bershka', 'stradivarius',
+  };
+
+  /// The bundled logo for this store, or null. A logo set in the dashboard
+  /// (logo_url) takes precedence over it.
+  String? get bundledIcon {
+    if (logoUrl != null) return null;
+    final key = id.toLowerCase();
+    return _bundled.contains(key) ? 'assets/stores/$key.png' : null;
+  }
+
   /// The picture for this store's tile: the dashboard logo if set, else the
   /// store website's own icon (fetched by Google's icon service at up to
   /// 256 px, from the main www. domain — m./shop. hosts give smaller icons).

@@ -63,6 +63,11 @@ class _AuthGateState extends State<AuthGate> {
   /// the page rather than popping in after it.
   void _precacheStoreIcons(List<Store> stores) {
     for (final s in stores.take(8)) {
+      final asset = s.bundledIcon;
+      if (asset != null) {
+        if (mounted) precacheImage(AssetImage(asset), context).catchError((_) {});
+        continue;
+      }
       final url = s.iconUrl;
       if (url != null) _precache(url);
     }
