@@ -69,8 +69,9 @@ class _AdsCarouselState extends State<AdsCarousel> {
   Widget build(BuildContext context) {
     if (_ads.isEmpty) return const SizedBox.shrink();
     final width = MediaQuery.sizeOf(context).width;
-    // A 2:1 banner, capped so it doesn't swallow a tablet screen.
-    final height = (width * 0.92 / 2).clamp(120.0, 260.0);
+    // A little taller than the 2:1 images (they fill it, trimming the plain
+    // side margins), capped so it doesn't swallow a tablet screen.
+    final height = (width * 0.92 / 1.7).clamp(150.0, 320.0);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 18),

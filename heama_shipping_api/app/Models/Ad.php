@@ -17,9 +17,13 @@ class Ad extends Model
         'sort' => 'integer',
     ];
 
-    /** The image's public web address. */
+    /**
+     * The image's web address — served by the API itself (AdController@image),
+     * not as a static file: on the live host Laravel's public/ folder is not
+     * the web root, so /uploads/ads/… answered 404 and the ad showed no image.
+     */
     public function imageUrl(): string
     {
-        return url($this->image_path);
+        return url('/api/v1/ads/image/'.basename($this->image_path));
     }
 }

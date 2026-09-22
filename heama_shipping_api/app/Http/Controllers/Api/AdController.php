@@ -9,12 +9,25 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 /**
- * Home-page ads. Images are saved straight under public/uploads/ads, so they
- * are served as plain files with no `storage:link` needed on the host.
+ * Home-page ads. Images are saved under public/uploads/ads and handed out by
+ * [image] — the API serves them itself, because on the live host Laravel's
+ * public/ folder is not the web root (the static /uploads/… URL was a 404).
  */
 class AdController extends Controller
 {
     private const DIR = 'uploads/ads';
+
+    /** GET /ads/image/{name} — the image file itself (public, cached a day). */
+    public function image(string $name)
+    {
+        // basename() + the route's pattern keep this to files in the ads folder.
+        $path = public_path(self::DIR.'/'.basename($name));
+        abort_unless(is_file($path), 404);
+
+        return response()->file($path, [
+            'Cache-Control' => 'public, max-age=86400',
+        ]);
+    }
 
     /** GET /ads — the active ads, in display order (public). */
     public function index(): JsonResponse

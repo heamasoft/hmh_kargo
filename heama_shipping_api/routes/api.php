@@ -76,6 +76,8 @@ Route::prefix('v1')->group(function () {
     Route::get('/stores', [StoreController::class, 'index']);
     // Home-page ads — public, so guests see them too.
     Route::get('/ads', [AdController::class, 'index']);
+    Route::get('/ads/image/{name}', [AdController::class, 'image'])
+        ->where('name', '[A-Za-z0-9]+\.(jpg|jpeg|png|webp)');
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/trending', [ProductController::class, 'trending']);
     Route::get('/products/{product:key}', [ProductController::class, 'show']);
