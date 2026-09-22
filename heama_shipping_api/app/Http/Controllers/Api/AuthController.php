@@ -35,12 +35,7 @@ class AuthController extends Controller
         // A password reset targets an EXISTING account. Refuse unknown numbers so
         // the app can prompt the user to register instead of silently creating one.
         if (($data['purpose'] ?? 'login') === 'reset') {
-            $column = $data['channel'] === 'email' ? 'email' : 'phone';
-            $normalized = $data['channel'] === 'email'
-                ? strtolower(trim($data['identifier']))
-                : preg_replace('/\D+/', '', $data['identifier']);
-
-            if (! User::where($column, $normalized)->exists()) {
+            if (! $this->userFor($data['identifier'], $data['channel'])) {
                 return response()->json([
                     'message' => 'This number is not registered yet.',
                     'not_registered' => true,
@@ -101,8 +96,8 @@ class AuthController extends Controller
             'password' => ['required', 'string'],
         ]);
 
-        $phone = preg_replace('/\D+/', '', $data['phone']);
-        $user = User::where('phone', $phone)->first();
+        // However the number was typed: 750…, 0750…, +964 750…
+        $user = User::findByPhone($data['phone']);
 
         if (! $user || $user->password === null || ! Hash::check($data['password'], $user->password)) {
             throw ValidationException::withMessages([
@@ -200,13 +195,17 @@ class AuthController extends Controller
     /** The existing account behind a phone / email, if it is blocked. */
     private function blockedUserFor(string $identifier, string $channel): ?User
     {
-        $column = $channel === 'email' ? 'email' : 'phone';
-        $normalized = $channel === 'email'
-            ? strtolower(trim($identifier))
-            : preg_replace('/\D+/', '', $identifier);
-        $user = User::where($column, $normalized)->first();
+        $user = $this->userFor($identifier, $channel);
 
         return $user && $user->isBlocked() ? $user : null;
+    }
+
+    /** The account behind an email, or a phone however it was written. */
+    private function userFor(string $identifier, string $channel): ?User
+    {
+        return $channel === 'email'
+            ? User::where('email', strtolower(trim($identifier)))->first()
+            : User::findByPhone($identifier);
     }
 
     private function blockedResponse(): JsonResponse
@@ -220,14 +219,15 @@ class AuthController extends Controller
     private function findOrCreateUser(array $data): User
     {
         $channel = $data['channel'];
+        // New numbers are saved like the existing ones (07501234567).
         $normalized = $channel === 'email'
             ? strtolower(trim($data['identifier']))
-            : preg_replace('/\D+/', '', $data['identifier']);
+            : User::canonicalPhone($data['identifier']);
 
         $column = $channel === 'email' ? 'email' : 'phone';
 
         return DB::transaction(function () use ($column, $normalized, $data, $channel) {
-            $user = User::where($column, $normalized)->first();
+            $user = $this->userFor($data['identifier'], $channel);
 
             if (! $user) {
                 $user = User::create([

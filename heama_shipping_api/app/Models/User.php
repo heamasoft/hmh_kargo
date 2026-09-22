@@ -61,6 +61,50 @@ class User extends Authenticatable
     }
 
     /**
+     * Every way an Iraqi mobile number is written, so a login matches however it
+     * was typed or stored. The app shows "+964" and the hint "750 123 4567", so
+     * people type 7501234567 — while accounts are stored as 07501234567 (and
+     * some as 9647501234567). Comparing the raw digits made correct numbers
+     * fail with "Incorrect phone number or password".
+     *
+     * @return list<string>
+     */
+    public static function phoneVariants(string $raw): array
+    {
+        $d = preg_replace('/\D+/', '', $raw);
+        if (str_starts_with($d, '00964')) {
+            $d = substr($d, 5);
+        } elseif (str_starts_with($d, '964')) {
+            $d = substr($d, 3);
+        }
+        $local = ltrim($d, '0'); // 7501234567
+        if ($local === '') {
+            return [$d];
+        }
+
+        return array_values(array_unique([$d, $local, '0'.$local, '964'.$local]));
+    }
+
+    /** The one way new numbers are saved: 07501234567, like existing ones. */
+    public static function canonicalPhone(string $raw): string
+    {
+        $d = preg_replace('/\D+/', '', $raw);
+        if (str_starts_with($d, '00964')) {
+            $d = substr($d, 5);
+        } elseif (str_starts_with($d, '964')) {
+            $d = substr($d, 3);
+        }
+        $local = ltrim($d, '0');
+
+        return $local === '' ? $d : '0'.$local;
+    }
+
+    public static function findByPhone(string $raw): ?self
+    {
+        return static::whereIn('phone', static::phoneVariants($raw))->first();
+    }
+
+    /**
      * Blocked (deactivated) accounts can't log in or use the API. The flag is
      * customer_status.blocked_at — shared with the admin dashboard, which sets
      * and clears it; no row means active.
