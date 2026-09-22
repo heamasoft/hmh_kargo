@@ -1277,4 +1277,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get couponOnePerCustomer => 'Each customer can use a coupon once.';
+
+  @override
+  String get adsTitle => 'Home ads';
+
+  @override
+  String get adsSub =>
+      'Images shown in the slider at the top of the Home page. Wide images (2:1) look best.';
+
+  @override
+  String get adsEmpty => 'No ads yet. Tap + to add an image.';
+
+  @override
+  String get adsLinkTitle => 'Link when tapped';
+
+  @override
+  String get adsLinkHint => 'https://… (optional)';
+
+  @override
+  String get adsPublish => 'Publish';
+
+  @override
+  String get adsPublished => 'Ad published';
+
+  @override
+  String get adsDeleteConfirm =>
+      'Delete this ad? It will disappear from the Home page.';
+
+  @override
+  String get adsDelete => 'Delete';
+
+  @override
+  String get adsHidden => 'Hidden';
 }

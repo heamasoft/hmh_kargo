@@ -1284,4 +1284,36 @@ class AppLocalizationsKu extends AppLocalizations {
   @override
   String get couponOnePerCustomer =>
       'هەر کڕیارێک دەتوانێت یەک جار کوپۆنێک بەکاربهێنێت.';
+
+  @override
+  String get adsTitle => 'ڕیکلامەکانی پەڕەی سەرەکی';
+
+  @override
+  String get adsSub =>
+      'ئەو وێنانەی لە سلایدەری سەرەوەی پەڕەی سەرەکی پیشان دەدرێن. وێنەی پان (2:1) باشترە.';
+
+  @override
+  String get adsEmpty => 'هێشتا هیچ ڕیکلامێک نییە. + دابگرە بۆ زیادکردنی وێنە.';
+
+  @override
+  String get adsLinkTitle => 'بەستەر کاتێک دەست لێ دەدرێت';
+
+  @override
+  String get adsLinkHint => 'https://… (ئارەزوومەندانە)';
+
+  @override
+  String get adsPublish => 'بڵاوکردنەوە';
+
+  @override
+  String get adsPublished => 'ڕیکلام بڵاو کرایەوە';
+
+  @override
+  String get adsDeleteConfirm =>
+      'ئەم ڕیکلامە بسڕدرێتەوە؟ لە پەڕەی سەرەکی نامێنێت.';
+
+  @override
+  String get adsDelete => 'سڕینەوە';
+
+  @override
+  String get adsHidden => 'شاراوە';
 }

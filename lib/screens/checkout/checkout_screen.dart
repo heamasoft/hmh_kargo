@@ -229,8 +229,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         address,
         paymentMethod: method,
         customerId: _customer?.id,
-        // Checked again by the server, which spends its one use with the order.
-        couponCode: context.read<CartProvider>().coupon?.code,
       );
       if (!mounted) return;
       context.read<WalletProvider>().setBalances(iqd: balances['IQD'], usd: balances['USD']);
@@ -288,7 +286,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     // A mixed cart is checked out as one order per currency; show each total.
     final total = cart.totals.isEmpty
         ? '—'
-        : cart.totals.map((t) => formatMoney(cart.payableFor(t), t.currency, iqdLabel: l.iqd)).join('  +  ');
+        : cart.totals.map((t) => formatMoney(t.totalIqd, t.currency, iqdLabel: l.iqd)).join('  +  ');
     final walletLine =
         '${formatMoney(wallet.balanceIqd, 'IQD', iqdLabel: l.iqd)} · ${formatMoney(wallet.balanceUsd, 'USD')}';
 

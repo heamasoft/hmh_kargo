@@ -446,5 +446,15 @@
   "couponActive": "Active",
   "couponOff": "Off",
   "couponExpired": "Expired",
-  "couponOnePerCustomer": "Each customer can use a coupon once."
+  "couponOnePerCustomer": "Each customer can use a coupon once.",
+  "adsTitle": "Home ads",
+  "adsSub": "Images shown in the slider at the top of the Home page. Wide images (2:1) look best.",
+  "adsEmpty": "No ads yet. Tap + to add an image.",
+  "adsLinkTitle": "Link when tapped",
+  "adsLinkHint": "https://… (optional)",
+  "adsPublish": "Publish",
+  "adsPublished": "Ad published",
+  "adsDeleteConfirm": "Delete this ad? It will disappear from the Home page.",
+  "adsDelete": "Delete",
+  "adsHidden": "Hidden"
 }

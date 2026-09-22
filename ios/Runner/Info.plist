@@ -53,6 +53,10 @@
 		     TestFlight/App Store won't ask the export-compliance question. -->
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
+		<!-- Admins pick an image from Photos to publish as a home-page ad.
+		     Required by App Review for any app that opens the photo library. -->
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>Choose an image to publish as an ad on the HMH KARGO home page.</string>
 		<!-- Schemes the app opens externally (store links, WhatsApp support,
 		     phone dialer, email) so iOS lets url_launcher open them. -->
 		<key>LSApplicationQueriesSchemes</key>

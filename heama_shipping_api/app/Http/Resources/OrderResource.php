@@ -23,9 +23,6 @@ class OrderResource extends JsonResource
             'items_total_iqd' => (float) $this->items_total_iqd,
             'shipping_iqd' => (float) $this->shipping_iqd,
             'service_fee_iqd' => (float) $this->service_fee_iqd,
-            // Coupon savings on the items (0 without one), already off total_iqd.
-            'discount_iqd' => (float) ($this->discount_iqd ?? 0),
-            'coupon_code' => $this->coupon_code,
             'total_iqd' => (float) $this->total_iqd,
             'payment_method' => $this->payment_method,
             // Payment state the app renders as a badge:

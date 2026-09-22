@@ -16,11 +16,9 @@ import '../../providers/wallet_provider.dart';
 import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
-import '../../utils/format.dart';
-import '../../utils/link_text.dart';
+import '../../widgets/ads_carousel.dart';
 import '../../widgets/heama_toast.dart';
 import '../../widgets/product_card.dart';
-import '../../widgets/search_pill.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
 import '../../widgets/store_tile.dart';
@@ -103,66 +101,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  /// Paste a product link from the home search and fetch it (opens the item in
-  /// its store's WebView, which captures it — the same flow as the store bar).
-  Future<void> _pasteLink() async {
-    final l = AppLocalizations.of(context);
-    final field = TextEditingController();
-    final url = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l.productLink, style: AppFonts.display(fontSize: 17)),
-        content: TextField(
-          controller: field,
-          autofocus: true,
-          keyboardType: TextInputType.url,
-          style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
-          decoration: const InputDecoration(hintText: 'https://…', isDense: true),
-          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel,
-                style: AppFonts.body(fontSize: 13, color: AppColors.muted)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, field.text.trim()),
-            child: Text(l.fetchDetails,
-                style: AppFonts.body(
-                    fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
-          ),
-        ],
-      ),
-    );
-    if (!mounted || url == null || url.isEmpty) return;
-    // A share button often copies a whole message with the link inside it, so
-    // take the URL out rather than rejecting the paste.
-    var u = linkFromPaste(url);
-    if (!u.startsWith('http')) u = 'https://$u';
-    final uri = Uri.tryParse(u);
-    if (uri == null || !uri.hasAuthority) return;
-
-    final stores = context.read<CatalogProvider>().stores;
-    var host = uri.host.replaceFirst('www.', '');
-    // Trendyol's app shares short `ty.gl` links, which name no store.
-    if (host.toLowerCase() == 'ty.gl') host = 'trendyol.com';
-    Store? store;
-    for (final s in stores) {
-      final sHost =
-          (Uri.tryParse(s.url)?.host ?? '').replaceFirst('www.', '').replaceFirst('m.', '');
-      final key = sHost.isEmpty ? '' : sHost.split('.').first;
-      if (key.isNotEmpty && host.contains(key)) {
-        store = s;
-        break;
-      }
-    }
-    store ??= stores.isNotEmpty ? stores.first : null;
-    if (store != null) openProductInStore(context, store, u);
-  }
-
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
@@ -217,17 +155,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 ],
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 2, 18, 16),
-              child: const _WalletChip(),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-              child: SearchPill(
-                hint: l.searchProductsHint,
-                onTap: _pasteLink,
-              ),
-            ),
+            // Ads the admins publish (Me → Home ads); nothing shows without any.
+            const AdsCarousel(),
             SectionHeader(
               title: l.shopFavStores,
               action: l.seeAll,
@@ -430,79 +359,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 }
 
-class _WalletChip extends StatelessWidget {
-  const _WalletChip();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final w = context.watch<WalletProvider>();
-    return Container(
-      padding: const EdgeInsets.fromLTRB(18, 15, 18, 16),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.midnight, AppColors.midnight700]),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l.heamaWallet,
-              style: AppFonts.body(
-                  fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.onDarkMuted)),
-          const SizedBox(height: 12),
-          // Both balances inside the same card; tap one to open its ledger.
-          Row(
-            children: [
-              Expanded(
-                child: _bal('IQD', formatIqd(w.balanceIqd),
-                    onTap: () => Navigator.pushNamed(context, Routes.walletLedger,
-                        arguments: 'IQD')),
-              ),
-              Container(
-                width: 1,
-                height: 36,
-                color: const Color(0x1FFFFFFF),
-                margin: const EdgeInsets.symmetric(horizontal: 14),
-              ),
-              Expanded(
-                child: _bal('USD', formatMoney(w.balanceUsd, 'USD'),
-                    onTap: () => Navigator.pushNamed(context, Routes.walletLedger,
-                        arguments: 'USD')),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _bal(String code, String amount, {VoidCallback? onTap}) => GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(code,
-                    style: AppFonts.body(
-                        fontSize: 10.5, fontWeight: FontWeight.w700, color: AppColors.onDarkMuted)),
-                if (onTap != null) ...[
-                  const SizedBox(width: 3),
-                  const Icon(Icons.chevron_right, size: 14, color: AppColors.onDarkMuted),
-                ],
-              ],
-            ),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              alignment: Alignment.centerLeft,
-              child: Text(amount, style: AppFonts.display(fontSize: 23, color: Colors.white)),
-            ),
-          ],
-        ),
-      );
-}
 
 class _StoresGrid extends StatelessWidget {
   final List stores;

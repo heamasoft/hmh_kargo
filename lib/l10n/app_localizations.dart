@@ -2415,6 +2415,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Each customer can use a coupon once.'**
   String get couponOnePerCustomer;
+
+  /// No description provided for @adsTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Home ads'**
+  String get adsTitle;
+
+  /// No description provided for @adsSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Images shown in the slider at the top of the Home page. Wide images (2:1) look best.'**
+  String get adsSub;
+
+  /// No description provided for @adsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No ads yet. Tap + to add an image.'**
+  String get adsEmpty;
+
+  /// No description provided for @adsLinkTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Link when tapped'**
+  String get adsLinkTitle;
+
+  /// No description provided for @adsLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'https://… (optional)'**
+  String get adsLinkHint;
+
+  /// No description provided for @adsPublish.
+  ///
+  /// In en, this message translates to:
+  /// **'Publish'**
+  String get adsPublish;
+
+  /// No description provided for @adsPublished.
+  ///
+  /// In en, this message translates to:
+  /// **'Ad published'**
+  String get adsPublished;
+
+  /// No description provided for @adsDeleteConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete this ad? It will disappear from the Home page.'**
+  String get adsDeleteConfirm;
+
+  /// No description provided for @adsDelete.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get adsDelete;
+
+  /// No description provided for @adsHidden.
+  ///
+  /// In en, this message translates to:
+  /// **'Hidden'**
+  String get adsHidden;
 }
 
 class _AppLocalizationsDelegate

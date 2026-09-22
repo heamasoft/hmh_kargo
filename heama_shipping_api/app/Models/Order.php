@@ -10,8 +10,7 @@ class Order extends Model
 {
     protected $fillable = [
         'code', 'user_id', 'source', 'status', 'currency', 'items_total_iqd', 'shipping_iqd',
-        'service_fee_iqd', 'discount_iqd', 'discount_percent', 'coupon_code', 'total_iqd',
-        'payment_method', 'address', 'placed_at',
+        'service_fee_iqd', 'total_iqd', 'payment_method', 'address', 'placed_at',
     ];
 
     protected $casts = [
@@ -19,8 +18,6 @@ class Order extends Model
         'items_total_iqd' => 'decimal:2',
         'shipping_iqd' => 'decimal:2',
         'service_fee_iqd' => 'decimal:2',
-        'discount_iqd' => 'decimal:2',
-        'discount_percent' => 'decimal:2',
         'total_iqd' => 'decimal:2',
         'placed_at' => 'datetime',
     ];

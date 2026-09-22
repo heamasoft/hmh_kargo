@@ -254,13 +254,13 @@ class _MenuList extends StatelessWidget {
         soon: false,
         onTap: () => Navigator.pushNamed(context, Routes.account),
       ),
-      // Admins only: create and manage discount codes.
+      // Admins only: the images in the Home page's ad slider.
       if (isAdmin)
         (
-          icon: Icons.local_offer_outlined,
-          label: l.coupons,
+          icon: Icons.campaign_outlined,
+          label: l.adsTitle,
           soon: false,
-          onTap: () => Navigator.pushNamed(context, Routes.coupons),
+          onTap: () => Navigator.pushNamed(context, Routes.ads),
         ),
       (
         icon: Icons.inventory_2_outlined,

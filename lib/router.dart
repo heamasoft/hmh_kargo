@@ -25,7 +25,7 @@ import 'screens/product/product_detail_screen.dart';
 import 'screens/saved/saved_screen.dart';
 import 'screens/shell/main_shell.dart';
 import 'screens/storefront/storefront_screen.dart';
-import 'screens/admin/coupons_screen.dart';
+import 'screens/admin/ads_screen.dart';
 import 'screens/tracking/tracking_screen.dart';
 import 'screens/webstore/web_store_screen.dart';
 
@@ -56,7 +56,7 @@ class Routes {
   static const walletLedger = '/wallet-ledger';
   static const topUp = '/top-up';
   static const about = '/about';
-  static const coupons = '/admin/coupons';
+  static const ads = '/admin/ads';
   static const approvals = '/approvals';
   static const stock = '/stock';
   static const sheinCart = '/shein-cart';
@@ -138,8 +138,8 @@ class Routes {
       case about:
         page = const AboutScreen();
         break;
-      case coupons:
-        page = const CouponsScreen();
+      case ads:
+        page = const AdsScreen();
         break;
       case approvals:
         page = const ApprovalsScreen();

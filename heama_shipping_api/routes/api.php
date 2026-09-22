@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdController;
 use App\Http\Controllers\Api\AddressController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\ApprovalController;
@@ -7,7 +8,6 @@ use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CaptureController;
 use App\Http\Controllers\Api\CartController;
-use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
@@ -74,6 +74,8 @@ Route::prefix('v1')->group(function () {
         ]);
     });
     Route::get('/stores', [StoreController::class, 'index']);
+    // Home-page ads — public, so guests see them too.
+    Route::get('/ads', [AdController::class, 'index']);
     Route::get('/products', [ProductController::class, 'index']);
     Route::get('/trending', [ProductController::class, 'trending']);
     Route::get('/products/{product:key}', [ProductController::class, 'show']);
@@ -154,13 +156,11 @@ Route::prefix('v1')->group(function () {
         // Admin dashboard (gated on is_admin inside the controller)
         Route::get('/admin/notifications', [AdminController::class, 'notifications']);
         Route::get('/admin/customers', [AdminController::class, 'customers']);
-        Route::get('/admin/coupons', [CouponController::class, 'index']);
-        Route::post('/admin/coupons', [CouponController::class, 'store']);
-        Route::patch('/admin/coupons/{coupon}', [CouponController::class, 'update']);
-
-        // Coupons: may this customer use a code? (spent when the order is placed)
-        Route::post('/coupons/check', [CouponController::class, 'check'])
-            ->middleware('throttle:20,1');
+        // Home-page ads (images) — admins upload, switch on/off, delete.
+        Route::get('/admin/ads', [AdController::class, 'adminIndex']);
+        Route::post('/admin/ads', [AdController::class, 'store']);
+        Route::patch('/admin/ads/{ad}', [AdController::class, 'update']);
+        Route::delete('/admin/ads/{ad}', [AdController::class, 'destroy']);
         Route::post('/admin/notifications/{notification}/read', [AdminController::class, 'markRead']);
     });
 });

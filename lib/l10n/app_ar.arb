@@ -412,5 +412,15 @@
   "couponActive": "فعّال",
   "couponOff": "متوقف",
   "couponExpired": "منتهي",
-  "couponOnePerCustomer": "يمكن لكل عميل استخدام الكوبون مرة واحدة."
+  "couponOnePerCustomer": "يمكن لكل عميل استخدام الكوبون مرة واحدة.",
+  "adsTitle": "إعلانات الصفحة الرئيسية",
+  "adsSub": "صور تظهر في الشريط أعلى الصفحة الرئيسية. الصور العريضة (2:1) تبدو أفضل.",
+  "adsEmpty": "لا توجد إعلانات بعد. اضغط + لإضافة صورة.",
+  "adsLinkTitle": "رابط عند الضغط",
+  "adsLinkHint": "https://… (اختياري)",
+  "adsPublish": "نشر",
+  "adsPublished": "تم نشر الإعلان",
+  "adsDeleteConfirm": "حذف هذا الإعلان؟ سيختفي من الصفحة الرئيسية.",
+  "adsDelete": "حذف",
+  "adsHidden": "مخفي"
 }

@@ -61,7 +61,6 @@ class _CartScreenState extends State<CartScreen> {
                       _empty(l)
                     else ...[
                       ...cart.items.map((item) => _CartRow(item: item)),
-                      const _CouponBox(),
                       _Summary(cart: cart),
                     ],
                   ],
@@ -208,7 +207,7 @@ class _CartScreenState extends State<CartScreen> {
     final total = cart.totals.isEmpty
         ? '—'
         : cart.totals
-            .map((t) => formatMoney(cart.payableFor(t), t.currency, iqdLabel: l.iqd))
+            .map((t) => formatMoney(t.totalIqd, t.currency, iqdLabel: l.iqd))
             .join('  +  ');
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
@@ -494,8 +493,6 @@ class _Summary extends StatelessWidget {
             line(l.shippingEst, money(t.shippingIqd, t.currency)),
             // No service fee is charged for now — the line only shows once one is.
             if (t.serviceFeeIqd > 0) line(l.serviceFee, money(t.serviceFeeIqd, t.currency)),
-            if (cart.coupon != null && cart.discountFor(t) > 0)
-              line(l.couponDiscount(cart.coupon!.code), '− ${money(cart.discountFor(t), t.currency)}'),
             Container(
               margin: const EdgeInsets.only(top: 2),
               padding: const EdgeInsets.only(top: 12),
@@ -508,7 +505,7 @@ class _Summary extends StatelessWidget {
                     child: Text(l.total,
                         style: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w600)),
                   ),
-                  Text(money(cart.payableFor(t), t.currency), style: AppFonts.display(fontSize: 20)),
+                  Text(money(t.totalIqd, t.currency), style: AppFonts.display(fontSize: 20)),
                 ],
               ),
             ),
@@ -535,126 +532,3 @@ class _Summary extends StatelessWidget {
   }
 }
 
-/// "Have a coupon?" — type a code, the server checks it, and the saving shows
-/// in the summary below. The one use is only spent when the order is placed.
-class _CouponBox extends StatefulWidget {
-  const _CouponBox();
-
-  @override
-  State<_CouponBox> createState() => _CouponBoxState();
-}
-
-class _CouponBoxState extends State<_CouponBox> {
-  final _code = TextEditingController();
-  bool _checking = false;
-  String? _error;
-
-  @override
-  void dispose() {
-    _code.dispose();
-    super.dispose();
-  }
-
-  Future<void> _apply() async {
-    final code = _code.text.trim();
-    if (code.isEmpty || _checking) return;
-    FocusScope.of(context).unfocus();
-    setState(() {
-      _checking = true;
-      _error = null;
-    });
-    final err = await context.read<CartProvider>().applyCoupon(code);
-    if (!mounted) return;
-    setState(() {
-      _checking = false;
-      _error = err;
-    });
-    if (err == null) _code.clear();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final coupon = context.watch<CartProvider>().coupon;
-
-    return Container(
-      margin: const EdgeInsets.fromLTRB(18, 6, 18, 4),
-      padding: const EdgeInsets.fromLTRB(14, 12, 10, 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: coupon != null ? AppColors.green : AppColors.line),
-      ),
-      child: coupon != null
-          ? Row(
-              children: [
-                const Icon(Icons.local_offer, size: 18, color: AppColors.green),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(l.couponApplied(coupon.code, coupon.percentLabel),
-                      style: AppFonts.body(
-                          fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.green)),
-                ),
-                TextButton(
-                  onPressed: () => context.read<CartProvider>().removeCoupon(),
-                  child: Text(l.couponRemove,
-                      style: AppFonts.body(fontSize: 12, color: AppColors.muted)),
-                ),
-              ],
-            )
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.local_offer_outlined, size: 18, color: AppColors.muted),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: TextField(
-                        controller: _code,
-                        textCapitalization: TextCapitalization.characters,
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _apply(),
-                        style: AppFonts.body(fontSize: 13.5, fontWeight: FontWeight.w700),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          filled: false,
-                          hintText: l.couponHave,
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: _apply,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.midnight,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: _checking
-                            ? const SizedBox(
-                                width: 14,
-                                height: 14,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                            : Text(l.couponApply,
-                                style: AppFonts.body(
-                                    fontSize: 12.5, fontWeight: FontWeight.w700, color: Colors.white)),
-                      ),
-                    ),
-                  ],
-                ),
-                if (_error != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 6, left: 28),
-                    child: Text(_error!,
-                        style: AppFonts.body(
-                            fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.pomegranate)),
-                  ),
-              ],
-            ),
-    );
-  }
-}

@@ -5,42 +5,11 @@ import '../models/captured_product.dart';
 import '../models/product.dart';
 import '../services/api_client.dart';
 import '../services/cart_api.dart';
-import '../services/coupon_api.dart';
 
 /// Server-backed cart. Every mutation returns the fresh cart from the API.
 class CartProvider extends ChangeNotifier {
-  CartProvider(ApiClient client)
-      : _api = CartApi(client),
-        _coupons = CouponApi(client);
+  CartProvider(ApiClient client) : _api = CartApi(client);
   final CartApi _api;
-  final CouponApi _coupons;
-
-  /// The discount code the shopper applied, shown off the cart's total and
-  /// sent with the order (the server checks it again and spends its one use).
-  Coupon? coupon;
-
-  /// Checks [code] and keeps it on the cart. Returns null, or why it can't
-  /// be used (unknown, expired, already used…).
-  Future<String?> applyCoupon(String code, {int? customerId}) async {
-    try {
-      coupon = await _coupons.check(code, customerId: customerId);
-      notifyListeners();
-      return null;
-    } on ApiException catch (e) {
-      return e.message;
-    }
-  }
-
-  void removeCoupon() {
-    coupon = null;
-    notifyListeners();
-  }
-
-  /// The coupon's saving on one currency's items (0 without a coupon).
-  num discountFor(CartTotals t) => coupon?.discountOn(t.itemsTotalIqd, t.currency) ?? 0;
-
-  /// What that currency's order will cost after the coupon.
-  num payableFor(CartTotals t) => t.totalIqd - discountFor(t);
 
   Cart _cart = const Cart();
   bool loading = false;
@@ -90,7 +59,6 @@ class CartProvider extends ChangeNotifier {
   /// Clears local state after a successful order (server already emptied it).
   void clearLocal() {
     _cart = const Cart();
-    coupon = null; // spent with the order
     notifyListeners();
   }
 

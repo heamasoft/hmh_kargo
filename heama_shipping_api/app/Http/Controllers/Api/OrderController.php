@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\AdminNotification;
 use App\Models\Cart;
-use App\Models\Coupon;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\InsufficientBalanceException;
@@ -58,8 +57,6 @@ class OrderController extends Controller
             'address.phone' => ['required', 'string', 'max:40'],
             // Admin only: place the order FOR this customer, as if they had.
             'customer_id' => ['nullable', 'integer', 'exists:users,id'],
-            // A discount code; checked again here and spent with the order.
-            'coupon_code' => ['nullable', 'string', 'max:40'],
         ]);
 
         $user = $request->user();
@@ -74,11 +71,6 @@ class OrderController extends Controller
         }
         $onBehalf = $buyer->id !== $user->id;
 
-        // The customer's own one use of the code (422 with the reason if not).
-        $coupon = ! empty($data['coupon_code'])
-            ? Coupon::usableBy($data['coupon_code'], $buyer)
-            : null;
-
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty.'], 422);
         }
@@ -88,7 +80,7 @@ class OrderController extends Controller
         $groups = $cart->items->groupBy(fn ($i) => strtoupper($i->charge_currency ?: 'IQD'));
 
         try {
-            $orders = DB::transaction(function () use ($buyer, $onBehalf, $coupon, $cart, $groups, $data) {
+            $orders = DB::transaction(function () use ($buyer, $onBehalf, $cart, $groups, $data) {
                 $made = [];
                 foreach ($groups as $currency => $items) {
                     $itemsTotal = (float) $items->sum(fn ($i) => (float) $i->iqd_price * (int) $i->qty);
@@ -98,10 +90,6 @@ class OrderController extends Controller
                         $currency,
                         $this->pricing->serviceFeeForItems($items, $itemsTotal, $currency),
                     );
-
-                    // The coupon takes its percentage off the ITEMS (not shipping,
-                    // which is re-priced later), in each currency's own order.
-                    $discount = $coupon ? $coupon->discountOn($itemsTotal, $currency) : 0.0;
 
                     $order = Order::create([
                         'code' => 'PENDING',
@@ -114,10 +102,7 @@ class OrderController extends Controller
                         'items_total_iqd' => $breakdown['items_total'],
                         'shipping_iqd' => $breakdown['shipping'],
                         'service_fee_iqd' => $breakdown['service_fee'],
-                        'discount_iqd' => $discount,
-                        'discount_percent' => $coupon ? $coupon->percent : 0,
-                        'coupon_code' => $coupon?->code,
-                        'total_iqd' => $breakdown['total'] - $discount,
+                        'total_iqd' => $breakdown['total'],
                         'payment_method' => $data['payment_method'],
                         'address' => $data['address'],
                         'placed_at' => now(),
@@ -199,24 +184,6 @@ class OrderController extends Controller
                     $made[] = $order;
                 }
 
-                // Spend the one use. The unique coupon+customer key refuses a second
-                // one even if two checkouts race — and rolls this order back.
-                if ($coupon) {
-                    try {
-                        DB::table('coupon_redemptions')->insert([
-                            'coupon_id' => $coupon->id,
-                            'user_id' => $buyer->id,
-                            'order_id' => $made[0]->id ?? null,
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]);
-                    } catch (\Illuminate\Database\QueryException $e) {
-                        throw \Illuminate\Validation\ValidationException::withMessages([
-                            'coupon_code' => ['You have already used this coupon.'],
-                        ]);
-                    }
-                }
-
                 $cart->items()->delete();
 
                 return $made;
@@ -292,11 +259,7 @@ class OrderController extends Controller
             ->where('item_id', $item->id)->where('status', 'pending')
             ->value('old_shipping');
         $paidShipping = $pendingOld !== null ? (float) $pendingOld : (float) ($item->shipping ?? 0);
-        // With a coupon the customer paid the item LESS its percentage — refund
-        // what was actually paid, not the full price.
-        $itemPaid = (float) $item->iqd_price * (int) $item->qty;
-        $itemPaid -= $this->couponDiscount($order, $itemPaid, $currency);
-        $refund = round($itemPaid + $paidShipping, 2);
+        $refund = round((float) $item->iqd_price * (int) $item->qty + $paidShipping, 2);
 
         DB::transaction(function () use ($order, $item, $user, $currency, $refund) {
             // Close any open shipping approval on this item so the admin side
@@ -314,14 +277,11 @@ class OrderController extends Controller
             $itemsTotal = (float) $remaining->sum(fn ($i) => (float) $i->iqd_price * (int) $i->qty);
             $shipping = round((float) $remaining->sum(fn ($i) => (float) ($i->shipping ?? 0)), 2);
             $fee = $this->pricing->serviceFeeForItems($remaining, $itemsTotal, $currency);
-            // A coupon's percentage still applies to the items that are left.
-            $discount = $this->couponDiscount($order, $itemsTotal, $currency);
             $order->update([
                 'items_total_iqd' => $itemsTotal,
                 'shipping_iqd' => $shipping,
                 'service_fee_iqd' => $fee,
-                'discount_iqd' => $discount,
-                'total_iqd' => $itemsTotal - $discount + $shipping + $fee,
+                'total_iqd' => $itemsTotal + $shipping + $fee,
             ]);
 
             if ($refund > 0) {
@@ -420,17 +380,5 @@ class OrderController extends Controller
             'data' => (new OrderResource($order))->resolve($request),
             'wallet' => $this->wallet->balances($user),
         ]);
-    }
-
-    /** The order's coupon percentage applied to [amount] (0 without a coupon). */
-    private function couponDiscount(Order $order, float $amount, string $currency): float
-    {
-        $pct = (float) ($order->discount_percent ?? 0);
-        if ($pct <= 0 || $amount <= 0) {
-            return 0.0;
-        }
-        $d = $amount * $pct / 100;
-
-        return strtoupper($currency) === 'USD' ? round($d, 2) : round($d);
     }
 }

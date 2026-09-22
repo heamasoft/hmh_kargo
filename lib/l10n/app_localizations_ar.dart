@@ -1265,4 +1265,35 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get couponOnePerCustomer => 'يمكن لكل عميل استخدام الكوبون مرة واحدة.';
+
+  @override
+  String get adsTitle => 'إعلانات الصفحة الرئيسية';
+
+  @override
+  String get adsSub =>
+      'صور تظهر في الشريط أعلى الصفحة الرئيسية. الصور العريضة (2:1) تبدو أفضل.';
+
+  @override
+  String get adsEmpty => 'لا توجد إعلانات بعد. اضغط + لإضافة صورة.';
+
+  @override
+  String get adsLinkTitle => 'رابط عند الضغط';
+
+  @override
+  String get adsLinkHint => 'https://… (اختياري)';
+
+  @override
+  String get adsPublish => 'نشر';
+
+  @override
+  String get adsPublished => 'تم نشر الإعلان';
+
+  @override
+  String get adsDeleteConfirm => 'حذف هذا الإعلان؟ سيختفي من الصفحة الرئيسية.';
+
+  @override
+  String get adsDelete => 'حذف';
+
+  @override
+  String get adsHidden => 'مخفي';
 }
