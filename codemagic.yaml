@@ -16,6 +16,15 @@ workflows:
     name: HMH Kargo — iOS (App Store)
     instance_type: mac_mini_m2
     max_build_duration: 60
+    # Build automatically on every push to main (needs the app's GitHub webhook,
+    # which Codemagic adds when the repo is connected).
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+      cancel_previous_builds: true
     integrations:
       app_store_connect: HMH_ASC_API_KEY   # <-- must match the integration name in Codemagic
     environment:
