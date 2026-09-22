@@ -173,6 +173,13 @@ class ApiClient {
         return 'The server took too long to respond. Check your connection.';
       case DioExceptionType.connectionError:
         return 'Could not reach the server. Check your internet connection.';
+      // The server answered but failed (5xx). This used to fall through to
+      // "Network error", which read like the user's connection — App Review
+      // rejected 1.0.1 over exactly that message during a server fault.
+      case DioExceptionType.badResponse:
+        return 'Our server had a problem. Please try again in a moment.';
+      case DioExceptionType.badCertificate:
+        return 'A secure connection to the server could not be made. Please try again.';
       default:
         return 'Network error. Please try again.';
     }
