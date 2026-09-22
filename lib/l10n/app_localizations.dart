@@ -1807,13 +1807,13 @@ abstract class AppLocalizations {
   /// No description provided for @deleteAccountConfirm.
   ///
   /// In en, this message translates to:
-  /// **'This permanently deletes your account and personal data (profile, addresses, cart, saved items). This can\'t be undone. Completed order records may be kept as required by law.'**
+  /// **'This closes your account: you will be signed out and can no longer log in with this number. Your orders and wallet stay on record — contact us if you want it reopened.'**
   String get deleteAccountConfirm;
 
   /// No description provided for @deleteAccountDone.
   ///
   /// In en, this message translates to:
-  /// **'Your account has been deleted.'**
+  /// **'Your account has been closed.'**
   String get deleteAccountDone;
 
   /// No description provided for @deleteAccountError.
@@ -1941,6 +1941,480 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'کوردی'**
   String get languageKurdish;
+
+  /// No description provided for @exchangeRates.
+  ///
+  /// In en, this message translates to:
+  /// **'Exchange rates'**
+  String get exchangeRates;
+
+  /// No description provided for @tapToCalculate.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap to calculate'**
+  String get tapToCalculate;
+
+  /// No description provided for @dollarToDinar.
+  ///
+  /// In en, this message translates to:
+  /// **'Dollar → Dinar'**
+  String get dollarToDinar;
+
+  /// No description provided for @liraToDollar.
+  ///
+  /// In en, this message translates to:
+  /// **'Lira → Dollar'**
+  String get liraToDollar;
+
+  /// No description provided for @rateNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Rate not set yet'**
+  String get rateNotSet;
+
+  /// No description provided for @amountLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Amount'**
+  String get amountLabel;
+
+  /// No description provided for @inDinars.
+  ///
+  /// In en, this message translates to:
+  /// **'In dinars'**
+  String get inDinars;
+
+  /// No description provided for @inDollars.
+  ///
+  /// In en, this message translates to:
+  /// **'In dollars'**
+  String get inDollars;
+
+  /// No description provided for @sameAsCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Same price your cart charges'**
+  String get sameAsCart;
+
+  /// No description provided for @orderForCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Order for customer'**
+  String get orderForCustomer;
+
+  /// No description provided for @chooseCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose customer'**
+  String get chooseCustomer;
+
+  /// No description provided for @searchCustomers.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or phone…'**
+  String get searchCustomers;
+
+  /// No description provided for @noCustomersFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No customers found'**
+  String get noCustomersFound;
+
+  /// No description provided for @chooseCustomerFirst.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose the customer this order is for.'**
+  String get chooseCustomerFirst;
+
+  /// No description provided for @chargedToWallet.
+  ///
+  /// In en, this message translates to:
+  /// **'Charged to {name}\'s wallet'**
+  String chargedToWallet(String name);
+
+  /// No description provided for @orderPlacedFor.
+  ///
+  /// In en, this message translates to:
+  /// **'Order placed for {name}'**
+  String orderPlacedFor(String name);
+
+  /// No description provided for @addByLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an item by link'**
+  String get addByLink;
+
+  /// No description provided for @addByLinkSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Can\'t find it in our stores? Paste its link and price.'**
+  String get addByLinkSub;
+
+  /// No description provided for @productName.
+  ///
+  /// In en, this message translates to:
+  /// **'Product name'**
+  String get productName;
+
+  /// No description provided for @productPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Price'**
+  String get productPrice;
+
+  /// No description provided for @linkRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the product\'s link.'**
+  String get linkRequired;
+
+  /// No description provided for @priceRequired.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter the product\'s price.'**
+  String get priceRequired;
+
+  /// No description provided for @fromStore.
+  ///
+  /// In en, this message translates to:
+  /// **'From {store} — priced in its currency'**
+  String fromStore(String store);
+
+  /// No description provided for @cartAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get cartAdd;
+
+  /// No description provided for @addToCartTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to your cart'**
+  String get addToCartTitle;
+
+  /// No description provided for @importSharedCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a shared cart'**
+  String get importSharedCart;
+
+  /// No description provided for @importSharedCartSub.
+  ///
+  /// In en, this message translates to:
+  /// **'A Shein cart or Trendyol collection link'**
+  String get importSharedCartSub;
+
+  /// No description provided for @icTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Import cart'**
+  String get icTitle;
+
+  /// No description provided for @icFinding.
+  ///
+  /// In en, this message translates to:
+  /// **'Finding your cart…'**
+  String get icFinding;
+
+  /// No description provided for @icOpening.
+  ///
+  /// In en, this message translates to:
+  /// **'Opening {store}…'**
+  String icOpening(String store);
+
+  /// No description provided for @icReading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading your cart…'**
+  String get icReading;
+
+  /// No description provided for @icPleaseWait.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait — this takes a few seconds.'**
+  String get icPleaseWait;
+
+  /// No description provided for @icNotALink.
+  ///
+  /// In en, this message translates to:
+  /// **'That doesn\'t look like a link.'**
+  String get icNotALink;
+
+  /// No description provided for @icTooLong.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading took too long. Check your connection and tap Load again.'**
+  String get icTooLong;
+
+  /// No description provided for @icServerCantRead.
+  ///
+  /// In en, this message translates to:
+  /// **'We couldn\'t read that link. Check it is a Shein cart or Trendyol collection link.'**
+  String get icServerCantRead;
+
+  /// No description provided for @icEmptyCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'That collection has no items we can order. Check it still has products in stock, then tap Load again.'**
+  String get icEmptyCollection;
+
+  /// No description provided for @icSingleProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'That link is a single product, not a cart. Share your cart (Shein) or a collection (Trendyol), or use \"Paste link\" on the store page for one item.'**
+  String get icSingleProduct;
+
+  /// No description provided for @icCouldNotRead.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not read the cart. Tap Load again.'**
+  String get icCouldNotRead;
+
+  /// No description provided for @icNoItems.
+  ///
+  /// In en, this message translates to:
+  /// **'No items found on that cart. Check the link is a shared Shein cart and that it still has items, then tap Load again.'**
+  String get icNoItems;
+
+  /// No description provided for @icPickSizeOne.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a size for \"{title}\" first — tap \"Choose size\".'**
+  String icPickSizeOne(String title);
+
+  /// No description provided for @icPickSizeMany.
+  ///
+  /// In en, this message translates to:
+  /// **'Pick a size for {count} items first — tap \"Choose size\" on each.'**
+  String icPickSizeMany(int count);
+
+  /// No description provided for @icStoresLoading.
+  ///
+  /// In en, this message translates to:
+  /// **'Stores are still loading — try again in a moment.'**
+  String get icStoresLoading;
+
+  /// No description provided for @icNothingAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing could be added.'**
+  String get icNothingAdded;
+
+  /// No description provided for @icCouldNotAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not add: {title}'**
+  String icCouldNotAdd(String title);
+
+  /// No description provided for @icAdded.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} item(s) added to your cart.'**
+  String icAdded(int count);
+
+  /// No description provided for @icBringOver.
+  ///
+  /// In en, this message translates to:
+  /// **'Bring your cart over'**
+  String get icBringOver;
+
+  /// No description provided for @icBringOverSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Share your cart from the Shein app, or a collection from the Trendyol app, paste the link above and tap Load.'**
+  String get icBringOverSub;
+
+  /// No description provided for @icShareCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Cart → Share'**
+  String get icShareCart;
+
+  /// No description provided for @icShareCollection.
+  ///
+  /// In en, this message translates to:
+  /// **'Collection → Share'**
+  String get icShareCollection;
+
+  /// No description provided for @icHumanCheck.
+  ///
+  /// In en, this message translates to:
+  /// **'Shein wants a quick check that you\'re human. Complete it below — loading carries on by itself afterwards.'**
+  String get icHumanCheck;
+
+  /// No description provided for @icLinkLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Shein cart or Trendyol collection link'**
+  String get icLinkLabel;
+
+  /// No description provided for @icLinkHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste the link from the app'**
+  String get icLinkHint;
+
+  /// No description provided for @icLoad.
+  ///
+  /// In en, this message translates to:
+  /// **'Load'**
+  String get icLoad;
+
+  /// No description provided for @icCurrencyAdvice.
+  ///
+  /// In en, this message translates to:
+  /// **'Shein is showing prices in {foreign}, but this store is priced in {store} — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.'**
+  String icCurrencyAdvice(String foreign, String store);
+
+  /// No description provided for @icChooseSize.
+  ///
+  /// In en, this message translates to:
+  /// **'Choose size'**
+  String get icChooseSize;
+
+  /// No description provided for @icSizeValue.
+  ///
+  /// In en, this message translates to:
+  /// **'Size {size}'**
+  String icSizeValue(String size);
+
+  /// No description provided for @icAddChosen.
+  ///
+  /// In en, this message translates to:
+  /// **'Add {count} to cart'**
+  String icAddChosen(int count);
+
+  /// No description provided for @closeAccountSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Close account'**
+  String get closeAccountSection;
+
+  /// No description provided for @closeAccountSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Signs you out and stops this number from logging in.'**
+  String get closeAccountSub;
+
+  /// No description provided for @deleteAccountAck.
+  ///
+  /// In en, this message translates to:
+  /// **'I understand my account will be closed'**
+  String get deleteAccountAck;
+
+  /// No description provided for @couponHave.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a coupon?'**
+  String get couponHave;
+
+  /// No description provided for @couponHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupon code'**
+  String get couponHint;
+
+  /// No description provided for @couponApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get couponApply;
+
+  /// No description provided for @couponRemove.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get couponRemove;
+
+  /// No description provided for @couponApplied.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupon {code} applied — {percent} off'**
+  String couponApplied(String code, String percent);
+
+  /// No description provided for @couponDiscount.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupon ({code})'**
+  String couponDiscount(String code);
+
+  /// No description provided for @coupons.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupons'**
+  String get coupons;
+
+  /// No description provided for @couponNew.
+  ///
+  /// In en, this message translates to:
+  /// **'New coupon'**
+  String get couponNew;
+
+  /// No description provided for @couponPercent.
+  ///
+  /// In en, this message translates to:
+  /// **'Discount %'**
+  String get couponPercent;
+
+  /// No description provided for @couponExpires.
+  ///
+  /// In en, this message translates to:
+  /// **'Expires on'**
+  String get couponExpires;
+
+  /// No description provided for @couponNoExpiry.
+  ///
+  /// In en, this message translates to:
+  /// **'No expiry'**
+  String get couponNoExpiry;
+
+  /// No description provided for @couponCreate.
+  ///
+  /// In en, this message translates to:
+  /// **'Create coupon'**
+  String get couponCreate;
+
+  /// No description provided for @couponCreated.
+  ///
+  /// In en, this message translates to:
+  /// **'Coupon created'**
+  String get couponCreated;
+
+  /// No description provided for @couponsEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No coupons yet. Create one with the + button.'**
+  String get couponsEmpty;
+
+  /// No description provided for @couponUsedTimes.
+  ///
+  /// In en, this message translates to:
+  /// **'Used {count} times'**
+  String couponUsedTimes(int count);
+
+  /// No description provided for @couponActive.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get couponActive;
+
+  /// No description provided for @couponOff.
+  ///
+  /// In en, this message translates to:
+  /// **'Off'**
+  String get couponOff;
+
+  /// No description provided for @couponExpired.
+  ///
+  /// In en, this message translates to:
+  /// **'Expired'**
+  String get couponExpired;
+
+  /// No description provided for @couponOnePerCustomer.
+  ///
+  /// In en, this message translates to:
+  /// **'Each customer can use a coupon once.'**
+  String get couponOnePerCustomer;
 }
 
 class _AppLocalizationsDelegate

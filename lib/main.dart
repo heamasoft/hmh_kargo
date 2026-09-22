@@ -49,7 +49,7 @@ class HeamaApp extends StatelessWidget {
           create: (_) => PushService(apiClient),
           dispose: (_, s) => s.dispose(),
         ),
-        ChangeNotifierProvider(create: (_) => LocaleProvider()),
+        ChangeNotifierProvider(create: (_) => LocaleProvider()..load()),
         ChangeNotifierProvider(create: (_) => ShellController()),
         ChangeNotifierProvider(create: (_) => RegistrationProvider()),
         ChangeNotifierProvider(create: (_) => FavoritesProvider(apiClient)..load()),

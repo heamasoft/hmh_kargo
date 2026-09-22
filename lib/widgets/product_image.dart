@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 /// Network product image with a gradient placeholder that also serves as the
@@ -11,12 +12,7 @@ class ProductImage extends StatelessWidget {
   final List<Color> gradient;
   final BoxFit fit;
 
-  const ProductImage({
-    super.key,
-    required this.url,
-    required this.gradient,
-    this.fit = BoxFit.cover,
-  });
+  const ProductImage({super.key, required this.url, required this.gradient, this.fit = BoxFit.cover});
 
   /// Headers that make hotlink-protected CDNs serve the image (mobile only —
   /// browsers manage these themselves on web).
@@ -35,26 +31,43 @@ class ProductImage extends StatelessWidget {
   Widget build(BuildContext context) {
     final placeholder = DecoratedBox(
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: gradient,
-        ),
+        gradient: LinearGradient(begin: Alignment.topLeft, end: Alignment.bottomRight, colors: gradient),
       ),
       child: const SizedBox.expand(),
     );
 
     if (url.trim().isEmpty) return placeholder;
 
-    return Image.network(
-      url,
-      fit: fit,
-      width: double.infinity,
-      height: double.infinity,
-      headers: _headers(),
-      loadingBuilder: (context, child, progress) =>
-          progress == null ? child : placeholder,
-      errorBuilder: (context, error, stack) => placeholder,
+    if (kIsWeb) {
+      return Image.network(
+        url,
+        fit: fit,
+        width: double.infinity,
+        height: double.infinity,
+        loadingBuilder: (context, child, progress) => progress == null ? child : placeholder,
+        errorBuilder: (context, error, stack) => placeholder,
+      );
+    }
+
+    // Kept on the phone after the first download, so photos show instantly
+    // on every later visit and launch instead of downloading again — and
+    // decoded at the size they're shown, not the CDN's full resolution.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final dpr = MediaQuery.devicePixelRatioOf(context);
+        final w = box.maxWidth.isFinite ? (box.maxWidth * dpr).round() : null;
+        return CachedNetworkImage(
+          imageUrl: url,
+          fit: fit,
+          width: double.infinity,
+          height: double.infinity,
+          httpHeaders: _headers(),
+          memCacheWidth: w,
+          fadeInDuration: const Duration(milliseconds: 150),
+          placeholder: (context, _) => placeholder,
+          errorWidget: (context, _, __) => placeholder,
+        );
+      },
     );
   }
 }

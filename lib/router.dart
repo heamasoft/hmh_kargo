@@ -15,6 +15,7 @@ import 'screens/addresses/addresses_screen.dart';
 import 'screens/auth/welcome_screen.dart';
 import 'screens/orders/approvals_screen.dart';
 import 'screens/stock/stock_screen.dart';
+import 'screens/webstore/shein_cart_screen.dart';
 import 'screens/profile/account_screen.dart';
 import 'screens/profile/wallet_ledger_screen.dart';
 import 'screens/profile/top_up_screen.dart';
@@ -24,6 +25,7 @@ import 'screens/product/product_detail_screen.dart';
 import 'screens/saved/saved_screen.dart';
 import 'screens/shell/main_shell.dart';
 import 'screens/storefront/storefront_screen.dart';
+import 'screens/admin/coupons_screen.dart';
 import 'screens/tracking/tracking_screen.dart';
 import 'screens/webstore/web_store_screen.dart';
 
@@ -54,8 +56,10 @@ class Routes {
   static const walletLedger = '/wallet-ledger';
   static const topUp = '/top-up';
   static const about = '/about';
+  static const coupons = '/admin/coupons';
   static const approvals = '/approvals';
   static const stock = '/stock';
+  static const sheinCart = '/shein-cart';
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {
     Widget page;
@@ -120,7 +124,10 @@ class Routes {
         page = const CheckoutScreen();
         break;
       case tracking:
-        page = TrackingScreen(orderCode: settings.arguments as String?);
+        final a = settings.arguments;
+        page = a is TrackingArgs
+            ? TrackingScreen(orderCode: a.orderCode, itemId: a.itemId)
+            : TrackingScreen(orderCode: a as String?);
         break;
       case walletLedger:
         page = WalletLedgerScreen(currency: (settings.arguments as String?) ?? 'IQD');
@@ -131,11 +138,17 @@ class Routes {
       case about:
         page = const AboutScreen();
         break;
+      case coupons:
+        page = const CouponsScreen();
+        break;
       case approvals:
         page = const ApprovalsScreen();
         break;
       case stock:
         page = const StockScreen();
+        break;
+      case sheinCart:
+        page = SheinCartScreen(initialLink: settings.arguments as String?);
         break;
       default:
         page = const WelcomeScreen();

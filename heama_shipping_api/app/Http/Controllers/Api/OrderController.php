@@ -6,7 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\AdminNotification;
 use App\Models\Cart;
+use App\Models\Coupon;
 use App\Models\Order;
+use App\Models\User;
 use App\Services\InsufficientBalanceException;
 use App\Services\PricingService;
 use App\Services\WalletService;
@@ -54,10 +56,28 @@ class OrderController extends Controller
             'address.city' => ['required', 'string', 'max:120'],
             'address.street' => ['required', 'string', 'max:255'],
             'address.phone' => ['required', 'string', 'max:40'],
+            // Admin only: place the order FOR this customer, as if they had.
+            'customer_id' => ['nullable', 'integer', 'exists:users,id'],
+            // A discount code; checked again here and spent with the order.
+            'coupon_code' => ['nullable', 'string', 'max:40'],
         ]);
 
         $user = $request->user();
         $cart = Cart::with('items.store')->where('user_id', $user->id)->first();
+
+        // An admin checking out for a customer: the admin's cart becomes the
+        // CUSTOMER's order — theirs to see and track, charged to their wallet.
+        $buyer = $user;
+        if (! empty($data['customer_id'])) {
+            abort_unless($user->is_admin, 403);
+            $buyer = User::findOrFail($data['customer_id']);
+        }
+        $onBehalf = $buyer->id !== $user->id;
+
+        // The customer's own one use of the code (422 with the reason if not).
+        $coupon = ! empty($data['coupon_code'])
+            ? Coupon::usableBy($data['coupon_code'], $buyer)
+            : null;
 
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty.'], 422);
@@ -68,7 +88,7 @@ class OrderController extends Controller
         $groups = $cart->items->groupBy(fn ($i) => strtoupper($i->charge_currency ?: 'IQD'));
 
         try {
-            $orders = DB::transaction(function () use ($user, $cart, $groups, $data) {
+            $orders = DB::transaction(function () use ($buyer, $onBehalf, $coupon, $cart, $groups, $data) {
                 $made = [];
                 foreach ($groups as $currency => $items) {
                     $itemsTotal = (float) $items->sum(fn ($i) => (float) $i->iqd_price * (int) $i->qty);
@@ -79,16 +99,25 @@ class OrderController extends Controller
                         $this->pricing->serviceFeeForItems($items, $itemsTotal, $currency),
                     );
 
+                    // The coupon takes its percentage off the ITEMS (not shipping,
+                    // which is re-priced later), in each currency's own order.
+                    $discount = $coupon ? $coupon->discountOn($itemsTotal, $currency) : 0.0;
+
                     $order = Order::create([
                         'code' => 'PENDING',
-                        'user_id' => $user->id,
+                        'user_id' => $buyer->id,
+                        // Placed by an admin for the customer, not by the customer.
+                        'source' => $onBehalf ? 'admin_app' : 'app',
                         'status' => 'placed',
                         'currency' => $currency,
                         // *_iqd columns hold minor units of $currency.
                         'items_total_iqd' => $breakdown['items_total'],
                         'shipping_iqd' => $breakdown['shipping'],
                         'service_fee_iqd' => $breakdown['service_fee'],
-                        'total_iqd' => $breakdown['total'],
+                        'discount_iqd' => $discount,
+                        'discount_percent' => $coupon ? $coupon->percent : 0,
+                        'coupon_code' => $coupon?->code,
+                        'total_iqd' => $breakdown['total'] - $discount,
                         'payment_method' => $data['payment_method'],
                         'address' => $data['address'],
                         'placed_at' => now(),
@@ -143,14 +172,16 @@ class OrderController extends Controller
                     // blocked if it would take the balance past the customer's
                     // credit limit for this currency (limit 0 = no negative).
                     $isCod = $data['payment_method'] === 'cod';
-                    $creditFloor = $isCod
+                    // An admin placing it takes responsibility for the payment, so the
+                    // customer's credit limit doesn't block it (like COD).
+                    $creditFloor = ($isCod || $onBehalf)
                         ? null
                         : (float) ($currency === 'USD'
-                            ? $user->credit_limit_usd
-                            : $user->credit_limit_iqd);
+                            ? $buyer->credit_limit_usd
+                            : $buyer->credit_limit_iqd);
 
                     $this->wallet->debit(
-                        $user,
+                        $buyer,
                         (float) $order->total_iqd,
                         $currency,
                         type: $isCod ? 'cod' : 'debit',
@@ -166,6 +197,24 @@ class OrderController extends Controller
                     ]);
 
                     $made[] = $order;
+                }
+
+                // Spend the one use. The unique coupon+customer key refuses a second
+                // one even if two checkouts race — and rolls this order back.
+                if ($coupon) {
+                    try {
+                        DB::table('coupon_redemptions')->insert([
+                            'coupon_id' => $coupon->id,
+                            'user_id' => $buyer->id,
+                            'order_id' => $made[0]->id ?? null,
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    } catch (\Illuminate\Database\QueryException $e) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'coupon_code' => ['You have already used this coupon.'],
+                        ]);
+                    }
                 }
 
                 $cart->items()->delete();
@@ -216,10 +265,22 @@ class OrderController extends Controller
             ], 422);
         }
 
+        // The last item left: cancelling it cancels the order itself (full
+        // refund, admin alert) — the app offers only per-item cancel, so this is
+        // the only way to cancel one. The item row then goes, exactly as any
+        // other cancelled item's does; the cancelled order stays as the record.
         if ($order->activeItems()->count() <= 1) {
+            $response = $this->cancel($request, $order);
+            if ($response->getStatusCode() !== 200) {
+                return $response;
+            }
+            $item->delete();
+            $order->load(['items', 'events']);
+
             return response()->json([
-                'message' => 'This is the only item — cancel the whole order instead.',
-            ], 422);
+                'data' => (new OrderResource($order))->resolve($request),
+                'wallet' => $this->wallet->balances($request->user()),
+            ]);
         }
 
         $user = $request->user();
@@ -231,7 +292,11 @@ class OrderController extends Controller
             ->where('item_id', $item->id)->where('status', 'pending')
             ->value('old_shipping');
         $paidShipping = $pendingOld !== null ? (float) $pendingOld : (float) ($item->shipping ?? 0);
-        $refund = round((float) $item->iqd_price * (int) $item->qty + $paidShipping, 2);
+        // With a coupon the customer paid the item LESS its percentage — refund
+        // what was actually paid, not the full price.
+        $itemPaid = (float) $item->iqd_price * (int) $item->qty;
+        $itemPaid -= $this->couponDiscount($order, $itemPaid, $currency);
+        $refund = round($itemPaid + $paidShipping, 2);
 
         DB::transaction(function () use ($order, $item, $user, $currency, $refund) {
             // Close any open shipping approval on this item so the admin side
@@ -249,11 +314,14 @@ class OrderController extends Controller
             $itemsTotal = (float) $remaining->sum(fn ($i) => (float) $i->iqd_price * (int) $i->qty);
             $shipping = round((float) $remaining->sum(fn ($i) => (float) ($i->shipping ?? 0)), 2);
             $fee = $this->pricing->serviceFeeForItems($remaining, $itemsTotal, $currency);
+            // A coupon's percentage still applies to the items that are left.
+            $discount = $this->couponDiscount($order, $itemsTotal, $currency);
             $order->update([
                 'items_total_iqd' => $itemsTotal,
                 'shipping_iqd' => $shipping,
                 'service_fee_iqd' => $fee,
-                'total_iqd' => $itemsTotal + $shipping + $fee,
+                'discount_iqd' => $discount,
+                'total_iqd' => $itemsTotal - $discount + $shipping + $fee,
             ]);
 
             if ($refund > 0) {
@@ -311,6 +379,12 @@ class OrderController extends Controller
         DB::transaction(function () use ($order, $user, $currency, $amountLabel) {
             $order->update(['status' => 'cancelled']);
 
+            // No shipping answer is needed any more for this order's items.
+            DB::table('item_approvals')
+                ->whereIn('item_id', $order->items()->pluck('id'))
+                ->where('status', 'pending')
+                ->update(['status' => 'superseded', 'responded_at' => now()]);
+
             $order->events()->create([
                 'status' => 'cancelled',
                 'note' => 'Order cancelled by customer',
@@ -346,5 +420,17 @@ class OrderController extends Controller
             'data' => (new OrderResource($order))->resolve($request),
             'wallet' => $this->wallet->balances($user),
         ]);
+    }
+
+    /** The order's coupon percentage applied to [amount] (0 without a coupon). */
+    private function couponDiscount(Order $order, float $amount, string $currency): float
+    {
+        $pct = (float) ($order->discount_percent ?? 0);
+        if ($pct <= 0 || $amount <= 0) {
+            return 0.0;
+        }
+        $d = $amount * $pct / 100;
+
+        return strtoupper($currency) === 'USD' ? round($d, 2) : round($d);
     }
 }

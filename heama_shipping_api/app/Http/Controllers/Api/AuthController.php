@@ -48,6 +48,12 @@ class AuthController extends Controller
             }
         }
 
+        // Don't send a code to a deactivated account — it couldn't use it.
+        $blocked = $this->blockedUserFor($data['identifier'], $data['channel']);
+        if ($blocked) {
+            return $this->blockedResponse();
+        }
+
         $ttl = $this->otp->request(
             $data['identifier'],
             $data['channel'],
@@ -70,6 +76,10 @@ class AuthController extends Controller
             'name' => ['sometimes', 'string', 'max:120'],
             'city' => ['sometimes', 'string', 'max:120'],
         ]);
+
+        if ($this->blockedUserFor($data['identifier'], $data['channel'])) {
+            return $this->blockedResponse();
+        }
 
         $this->otp->verify($data['identifier'], $data['channel'], $data['code']);
 
@@ -98,6 +108,10 @@ class AuthController extends Controller
             throw ValidationException::withMessages([
                 'password' => ['Incorrect phone number or password.'],
             ]);
+        }
+
+        if ($user->isBlocked()) {
+            return $this->blockedResponse();
         }
 
         $token = $user->createToken('mobile')->plainTextToken;
@@ -164,42 +178,43 @@ class AuthController extends Controller
     public function deleteAccount(Request $request): JsonResponse
     {
         $user = $request->user();
-        $oldPhone = (string) $user->phone;
 
-        DB::transaction(function () use ($user, $oldPhone) {
-            // Revoke every login token (signs the user out everywhere).
+        // "Delete" DEACTIVATES: the account is blocked (customer_status.blocked_at,
+        // the same flag the admin dashboard uses) and nothing is erased — orders,
+        // wallet, addresses and the phone stay on record, and the admin can
+        // reactivate it by clearing blocked_at. A blocked account can't log in
+        // again, by code or password (see User::isBlocked()).
+        DB::transaction(function () use ($user) {
+            // Sign the user out everywhere and stop push notifications.
             $user->tokens()->delete();
-
-            // Personal data tied to the account.
-            $cart = Cart::where('user_id', $user->id)->first();
-            if ($cart) {
-                $cart->items()->delete();
-                $cart->delete();
-            }
-            foreach (['addresses', 'favorites', 'device_tokens', 'customer_status'] as $t) {
-                try {
-                    DB::table($t)->where('user_id', $user->id)->delete();
-                } catch (\Throwable $e) { /* table may not exist — ignore */ }
-            }
-            // Outstanding OTP codes for this phone.
             try {
-                DB::table('otp_codes')->where('identifier', preg_replace('/\D+/', '', $oldPhone))->delete();
-            } catch (\Throwable $e) {}
+                DB::table('device_tokens')->where('user_id', $user->id)->delete();
+            } catch (\Throwable $e) { /* table may not exist — ignore */ }
 
-            // Anonymise the user row (kept so order/wallet records stay valid),
-            // freeing the phone/email for a future sign-up.
-            $user->forceFill([
-                'name' => 'Deleted user',
-                'email' => null,
-                'phone' => 'deleted_'.$user->id,
-                'password' => Hash::make(bin2hex(random_bytes(20))),
-                'remember_token' => null,
-                'phone_verified_at' => null,
-                'email_verified_at' => null,
-            ])->save();
+            $user->block('Deactivated by the customer ("Delete account" in the app)');
         });
 
-        return response()->json(['message' => 'Your account has been deleted.']);
+        return response()->json(['message' => 'Your account has been deactivated.']);
+    }
+
+    /** The existing account behind a phone / email, if it is blocked. */
+    private function blockedUserFor(string $identifier, string $channel): ?User
+    {
+        $column = $channel === 'email' ? 'email' : 'phone';
+        $normalized = $channel === 'email'
+            ? strtolower(trim($identifier))
+            : preg_replace('/\D+/', '', $identifier);
+        $user = User::where($column, $normalized)->first();
+
+        return $user && $user->isBlocked() ? $user : null;
+    }
+
+    private function blockedResponse(): JsonResponse
+    {
+        return response()->json([
+            'message' => 'This account has been deactivated. Contact us to reactivate it.',
+            'blocked' => true,
+        ], 403);
     }
 
     private function findOrCreateUser(array $data): User

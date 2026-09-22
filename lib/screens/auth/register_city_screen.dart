@@ -7,6 +7,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/registration_provider.dart';
 import '../../router.dart';
 import '../../services/api_client.dart';
+import '../../utils/digits.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_typography.dart';
@@ -39,8 +40,7 @@ class _RegisterCityScreenState extends State<RegisterCityScreen> {
     super.dispose();
   }
 
-  String get _cityValue =>
-      _city == _otherCity ? _customCity.text.trim() : (_city ?? '');
+  String get _cityValue => _city == _otherCity ? _customCity.text.trim() : (_city ?? '');
 
   Future<void> _next() async {
     if (_loading) return;
@@ -70,10 +70,10 @@ class _RegisterCityScreenState extends State<RegisterCityScreen> {
     setState(() => _loading = true);
     try {
       await context.read<AuthProvider>().requestOtp(
-            identifier: phone,
-            channel: 'whatsapp',
-            purpose: 'register',
-          );
+        identifier: phone,
+        channel: 'whatsapp',
+        purpose: 'register',
+      );
       if (!mounted) return;
       Navigator.pushNamed(context, Routes.registerOtp);
     } on ApiException catch (e) {
@@ -87,8 +87,7 @@ class _RegisterCityScreenState extends State<RegisterCityScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final lang = Localizations.localeOf(context).languageCode;
-    final cities =
-        _governorate == null ? <String>[] : IraqLocations.citiesOf(_governorate!);
+    final cities = _governorate == null ? <String>[] : IraqLocations.citiesOf(_governorate!);
 
     return AuthScaffold(
       totalSteps: 4,
@@ -142,29 +141,33 @@ class _RegisterCityScreenState extends State<RegisterCityScreen> {
         LabeledField(
           label: l.phoneNumber,
           error: _phoneError,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
-                decoration: BoxDecoration(
-                  color: AppColors.cloud,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                  border: Border.all(color: AppColors.line, width: 1.5),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
+                  decoration: BoxDecoration(
+                    color: AppColors.cloud,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                    border: Border.all(color: AppColors.line, width: 1.5),
+                  ),
+                  child: Text('🇮🇶 +964', style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w700)),
                 ),
-                child: Text(
-                  '🇮🇶 +964',
-                  style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w700),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: TextField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    // A phone number reads left-to-right in every language, and an
+                    // Arabic/Kurdish keyboard's digits are turned into 0–9.
+                    textDirection: TextDirection.ltr,
+                    inputFormatters: const [AsciiDigitsFormatter(maxLength: 15)],
+                    decoration: InputDecoration(hintText: l.phoneHint),
+                  ),
                 ),
-              ),
-              const SizedBox(width: 9),
-              Expanded(
-                child: TextField(
-                  controller: _phone,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(hintText: l.phoneHint),
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ],
@@ -188,19 +191,19 @@ class _RegisterCityScreenState extends State<RegisterCityScreen> {
       decoration: const InputDecoration(isDense: true),
       style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w500, color: AppColors.ink),
       items: [
-        ...items.map((o) => DropdownMenuItem(
-              value: o,
-              child: Text(display != null ? display(o) : o,
-                  overflow: TextOverflow.ellipsis),
-            )),
+        ...items.map(
+          (o) => DropdownMenuItem(
+            value: o,
+            child: Text(display != null ? display(o) : o, overflow: TextOverflow.ellipsis),
+          ),
+        ),
         if (extra != null)
           DropdownMenuItem(
             value: extra.$1,
-            child: Text(extra.$2,
-                style: AppFonts.body(
-                    fontSize: 14.5,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.pomegranate)),
+            child: Text(
+              extra.$2,
+              style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w600, color: AppColors.pomegranate),
+            ),
           ),
       ],
       onChanged: enabled ? onChanged : null,

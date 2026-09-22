@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../router.dart';
 import '../../services/api_client.dart';
+import '../../utils/digits.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_typography.dart';
@@ -95,27 +96,33 @@ class _LoginScreenState extends State<LoginScreen> {
         LabeledField(
           label: l.phoneNumber,
           error: _phoneError,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
-                decoration: BoxDecoration(
-                  color: AppColors.cloud,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                  border: Border.all(color: AppColors.line, width: 1.5),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
+                  decoration: BoxDecoration(
+                    color: AppColors.cloud,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                    border: Border.all(color: AppColors.line, width: 1.5),
+                  ),
+                  child: Text('🇮🇶 +964', style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w700)),
                 ),
-                child: Text('🇮🇶 +964',
-                    style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w700)),
-              ),
-              const SizedBox(width: 9),
-              Expanded(
-                child: TextField(
-                  controller: _phone,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(hintText: l.phoneHint),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: TextField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    // A phone number reads left-to-right in every language, and an
+                    // Arabic/Kurdish keyboard's digits are turned into 0–9.
+                    textDirection: TextDirection.ltr,
+                    inputFormatters: const [AsciiDigitsFormatter(maxLength: 15)],
+                    decoration: InputDecoration(hintText: l.phoneHint),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         LabeledField(

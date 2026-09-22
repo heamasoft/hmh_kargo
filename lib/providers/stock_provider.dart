@@ -21,8 +21,16 @@ class StockProvider extends ChangeNotifier {
   /// The language the current lists were loaded in (so we can reload on change).
   String loadedLang = '';
 
+  /// The saved list (same language) shows at once; the fresh one replaces it.
   Future<void> load({String lang = 'en'}) async {
-    loading = true;
+    if (!hasAny || loadedLang != lang) {
+      final saved = await _api.cachedList(lang: lang);
+      if (saved != null) {
+        shein = saved.shein;
+        other = saved.other;
+      }
+    }
+    loading = !hasAny;
     loadedLang = lang;
     notifyListeners();
     try {

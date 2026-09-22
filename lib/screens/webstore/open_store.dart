@@ -53,6 +53,7 @@ Future<void> showCaptureSheet(
   bool offersSize = true,
   List<String> colorOptions = const [],
   List<String> sizeOptions = const [],
+  Map<String, double> sizePrices = const {},
   required String storeKey,
   bool autoServerFetch = false,
 }) {
@@ -79,6 +80,7 @@ Future<void> showCaptureSheet(
       offersSize: offersSize,
       colorOptions: colorOptions,
       sizeOptions: sizeOptions,
+      sizePrices: sizePrices,
       storeKey: storeKey,
       autoServerFetch: autoServerFetch,
     ),

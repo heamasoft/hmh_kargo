@@ -38,6 +38,10 @@ class CaptureSheet extends StatefulWidget {
   /// tappable chips instead of a blank text box.
   final List<String> colorOptions;
   final List<String> sizeOptions;
+
+  /// The store's price per size, when sizes cost different amounts — picking a
+  /// size then sets the price to that size's.
+  final Map<String, double> sizePrices;
   final String storeKey;
 
   /// Auto-run the SERVER scrape on open (used for the web paste flow).
@@ -57,6 +61,7 @@ class CaptureSheet extends StatefulWidget {
     this.offersSize = true,
     this.colorOptions = const [],
     this.sizeOptions = const [],
+    this.sizePrices = const {},
     required this.storeKey,
     this.autoServerFetch = false,
   });
@@ -122,6 +127,17 @@ class _CaptureSheetState extends State<CaptureSheet> {
 
   double get _priceValue =>
       double.tryParse(_price.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+
+  /// Some products cost more in some sizes (a Shein top: XS $7.31, S $13.29).
+  /// Picking a size the page priced moves the price — and the dinars — with it.
+  void _onSizePicked(String size) {
+    final p = widget.sizePrices[size.trim()];
+    if (p != null && p > 0 && (p - _priceValue).abs() > 0.001) {
+      _price.text = p.toStringAsFixed(2);
+      _reprice();
+    }
+    setState(() {});
+  }
 
   /// Ask the server to scrape the URL and prefill the fields.
   Future<void> _fetch() async {
@@ -367,7 +383,7 @@ class _CaptureSheetState extends State<CaptureSheet> {
                         errorText: colorErr, onChanged: (_) => setState(() {})),
                     const SizedBox(height: 14),
                     _variantSection(sizeLabel, _size, widget.sizeOptions,
-                        errorText: sizeErr, onChanged: (_) => setState(() {})),
+                        errorText: sizeErr, onChanged: _onSizePicked),
                     const SizedBox(height: 14),
                     // Optional note — a special requirement the admin should see.
                     _field('${l.itemNote} (${l.optional})', _note,
@@ -468,8 +484,27 @@ class _CaptureSheetState extends State<CaptureSheet> {
                   style: AppFonts.body(fontSize: 11.5, color: AppColors.pomegranate)),
             )
           else if (_priced != null)
-            Text(formatMoney(_priced!.chargeAmount, _priced!.chargeCurrency, iqdLabel: l.iqd),
-                style: AppFonts.display(fontSize: 17))
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Text(formatMoney(_priced!.chargeAmount, _priced!.chargeCurrency, iqdLabel: l.iqd),
+                    style: AppFonts.display(fontSize: 17)),
+                // Trendyol and the other paid-shipping stores add a per-item
+                // shipping fee at checkout — say so beside the price, not later.
+                // Shein ships free (0), so nothing shows there.
+                if ((_priced!.shippingUnit ?? 0) > 0) ...[
+                  const SizedBox(width: 6),
+                  Text(
+                    '+ ${formatMoney(_priced!.shippingUnit! * _qty, _priced!.chargeCurrency, iqdLabel: l.iqd)} '
+                    '${l.itemShipping}',
+                    style: AppFonts.body(
+                        fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.transitText),
+                  ),
+                ],
+              ],
+            )
           else
             GestureDetector(
               onTap: _reprice,

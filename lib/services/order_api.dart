@@ -11,10 +11,15 @@ class OrderApi {
   Future<(List<Order>, Map<String, num>)> placeOrder({
     required Map<String, dynamic> address,
     String paymentMethod = 'wallet',
+    int? customerId,
+    String? couponCode,
   }) async {
     final json = await _client.post('/orders', data: {
       'payment_method': paymentMethod,
       'address': address,
+      // Admin only: the order is placed for (and charged to) this customer.
+      if (customerId != null) 'customer_id': customerId,
+      if (couponCode != null) 'coupon_code': couponCode,
     });
     final orders = ((json['data'] as List?) ?? [])
         .map((e) => Order.fromJson(e as Map<String, dynamic>))

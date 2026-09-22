@@ -5,14 +5,11 @@ import '../../l10n/app_localizations.dart';
 import '../../models/order.dart';
 import '../../providers/approvals_provider.dart';
 import '../../providers/orders_provider.dart';
-import '../../providers/wallet_provider.dart';
 import '../../router.dart';
-import '../../services/api_client.dart';
+import '../tracking/tracking_screen.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
-import '../../widgets/heama_toast.dart';
-import '../../widgets/payment_badge.dart';
 import '../../widgets/product_image.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -49,11 +46,17 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final provider = context.watch<OrdersProvider>();
-    final all = provider.orders;
+    // One entry per ordered ITEM, not per order: every item moves through its
+    // own steps (the admin buys and ships them one by one), so each is shown
+    // and filed on its own. Newest order first, its items in order.
+    final all = [
+      for (final o in provider.orders)
+        for (final it in o.items) _Entry(o, it),
+    ];
     final filtered = all.where(_passes).toList();
     // Active = still on its way. Archive = closed: delivered (received) or cancelled.
-    final active = filtered.where((o) => !o.isDelivered && !o.isCancelled).toList();
-    final archive = filtered.where((o) => o.isDelivered || o.isCancelled).toList();
+    final active = filtered.where((e) => !e.isClosed).toList();
+    final archive = filtered.where((e) => e.isClosed).toList();
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -143,17 +146,27 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
 
   String _tabLabel(String name, int count) => count > 0 ? '$name ($count)' : name;
 
-  bool _passes(Order o) {
-    if (_status != null && o.status != _status) return false;
-    if (_currency != null && o.currency.toUpperCase() != _currency) return false;
+  bool _passes(_Entry e) {
+    if (_status != null && e.status != _status) return false;
+    if (_currency != null && e.item.chargeCurrency.toUpperCase() != _currency) return false;
     return true;
   }
 
   // status → localized label (reuses the tracking-step strings).
-  String _statusLabel(AppLocalizations l, String status) {
+  String _statusLabel(AppLocalizations l, String status) => statusLabel(l, status);
+
+  static String statusLabel(AppLocalizations l, String status) {
     switch (status) {
       case 'placed':
         return l.stepPlaced;
+      case 'buying':
+        return l.stepBuying;
+      case 'bought':
+        return l.stepBought;
+      case 'zakho_office':
+        return l.stepZakhoOffice;
+      case 'delivery':
+        return l.stepDelivery;
       case 'purchased':
         return l.stepPurchased;
       case 'warehouse':
@@ -174,14 +187,14 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   // A horizontally-scrolling row of filter dropdowns (status / currency).
-  Widget _filterBar(AppLocalizations l, List<Order> all) {
+  Widget _filterBar(AppLocalizations l, List<_Entry> all) {
     const pipeline = [
-      'placed', 'purchased', 'warehouse', 'in_transit',
-      'arrived', 'out_for_delivery', 'delivered', 'cancelled'
+      'placed', 'buying', 'bought', 'zakho_office', 'delivery', 'delivered', 'cancelled'
     ];
-    final statuses = all.map((o) => o.status).toSet().toList()
+    final statuses = all.map((e) => e.status).toSet().toList()
       ..sort((a, b) => pipeline.indexOf(a).compareTo(pipeline.indexOf(b)));
-    final currencies = all.map((o) => o.currency.toUpperCase()).toSet().toList()..sort();
+    final currencies =
+        all.map((e) => e.item.chargeCurrency.toUpperCase()).toSet().toList()..sort();
 
     return SizedBox(
       height: 48,
@@ -266,7 +279,7 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
     );
   }
 
-  Widget _list(OrdersProvider provider, List<Order> orders, String title, String emptyMsg) {
+  Widget _list(OrdersProvider provider, List<_Entry> orders, String title, String emptyMsg) {
     return RefreshIndicator(
       onRefresh: () => context.read<OrdersProvider>().load(),
       child: (provider.loading && provider.orders.isEmpty)
@@ -307,36 +320,62 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
                 )
               : ListView(
                   padding: const EdgeInsets.only(top: 12, bottom: 24),
-                  children: orders.map((o) => _OrderCard(order: o)).toList(),
+                  children: orders.map((e) => _ItemCard(entry: e)).toList(),
                 ),
     );
   }
 }
 
-class _OrderCard extends StatelessWidget {
+/// One ordered item, with the order it belongs to (for its code, date and
+/// whether the whole order was cancelled).
+class _Entry {
+  const _Entry(this.order, this.item);
   final Order order;
-  const _OrderCard({required this.order});
+  final OrderItem item;
+
+  /// The item's own step; a cancelled order cancels all of its items.
+  String get status => order.isCancelled ? 'cancelled' : item.status;
+  bool get isCancelled => status == 'cancelled';
+  bool get isDelivered => status == 'delivered';
+  bool get isClosed => isCancelled || isDelivered;
+}
+
+class _ItemCard extends StatelessWidget {
+  final _Entry entry;
+  const _ItemCard({required this.entry});
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    final order = entry.order;
+    final it = entry.item;
     final date = order.placedAt != null
         ? '${_month(order.placedAt!.month)} ${order.placedAt!.day}'
         : '';
-    // status chip colours
-    final (chipLabel, chipBg, chipFg) = order.isCancelled
-        ? (l.statusCancelled, AppColors.cloud, AppColors.muted)
-        : order.isDelivered
-            ? (l.delivered, AppColors.greenTint, AppColors.green)
-            : (l.inTransit, AppColors.transitTint, AppColors.transitText);
-    // An order with a PENDING shipping approval gets the amber "attention" look
-    // (and opens the approvals screen directly) until the customer answers.
+    final (chipBg, chipFg) = entry.isCancelled
+        ? (AppColors.cloud, AppColors.muted)
+        : entry.isDelivered
+            ? (AppColors.greenTint, AppColors.green)
+            : (AppColors.transitTint, AppColors.transitText);
+    final chipLabel = _OrdersScreenState.statusLabel(l, entry.status);
+    final variant = [
+      if ((it.color ?? '').isNotEmpty) it.color!,
+      if ((it.size ?? '').isNotEmpty) it.size!,
+      '×${it.qty}',
+    ].join('  ·  ');
+    // THIS item has a shipping re-price waiting for the customer's answer.
     final needsApproval =
-        context.watch<ApprovalsProvider>().pendingOrderCodes.contains(order.code);
+        context.watch<ApprovalsProvider>().pending.any((a) => a.itemId == it.id);
+
     return GestureDetector(
-      onTap: () => needsApproval
-          ? Navigator.pushNamed(context, Routes.approvals)
-          : Navigator.pushNamed(context, Routes.tracking, arguments: order.code),
+      // A cancelled item has nothing left to track — the card is its record.
+      onTap: entry.isCancelled
+          ? null
+          : () => needsApproval
+              ? Navigator.pushNamed(context, Routes.approvals)
+              // Track THIS item alone — its own step, not the whole order's.
+              : Navigator.pushNamed(context, Routes.tracking,
+                  arguments: TrackingArgs(order.code, itemId: it.id)),
       child: Container(
         margin: const EdgeInsets.fromLTRB(18, 0, 18, 12),
         padding: const EdgeInsets.all(14),
@@ -350,31 +389,30 @@ class _OrderCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // The order's first item photo (its own photo when it's a single item).
-            if (order.items.isNotEmpty) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  width: 54,
-                  height: 62,
-                  child: ProductImage(
-                    url: order.items.first.imageUrl,
-                    gradient: OrderItem.defaultGradient,
-                  ),
-                ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 54,
+                height: 62,
+                child: ProductImage(url: it.imageUrl, gradient: OrderItem.defaultGradient),
               ),
-              const SizedBox(width: 12),
-            ],
+            ),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Text('Order #${order.code}',
-                            style: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700)),
+                        child: Text(it.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFonts.body(
+                                fontSize: 13, fontWeight: FontWeight.w700, height: 1.3)),
                       ),
+                      const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                         decoration: BoxDecoration(
@@ -387,9 +425,11 @@ class _OrderCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                  const SizedBox(height: 4),
+                  Text(variant, style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
                   if (needsApproval)
                     Padding(
-                      padding: const EdgeInsets.only(top: 8),
+                      padding: const EdgeInsets.only(top: 6),
                       child: Row(
                         children: [
                           const Icon(Icons.local_shipping_outlined,
@@ -403,22 +443,15 @@ class _OrderCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                  const SizedBox(height: 11),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(l.orderItemsPlaced(order.itemCount, date),
-                            style: AppFonts.body(fontSize: 12, color: AppColors.muted)),
-                      ),
-                      Text(formatMoney(order.totalIqd, order.currency, iqdLabel: l.iqd),
-                          style: AppFonts.display(fontSize: 14)),
-                    ],
-                  ),
                   const SizedBox(height: 9),
                   Row(
                     children: [
-                      Expanded(child: PaymentBadge(order: order)),
-                      if (order.canCancel) _cancelButton(context, l),
+                      Expanded(
+                        child: Text('#${order.code}${date.isEmpty ? '' : ' · $date'}',
+                            style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
+                      ),
+                      Text(formatMoney(it.iqdPrice * it.qty, it.chargeCurrency, iqdLabel: l.iqd),
+                          style: AppFonts.display(fontSize: 14)),
                     ],
                   ),
                 ],
@@ -428,55 +461,6 @@ class _OrderCard extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  Widget _cancelButton(BuildContext context, AppLocalizations l) {
-    return GestureDetector(
-      onTap: () => _confirmCancel(context, l),
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.only(left: 8),
-        child: Text(l.cancelOrder,
-            style: AppFonts.body(
-                fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
-      ),
-    );
-  }
-
-  Future<void> _confirmCancel(BuildContext context, AppLocalizations l) async {
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l.cancelOrderTitle, style: AppFonts.display(fontSize: 17)),
-        content: Text(l.cancelOrderBody,
-            style: AppFonts.body(fontSize: 13.5, color: AppColors.muted, height: 1.4)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l.keepOrder,
-                style: AppFonts.body(fontSize: 13, color: AppColors.muted)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            child: Text(l.cancelOrder,
-                style: AppFonts.body(
-                    fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
-          ),
-        ],
-      ),
-    );
-    if (ok != true || !context.mounted) return;
-    try {
-      final balances = await context.read<OrdersProvider>().cancelOrder(order.code);
-      if (!context.mounted) return;
-      context.read<WalletProvider>().setBalances(iqd: balances['IQD'], usd: balances['USD']);
-      context.read<WalletProvider>().load(); // refresh outstanding COD too
-      showHeamaToast(context, '${l.orderCancelledToast} ✓');
-    } on ApiException catch (e) {
-      if (context.mounted) showHeamaToast(context, e.message);
-    }
   }
 
   static String _month(int m) => const [

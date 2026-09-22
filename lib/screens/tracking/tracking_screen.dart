@@ -16,9 +16,20 @@ import '../../widgets/heama_toast.dart';
 import '../../widgets/payment_badge.dart';
 import '../../widgets/product_image.dart';
 
+/// What the tracking page shows: one order, or — with [itemId] — just that
+/// item of it (each item moves through its own steps).
+class TrackingArgs {
+  const TrackingArgs(this.orderCode, {this.itemId});
+  final String orderCode;
+  final int? itemId;
+}
+
 class TrackingScreen extends StatefulWidget {
   final String? orderCode;
-  const TrackingScreen({super.key, this.orderCode});
+
+  /// Track this item alone: its own step, photo and price.
+  final int? itemId;
+  const TrackingScreen({super.key, this.orderCode, this.itemId});
 
   @override
   State<TrackingScreen> createState() => _TrackingScreenState();
@@ -114,8 +125,18 @@ class _TrackingScreenState extends State<TrackingScreen> {
     final flow = order.statusFlow.isEmpty
         ? const ['placed', 'purchased', 'warehouse', 'in_transit', 'arrived', 'out_for_delivery', 'delivered']
         : order.statusFlow;
-    final currentIndex = flow.indexOf(order.status).clamp(0, flow.length - 1);
-    final eventsByStatus = {for (final e in order.events) e.status: e};
+    // Item mode: the one item asked for. null → the whole order, as before.
+    final focus = widget.itemId == null
+        ? null
+        : order.items.where((i) => i.id == widget.itemId).firstOrNull;
+    final items = focus != null ? [focus] : order.items;
+    final currentIndex =
+        flow.indexOf(focus?.status ?? order.status).clamp(0, flow.length - 1);
+    // Order events describe the ORDER; for one item only "placed" is its own.
+    final eventsByStatus = {
+      for (final e in order.events)
+        if (focus == null || e.status == 'placed') e.status: e
+    };
 
     return ListView(
       padding: const EdgeInsets.only(bottom: 24),
@@ -134,16 +155,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 padding: const EdgeInsets.only(bottom: 14),
                 child: Row(
                   children: [
-                    Container(
-                      width: 50,
-                      height: 58,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFFC9B6E8), Color(0xFFE9C7D6)],
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(11),
+                      child: SizedBox(
+                        width: 50,
+                        height: 58,
+                        child: ProductImage(
+                          url: focus?.imageUrl ?? '',
+                          gradient: OrderItem.defaultGradient,
                         ),
-                        borderRadius: BorderRadius.circular(11),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -151,15 +171,24 @@ class _TrackingScreenState extends State<TrackingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Order #${order.code}',
+                          Text(focus?.title ?? 'Order #${order.code}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w700)),
                           const SizedBox(height: 2),
-                          Text(l.trackFromStores(order.itemCount),
+                          Text(
+                              focus != null
+                                  ? '#${order.code}'
+                                  : l.trackFromStores(order.itemCount),
                               style: AppFonts.body(fontSize: 11, color: AppColors.muted)),
                         ],
                       ),
                     ),
-                    Text(formatMoney(order.totalIqd, order.currency, iqdLabel: l.iqd),
+                    Text(
+                        focus != null
+                            ? formatMoney(focus.iqdPrice * focus.qty, focus.chargeCurrency,
+                                iqdLabel: l.iqd)
+                            : formatMoney(order.totalIqd, order.currency, iqdLabel: l.iqd),
                         style: AppFonts.display(fontSize: 13, color: AppColors.green)),
                   ],
                 ),
@@ -192,7 +221,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
           ),
         ),
         // Order items so the customer can review what's in this order.
-        if (order.items.isNotEmpty)
+        if (items.isNotEmpty)
           Container(
             margin: const EdgeInsets.fromLTRB(18, 0, 18, 18),
             padding: const EdgeInsets.all(16),
@@ -208,10 +237,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     style: AppFonts.body(
                         fontSize: 11.5, fontWeight: FontWeight.w800, letterSpacing: 0.4)),
                 const SizedBox(height: 14),
-                ...List.generate(order.items.length, (i) {
-                  final it = order.items[i];
+                ...List.generate(items.length, (i) {
+                  final it = items[i];
                   return Padding(
-                    padding: EdgeInsets.only(bottom: i == order.items.length - 1 ? 0 : 14),
+                    padding: EdgeInsets.only(bottom: i == items.length - 1 ? 0 : 14),
                     child: _itemRow(l, order, it),
                   );
                 }),
@@ -231,11 +260,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
     // Amber highlight while THIS item has a pending shipping approval.
     final needsReview =
         context.watch<ApprovalsProvider>().pending.any((a) => a.itemId == it.id);
-    // A single item can be cancelled only while THAT item is still pending (the
-    // admin hasn't started buying it), and never the last one (cancel the whole
-    // order for that). Each item advances independently, so this is per-item.
-    final canCancelItem =
-        it.canCancel && !order.isCancelled && order.items.length > 1;
+    // An item can be cancelled only while THAT item is still pending (the admin
+    // hasn't started buying it). Each item advances independently, so this is
+    // per-item. Cancelling the last one cancels the order too (server side).
+    final canCancelItem = it.canCancel && !order.isCancelled;
 
     final row = Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,13 +379,26 @@ class _TrackingScreenState extends State<TrackingScreen> {
     );
     if (ok != true || !mounted) return;
     try {
-      final (updated, balances) =
-          await context.read<OrdersProvider>().cancelItem(order.code, it.id);
+      final orders = context.read<OrdersProvider>();
+      final (_, balances) = await orders.cancelItem(order.code, it.id);
       if (!mounted) return;
       context.read<WalletProvider>().setBalances(iqd: balances['IQD'], usd: balances['USD']);
-      // Refresh this screen with the recomputed order, and the orders list +
-      // wallet + approvals so everything reflects the removal immediately.
-      setState(() => _future = Future.value(updated));
+      // Reload this order from the server — the same fetch as opening the page,
+      // so the screen shows exactly what re-opening it would (the cancel reply
+      // alone left it stale, e.g. when the last item cancelled the order). Then
+      // the orders list, wallet and approvals, so everything matches at once.
+      // Block body: an arrow here would return the Future to setState, which
+      // Flutter rejects — the page then never redrew.
+      if (widget.itemId != null) {
+        // Tracking that one item: it's gone now, so there's nothing left to
+        // show — back to the orders list, which reloads below.
+        Navigator.pop(context);
+      } else {
+        final reloaded = orders.loadOne(order.code);
+        setState(() {
+          _future = reloaded;
+        });
+      }
       context.read<OrdersProvider>().load();
       context.read<WalletProvider>().load();
       context.read<ApprovalsProvider>().refreshSilently();

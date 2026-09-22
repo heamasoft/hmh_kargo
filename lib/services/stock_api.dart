@@ -8,8 +8,16 @@ class StockApi {
 
   /// GET /stock?lang=xx → {shein:[...], other:[...]}. [lang] localizes the
   /// scraped titles/colours into the app's language (en/ar/ku).
-  Future<({List<StockItem> shein, List<StockItem> other})> list({String lang = 'en'}) async {
-    final res = await _client.get('/stock?lang=$lang');
+  Future<({List<StockItem> shein, List<StockItem> other})> list({String lang = 'en'}) async =>
+      _parse(await _client.getAndCache('/stock?lang=$lang'));
+
+  /// The stock list as last loaded in [lang], kept on the phone — or null.
+  Future<({List<StockItem> shein, List<StockItem> other})?> cachedList({String lang = 'en'}) async {
+    final res = await _client.cached('/stock?lang=$lang');
+    return res == null ? null : _parse(res);
+  }
+
+  static ({List<StockItem> shein, List<StockItem> other}) _parse(Map<String, dynamic> res) {
     List<StockItem> parse(String key) => ((res[key] as List?) ?? [])
         .map((e) => StockItem.fromJson(e as Map<String, dynamic>))
         .toList();

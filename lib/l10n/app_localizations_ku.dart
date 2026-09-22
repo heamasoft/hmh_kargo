@@ -937,10 +937,10 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get deleteAccountConfirm =>
-      'ئەمە هەژمار و زانیارییە کەسییەکانت بە یەکجاری دەسڕێتەوە (پرۆفایل، ناونیشان، سەبەتە، هەڵگیراوەکان). ناگەڕێتەوە. لەوانەیە تۆماری داواکارییە تەواوبووەکان بەپێی یاسا بهێڵینەوە.';
+      'ئەمە هەژمارەکەت دادەخات: دەچیتە دەرەوە و ناتوانیت جارێکی تر بەم ژمارەیە بچیتە ژوورەوە. داواکاری و جزدانەکەت پاشەکەوت دەمێننەوە — ئەگەر دەتەوێت دووبارە بکرێتەوە پەیوەندیمان پێوە بکە.';
 
   @override
-  String get deleteAccountDone => 'هەژمارەکەت سڕایەوە.';
+  String get deleteAccountDone => 'هەژمارەکەت داخرا.';
 
   @override
   String get deleteAccountError =>
@@ -1005,4 +1005,283 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get languageKurdish => 'کوردی';
+
+  @override
+  String get exchangeRates => 'نرخی ئاڵوگۆڕ';
+
+  @override
+  String get tapToCalculate => 'کلیک بکە بۆ هەژمارکردن';
+
+  @override
+  String get dollarToDinar => 'دۆلار ← دینار';
+
+  @override
+  String get liraToDollar => 'لیرە ← دۆلار';
+
+  @override
+  String get rateNotSet => 'نرخ هێشتا دیاری نەکراوە';
+
+  @override
+  String get amountLabel => 'بڕ';
+
+  @override
+  String get inDinars => 'بە دینار';
+
+  @override
+  String get inDollars => 'بە دۆلار';
+
+  @override
+  String get sameAsCart => 'هەمان نرخی سەبەتەکەت';
+
+  @override
+  String get orderForCustomer => 'داواکاری بۆ کڕیار';
+
+  @override
+  String get chooseCustomer => 'کڕیار هەڵبژێرە';
+
+  @override
+  String get searchCustomers => 'بە ناو یان ژمارەی مۆبایل بگەڕێ…';
+
+  @override
+  String get noCustomersFound => 'هیچ کڕیارێک نەدۆزرایەوە';
+
+  @override
+  String get chooseCustomerFirst =>
+      'ئەو کڕیارە هەڵبژێرە کە ئەم داواکارییە بۆیەتی.';
+
+  @override
+  String chargedToWallet(String name) {
+    return 'لە جزدانی $name دەبڕدرێت';
+  }
+
+  @override
+  String orderPlacedFor(String name) {
+    return 'داواکاری بۆ $name تۆمار کرا';
+  }
+
+  @override
+  String get addByLink => 'بەرهەمێک بە بەستەر زیاد بکە';
+
+  @override
+  String get addByLinkSub => 'لە فرۆشگاکانماندا نییە؟ بەستەر و نرخەکەی بلکێنە.';
+
+  @override
+  String get productName => 'ناوی بەرهەم';
+
+  @override
+  String get productPrice => 'نرخ';
+
+  @override
+  String get linkRequired => 'بەستەری بەرهەمەکە بلکێنە.';
+
+  @override
+  String get priceRequired => 'نرخی بەرهەمەکە بنووسە.';
+
+  @override
+  String fromStore(String store) {
+    return 'لە $store — بە دراوی فرۆشگاکە';
+  }
+
+  @override
+  String get cartAdd => 'زیادکردن';
+
+  @override
+  String get addToCartTitle => 'زیادی بکە بۆ سەبەتەکەت';
+
+  @override
+  String get importSharedCart => 'هێنانی سەبەتەیەکی هاوبەشکراو';
+
+  @override
+  String get importSharedCartSub =>
+      'بەستەری سەبەتەی شیعین یان کۆمەڵەی ترێندیۆل';
+
+  @override
+  String get icTitle => 'هێنانی سەبەتە';
+
+  @override
+  String get icFinding => 'گەڕان بەدوای سەبەتەکەت…';
+
+  @override
+  String icOpening(String store) {
+    return 'کردنەوەی $store…';
+  }
+
+  @override
+  String get icReading => 'خوێندنەوەی سەبەتەکەت…';
+
+  @override
+  String get icPleaseWait => 'تکایە چاوەڕێ بکە — چەند چرکەیەک دەخایەنێت.';
+
+  @override
+  String get icNotALink => 'ئەمە وەک بەستەر نییە.';
+
+  @override
+  String get icTooLong =>
+      'بارکردن زۆری خایاند. پەیوەندییەکەت بپشکنە و دووبارە دەست بنێ بە بارکردن.';
+
+  @override
+  String get icServerCantRead =>
+      'نەمانتوانی ئەو بەستەرە بخوێنینەوە. دڵنیابە کە بەستەری سەبەتەی شیعین یان کۆمەڵەی ترێندیۆلە.';
+
+  @override
+  String get icEmptyCollection =>
+      'ئەو کۆمەڵەیە هیچ بەرهەمێکی تێدا نییە کە بتوانرێت داوا بکرێت. دڵنیابە بەرهەمەکانی هێشتا بەردەستن، پاشان دووبارە بارکردن بکە.';
+
+  @override
+  String get icSingleProduct =>
+      'ئەو بەستەرە بۆ یەک بەرهەمە، نەک سەبەتە. سەبەتەکەت (شیعین) یان کۆمەڵەیەک (ترێندیۆل) هاوبەش بکە، یان بۆ یەک بەرهەم \"لکاندنی بەستەر\" لە پەڕەی فرۆشگا بەکاربهێنە.';
+
+  @override
+  String get icCouldNotRead =>
+      'نەتوانرا سەبەتەکە بخوێنرێتەوە. دووبارە بارکردن بکە.';
+
+  @override
+  String get icNoItems =>
+      'هیچ بەرهەمێک لەو سەبەتەیەدا نەدۆزرایەوە. دڵنیابە بەستەرەکە سەبەتەیەکی هاوبەشکراوی شیعینە و هێشتا بەرهەمی تێدایە، پاشان دووبارە بارکردن بکە.';
+
+  @override
+  String icPickSizeOne(String title) {
+    return 'سەرەتا قەبارەیەک بۆ \"$title\" هەڵبژێرە — دەست بنێ بە \"قەبارە هەڵبژێرە\".';
+  }
+
+  @override
+  String icPickSizeMany(int count) {
+    return 'سەرەتا قەبارە بۆ $count بەرهەم هەڵبژێرە — لەسەر هەر یەکێکیان دەست بنێ بە \"قەبارە هەڵبژێرە\".';
+  }
+
+  @override
+  String get icStoresLoading =>
+      'فرۆشگاکان هێشتا بار دەبن — دوای کەمێک هەوڵ بدەرەوە.';
+
+  @override
+  String get icNothingAdded => 'هیچ شتێک زیاد نەکرا.';
+
+  @override
+  String icCouldNotAdd(String title) {
+    return 'نەتوانرا زیاد بکرێت: $title';
+  }
+
+  @override
+  String icAdded(int count) {
+    return '$count بەرهەم زیاد کرا بۆ سەبەتەکەت.';
+  }
+
+  @override
+  String get icBringOver => 'سەبەتەکەت بهێنە ئێرە';
+
+  @override
+  String get icBringOverSub =>
+      'سەبەتەکەت لە ئەپی شیعین، یان کۆمەڵەیەک لە ئەپی ترێندیۆل هاوبەش بکە، بەستەرەکە لە سەرەوە بلکێنە و دەست بنێ بە بارکردن.';
+
+  @override
+  String get icShareCart => 'سەبەتە ← هاوبەشکردن';
+
+  @override
+  String get icShareCollection => 'کۆمەڵە ← هاوبەشکردن';
+
+  @override
+  String get icHumanCheck =>
+      'شیعین پشکنینێکی خێرا دەیەوێت کە تۆ مرۆڤیت. لە خوارەوە تەواوی بکە — دواتر بارکردن خۆی بەردەوام دەبێت.';
+
+  @override
+  String get icLinkLabel => 'بەستەری سەبەتەی شیعین یان کۆمەڵەی ترێندیۆل';
+
+  @override
+  String get icLinkHint => 'بەستەرەکە لە ئەپەکەوە بلکێنە';
+
+  @override
+  String get icLoad => 'بارکردن';
+
+  @override
+  String icCurrencyAdvice(String foreign, String store) {
+    return 'شیعین نرخەکان بە $foreign پیشان دەدات، بەڵام ئەم فرۆشگایە بە $store نرخ دانراوە — زیادکردنیان ئێستا بڕێکی هەڵە هەژمار دەکات. دووبارە بارکردن بکە؛ ئەگەر بەردەوام بوو پێمان بڵێ.';
+  }
+
+  @override
+  String get icChooseSize => 'قەبارە هەڵبژێرە';
+
+  @override
+  String icSizeValue(String size) {
+    return 'قەبارە $size';
+  }
+
+  @override
+  String icAddChosen(int count) {
+    return 'زیادکردنی $count بۆ سەبەتە';
+  }
+
+  @override
+  String get closeAccountSection => 'داخستنی هەژمار';
+
+  @override
+  String get closeAccountSub =>
+      'دەتباتە دەرەوە و ڕێگە نادات ئەم ژمارەیە بچێتە ژوورەوە.';
+
+  @override
+  String get deleteAccountAck => 'تێدەگەم کە هەژمارەکەم دادەخرێت';
+
+  @override
+  String get couponHave => 'کوپۆنت هەیە؟';
+
+  @override
+  String get couponHint => 'کۆدی کوپۆن';
+
+  @override
+  String get couponApply => 'جێبەجێکردن';
+
+  @override
+  String get couponRemove => 'لابردن';
+
+  @override
+  String couponApplied(String code, String percent) {
+    return 'کوپۆنی $code جێبەجێ کرا — $percent داشکاندن';
+  }
+
+  @override
+  String couponDiscount(String code) {
+    return 'کوپۆن ($code)';
+  }
+
+  @override
+  String get coupons => 'کوپۆنەکان';
+
+  @override
+  String get couponNew => 'کوپۆنی نوێ';
+
+  @override
+  String get couponPercent => 'ڕێژەی داشکاندن %';
+
+  @override
+  String get couponExpires => 'بەسەردەچێت لە';
+
+  @override
+  String get couponNoExpiry => 'بێ بەسەرچوون';
+
+  @override
+  String get couponCreate => 'دروستکردنی کوپۆن';
+
+  @override
+  String get couponCreated => 'کوپۆن دروست کرا';
+
+  @override
+  String get couponsEmpty =>
+      'هێشتا هیچ کوپۆنێک نییە. بە دوگمەی + یەکێک دروست بکە.';
+
+  @override
+  String couponUsedTimes(int count) {
+    return '$count جار بەکارهاتووە';
+  }
+
+  @override
+  String get couponActive => 'چالاک';
+
+  @override
+  String get couponOff => 'ناچالاک';
+
+  @override
+  String get couponExpired => 'بەسەرچووە';
+
+  @override
+  String get couponOnePerCustomer =>
+      'هەر کڕیارێک دەتوانێت یەک جار کوپۆنێک بەکاربهێنێت.';
 }

@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../router.dart';
 import '../../services/api_client.dart';
+import '../../services/push_service.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/heama_toast.dart';
@@ -174,7 +175,120 @@ class _AccountScreenState extends State<AccountScreen> {
               ),
             ),
           ),
+
+          // ---- Close account ----
+          // Kept here, at the end of Account, away from "Log out" on the Me
+          // page, so one can't be tapped for the other. (App Store requirement:
+          // it must still be reachable in the app.)
+          const SizedBox(height: 40),
+          GestureDetector(
+            onTap: () => _confirmCloseAccount(l),
+            behavior: HitTestBehavior.opaque,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: AppColors.pomegranate.withValues(alpha: 0.35)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.no_accounts_outlined, size: 20, color: AppColors.pomegranate),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(l.closeAccountSection,
+                            style: AppFonts.body(
+                                fontSize: 13.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.pomegranate)),
+                        const SizedBox(height: 2),
+                        Text(l.closeAccountSub,
+                            style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
         ],
+      ),
+    );
+  }
+
+  /// Closes (deactivates) the account — only once the customer has ticked that
+  /// they understand, so it can't happen with one stray tap.
+  void _confirmCloseAccount(AppLocalizations l) {
+    var ack = false;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialog) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(l.closeAccountSection, style: AppFonts.display(fontSize: 17)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(l.deleteAccountConfirm,
+                  style: AppFonts.body(fontSize: 13.5, color: AppColors.muted, height: 1.4)),
+              const SizedBox(height: 12),
+              GestureDetector(
+                onTap: () => setDialog(() => ack = !ack),
+                behavior: HitTestBehavior.opaque,
+                child: Row(
+                  children: [
+                    Checkbox(
+                      value: ack,
+                      activeColor: AppColors.pomegranate,
+                      onChanged: (v) => setDialog(() => ack = v ?? false),
+                    ),
+                    Expanded(
+                      child: Text(l.deleteAccountAck,
+                          style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w600)),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel,
+                  style: AppFonts.body(fontSize: 13, color: AppColors.muted)),
+            ),
+            TextButton(
+              // Disabled until the box is ticked.
+              onPressed: !ack
+                  ? null
+                  : () async {
+                      Navigator.pop(ctx);
+                      final messenger = ScaffoldMessenger.of(context);
+                      final auth = context.read<AuthProvider>();
+                      final push = context.read<PushService>();
+                      try {
+                        await push.unregister();
+                        await auth.deleteAccount();
+                        if (!mounted) return;
+                        Navigator.pushNamedAndRemoveUntil(context, Routes.welcome, (r) => false);
+                        messenger.showSnackBar(SnackBar(content: Text(l.deleteAccountDone)));
+                      } catch (_) {
+                        messenger.showSnackBar(SnackBar(content: Text(l.deleteAccountError)));
+                      }
+                    },
+              child: Text(l.closeAccountSection,
+                  style: AppFonts.body(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: ack ? AppColors.pomegranate : AppColors.line)),
+            ),
+          ],
+        ),
       ),
     );
   }

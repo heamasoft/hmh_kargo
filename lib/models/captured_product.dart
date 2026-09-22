@@ -20,6 +20,10 @@ class CapturedProduct {
   /// Whether the server found a price automatically (false → ask the user).
   final bool auto;
 
+  /// Shipping added per unit at checkout, in [chargeCurrency] — 0 for
+  /// free-shipping stores (Shein), null when the server doesn't say (older API).
+  final num? shippingUnit;
+
   const CapturedProduct({
     this.storeId,
     this.storeName,
@@ -32,6 +36,7 @@ class CapturedProduct {
     this.chargeAmount = 0,
     required this.iqdPrice,
     this.auto = true,
+    this.shippingUnit,
   });
 
   factory CapturedProduct.fromJson(Map<String, dynamic> json) {
@@ -49,6 +54,7 @@ class CapturedProduct {
       chargeAmount: (json['charge_amount'] ?? iqd) as num,
       iqdPrice: iqd,
       auto: (json['auto'] ?? true) as bool,
+      shippingUnit: json['shipping_unit'] as num?,
     );
   }
 }
@@ -80,6 +86,10 @@ class ScrapeResult {
   final List<String> colorOptions;
   final List<String> sizeOptions;
 
+  /// The store's price for each size, when sizes are priced differently
+  /// (Shein: XS $7.31, S–XXL $13.29). Empty when the page doesn't say.
+  final Map<String, double> sizePrices;
+
   /// Compact variant context for the AI fallback (empty if none).
   final String aiBlob;
 
@@ -99,6 +109,7 @@ class ScrapeResult {
     this.colorOptions = const [],
     this.sizeOptions = const [],
     this.aiBlob = '',
+    this.sizePrices = const {},
   });
 
   bool get hasPrice => price != null && price! > 0;
@@ -131,6 +142,7 @@ class ScrapeResult {
         sizeOptions:
             (sizeOptions != null && sizeOptions.isNotEmpty) ? sizeOptions : this.sizeOptions,
         aiBlob: aiBlob,
+        sizePrices: sizePrices,
       );
 
   factory ScrapeResult.fromJson(Map<String, dynamic> json) {
@@ -155,6 +167,16 @@ class ScrapeResult {
       return seen;
     }
 
+    Map<String, double> parsePrices(dynamic v) {
+      if (v is! Map) return const {};
+      final out = <String, double>{};
+      v.forEach((k, p) {
+        final n = double.tryParse(p.toString());
+        if (n != null && n > 0) out[k.toString().trim()] = n;
+      });
+      return out;
+    }
+
     return ScrapeResult(
       url: (json['url'] ?? '') as String,
       title: (json['title'] ?? '') as String,
@@ -171,6 +193,7 @@ class ScrapeResult {
       colorOptions: parseList(json['colorOptions']),
       sizeOptions: parseList(json['sizeOptions']),
       aiBlob: (json['ai'] ?? '') as String? ?? '',
+      sizePrices: parsePrices(json['sizePrices']),
     );
   }
 }

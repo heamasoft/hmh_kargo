@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AiController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CaptureController;
 use App\Http\Controllers\Api\CartController;
+use App\Http\Controllers\Api\CouponController;
 use App\Http\Controllers\Api\DeviceTokenController;
 use App\Http\Controllers\Api\FavoriteController;
 use App\Http\Controllers\Api\OrderController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\StockController;
 use App\Http\Controllers\Api\StoreController;
 use App\Http\Controllers\Api\WalletController;
+use App\Http\Middleware\EnsureNotBlocked;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -87,14 +89,18 @@ Route::prefix('v1')->group(function () {
     });
 
     // --- Authenticated ---
-    Route::middleware('auth:sanctum')->group(function () {
+    // Blocked (deactivated) accounts are refused on every signed-in call.
+    Route::middleware(['auth:sanctum', EnsureNotBlocked::class])->group(function () {
         Route::get('/auth/me', [AuthController::class, 'me']);
         Route::patch('/auth/profile', [AuthController::class, 'updateProfile']);
         Route::post('/auth/password', [AuthController::class, 'setPassword']);
         Route::post('/auth/logout', [AuthController::class, 'logout']);
-        // Permanent account deletion (App Store requirement).
+        // "Delete account" (App Store requirement): deactivates — blocks — the
+        // account; its data is kept and the admin can reactivate it.
         Route::delete('/auth/account', [AuthController::class, 'deleteAccount']);
 
+        // Turn an app share link (Shein "onelink") into the real product URL.
+        Route::post('/resolve', [CaptureController::class, 'resolve']);
         // Scrape a product URL server-side, then price it (web + mobile).
         Route::post('/scrape', [CaptureController::class, 'scrape']);
         // Capture a manually-entered product (returns it priced in IQD).
@@ -147,6 +153,14 @@ Route::prefix('v1')->group(function () {
 
         // Admin dashboard (gated on is_admin inside the controller)
         Route::get('/admin/notifications', [AdminController::class, 'notifications']);
+        Route::get('/admin/customers', [AdminController::class, 'customers']);
+        Route::get('/admin/coupons', [CouponController::class, 'index']);
+        Route::post('/admin/coupons', [CouponController::class, 'store']);
+        Route::patch('/admin/coupons/{coupon}', [CouponController::class, 'update']);
+
+        // Coupons: may this customer use a code? (spent when the order is placed)
+        Route::post('/coupons/check', [CouponController::class, 'check'])
+            ->middleware('throttle:20,1');
         Route::post('/admin/notifications/{notification}/read', [AdminController::class, 'markRead']);
     });
 });

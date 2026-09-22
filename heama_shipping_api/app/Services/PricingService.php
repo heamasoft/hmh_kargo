@@ -110,6 +110,29 @@ class PricingService
         return $this->roundUp($converted * (1 + $markup), $chargeCurrency);
     }
 
+    /**
+     * Everything the app needs to reproduce [chargeUnit] itself — the rates,
+     * the markup and the rounding steps — so its rate cards and calculator show
+     * exactly what adding to the cart would charge, to the dinar, and follow any
+     * change to these settings without an app release.
+     */
+    public function publicRates(): array
+    {
+        return [
+            'usd_rate' => FxRate::rateFor('USD'),
+            'try_rate' => FxRate::rateFor('TRY'),
+            // Lira per dollar as the admin sets it (settings.fx_usd_tl_turkish) —
+            // what the Me page's lira card converts with. 0 when unset.
+            'usd_tl_rate' => (float) Setting::get('fx_usd_tl_turkish', 0),
+            // Dinars per dollar for Turkish orders (settings.fx_usd_iqd_turkish)
+            // — the Me page shows "48 TL = $1 = 1,550 IQD". 0 when unset.
+            'usd_iqd_turkish' => (float) Setting::get('fx_usd_iqd_turkish', 0),
+            'markup_percent' => (float) Setting::get('markup_percent', 15),
+            'rounding_step_iqd' => (int) Setting::get('rounding_step', 250),
+            'rounding_step_usd' => (float) Setting::get('rounding_step_usd', 0.25),
+        ];
+    }
+
     /** Back-compat: all-in unit price in IQD dinars. */
     public function toIqd(float $sourcePrice, string $currency): float
     {

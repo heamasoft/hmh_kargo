@@ -934,10 +934,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get deleteAccountConfirm =>
-      'This permanently deletes your account and personal data (profile, addresses, cart, saved items). This can\'t be undone. Completed order records may be kept as required by law.';
+      'This closes your account: you will be signed out and can no longer log in with this number. Your orders and wallet stay on record — contact us if you want it reopened.';
 
   @override
-  String get deleteAccountDone => 'Your account has been deleted.';
+  String get deleteAccountDone => 'Your account has been closed.';
 
   @override
   String get deleteAccountError =>
@@ -1002,4 +1002,279 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get languageKurdish => 'کوردی';
+
+  @override
+  String get exchangeRates => 'Exchange rates';
+
+  @override
+  String get tapToCalculate => 'Tap to calculate';
+
+  @override
+  String get dollarToDinar => 'Dollar → Dinar';
+
+  @override
+  String get liraToDollar => 'Lira → Dollar';
+
+  @override
+  String get rateNotSet => 'Rate not set yet';
+
+  @override
+  String get amountLabel => 'Amount';
+
+  @override
+  String get inDinars => 'In dinars';
+
+  @override
+  String get inDollars => 'In dollars';
+
+  @override
+  String get sameAsCart => 'Same price your cart charges';
+
+  @override
+  String get orderForCustomer => 'Order for customer';
+
+  @override
+  String get chooseCustomer => 'Choose customer';
+
+  @override
+  String get searchCustomers => 'Search by name or phone…';
+
+  @override
+  String get noCustomersFound => 'No customers found';
+
+  @override
+  String get chooseCustomerFirst => 'Choose the customer this order is for.';
+
+  @override
+  String chargedToWallet(String name) {
+    return 'Charged to $name\'s wallet';
+  }
+
+  @override
+  String orderPlacedFor(String name) {
+    return 'Order placed for $name';
+  }
+
+  @override
+  String get addByLink => 'Add an item by link';
+
+  @override
+  String get addByLinkSub =>
+      'Can\'t find it in our stores? Paste its link and price.';
+
+  @override
+  String get productName => 'Product name';
+
+  @override
+  String get productPrice => 'Price';
+
+  @override
+  String get linkRequired => 'Paste the product\'s link.';
+
+  @override
+  String get priceRequired => 'Enter the product\'s price.';
+
+  @override
+  String fromStore(String store) {
+    return 'From $store — priced in its currency';
+  }
+
+  @override
+  String get cartAdd => 'Add';
+
+  @override
+  String get addToCartTitle => 'Add to your cart';
+
+  @override
+  String get importSharedCart => 'Import a shared cart';
+
+  @override
+  String get importSharedCartSub => 'A Shein cart or Trendyol collection link';
+
+  @override
+  String get icTitle => 'Import cart';
+
+  @override
+  String get icFinding => 'Finding your cart…';
+
+  @override
+  String icOpening(String store) {
+    return 'Opening $store…';
+  }
+
+  @override
+  String get icReading => 'Reading your cart…';
+
+  @override
+  String get icPleaseWait => 'Please wait — this takes a few seconds.';
+
+  @override
+  String get icNotALink => 'That doesn\'t look like a link.';
+
+  @override
+  String get icTooLong =>
+      'Loading took too long. Check your connection and tap Load again.';
+
+  @override
+  String get icServerCantRead =>
+      'We couldn\'t read that link. Check it is a Shein cart or Trendyol collection link.';
+
+  @override
+  String get icEmptyCollection =>
+      'That collection has no items we can order. Check it still has products in stock, then tap Load again.';
+
+  @override
+  String get icSingleProduct =>
+      'That link is a single product, not a cart. Share your cart (Shein) or a collection (Trendyol), or use \"Paste link\" on the store page for one item.';
+
+  @override
+  String get icCouldNotRead => 'Could not read the cart. Tap Load again.';
+
+  @override
+  String get icNoItems =>
+      'No items found on that cart. Check the link is a shared Shein cart and that it still has items, then tap Load again.';
+
+  @override
+  String icPickSizeOne(String title) {
+    return 'Pick a size for \"$title\" first — tap \"Choose size\".';
+  }
+
+  @override
+  String icPickSizeMany(int count) {
+    return 'Pick a size for $count items first — tap \"Choose size\" on each.';
+  }
+
+  @override
+  String get icStoresLoading =>
+      'Stores are still loading — try again in a moment.';
+
+  @override
+  String get icNothingAdded => 'Nothing could be added.';
+
+  @override
+  String icCouldNotAdd(String title) {
+    return 'Could not add: $title';
+  }
+
+  @override
+  String icAdded(int count) {
+    return '$count item(s) added to your cart.';
+  }
+
+  @override
+  String get icBringOver => 'Bring your cart over';
+
+  @override
+  String get icBringOverSub =>
+      'Share your cart from the Shein app, or a collection from the Trendyol app, paste the link above and tap Load.';
+
+  @override
+  String get icShareCart => 'Cart → Share';
+
+  @override
+  String get icShareCollection => 'Collection → Share';
+
+  @override
+  String get icHumanCheck =>
+      'Shein wants a quick check that you\'re human. Complete it below — loading carries on by itself afterwards.';
+
+  @override
+  String get icLinkLabel => 'Shein cart or Trendyol collection link';
+
+  @override
+  String get icLinkHint => 'Paste the link from the app';
+
+  @override
+  String get icLoad => 'Load';
+
+  @override
+  String icCurrencyAdvice(String foreign, String store) {
+    return 'Shein is showing prices in $foreign, but this store is priced in $store — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.';
+  }
+
+  @override
+  String get icChooseSize => 'Choose size';
+
+  @override
+  String icSizeValue(String size) {
+    return 'Size $size';
+  }
+
+  @override
+  String icAddChosen(int count) {
+    return 'Add $count to cart';
+  }
+
+  @override
+  String get closeAccountSection => 'Close account';
+
+  @override
+  String get closeAccountSub =>
+      'Signs you out and stops this number from logging in.';
+
+  @override
+  String get deleteAccountAck => 'I understand my account will be closed';
+
+  @override
+  String get couponHave => 'Have a coupon?';
+
+  @override
+  String get couponHint => 'Coupon code';
+
+  @override
+  String get couponApply => 'Apply';
+
+  @override
+  String get couponRemove => 'Remove';
+
+  @override
+  String couponApplied(String code, String percent) {
+    return 'Coupon $code applied — $percent off';
+  }
+
+  @override
+  String couponDiscount(String code) {
+    return 'Coupon ($code)';
+  }
+
+  @override
+  String get coupons => 'Coupons';
+
+  @override
+  String get couponNew => 'New coupon';
+
+  @override
+  String get couponPercent => 'Discount %';
+
+  @override
+  String get couponExpires => 'Expires on';
+
+  @override
+  String get couponNoExpiry => 'No expiry';
+
+  @override
+  String get couponCreate => 'Create coupon';
+
+  @override
+  String get couponCreated => 'Coupon created';
+
+  @override
+  String get couponsEmpty => 'No coupons yet. Create one with the + button.';
+
+  @override
+  String couponUsedTimes(int count) {
+    return 'Used $count times';
+  }
+
+  @override
+  String get couponActive => 'Active';
+
+  @override
+  String get couponOff => 'Off';
+
+  @override
+  String get couponExpired => 'Expired';
+
+  @override
+  String get couponOnePerCustomer => 'Each customer can use a coupon once.';
 }

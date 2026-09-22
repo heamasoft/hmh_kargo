@@ -50,8 +50,9 @@ workflows:
         script: flutter analyze || true
       - name: Flutter build ipa
         script: |
+          # The version (e.g. 1.0.2) comes from pubspec.yaml; only the build
+          # number is set here, one above the latest on TestFlight.
           flutter build ipa --release \
-            --build-name=1.0.1 \
             --build-number=$(($(app-store-connect get-latest-testflight-build-number "$APP_STORE_APPLE_ID" 2>/dev/null || echo 0) + 1)) \
             --export-options-plist=/Users/builder/export_options.plist
     artifacts:

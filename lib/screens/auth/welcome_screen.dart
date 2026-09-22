@@ -10,10 +10,33 @@ import '../../widgets/language_sheet.dart';
 import '../../widgets/primary_button.dart';
 
 /// Onboarding entry screen: brand hero, language picker, and the account paths.
-class WelcomeScreen extends StatelessWidget {
+class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
+  @override
+  State<WelcomeScreen> createState() => _WelcomeScreenState();
+}
+
+class _WelcomeScreenState extends State<WelcomeScreen> {
   static const _emblem = 'assets/logo/hmh_kargo_emblem_white.png';
+
+  @override
+  void initState() {
+    super.initState();
+    // First app launch: prompt the user to choose a language before continuing.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _maybePromptLanguage());
+  }
+
+  Future<void> _maybePromptLanguage() async {
+    final provider = context.read<LocaleProvider>();
+    // Wait for the saved choice to finish loading so returning users aren't
+    // prompted again.
+    await provider.ready;
+    if (!mounted) return;
+    if (!context.read<LocaleProvider>().chosen) {
+      await showLanguageSheet(context, firstLaunch: true);
+    }
+  }
 
   String _langLabel(String code) => switch (code) {
         'ar' => 'العربية',

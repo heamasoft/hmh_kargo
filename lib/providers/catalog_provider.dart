@@ -25,12 +25,24 @@ class CatalogProvider extends ChangeNotifier {
   List<Store> get turkiyeStores =>
       stores.where((s) => s.region == 'turkiye').toList();
 
+  bool _storesFresh = false;
+
+  /// Shows the stores kept from last time at once, then refreshes them from
+  /// the server (once per session) — so Home never waits on the network.
   Future<void> loadStores() async {
-    if (stores.isNotEmpty) return;
-    loadingStores = true;
+    if (_storesFresh) return;
+    if (stores.isEmpty) {
+      final saved = await _catalog.cachedStores();
+      if (saved != null && saved.isNotEmpty && stores.isEmpty) {
+        stores = saved;
+        notifyListeners();
+      }
+    }
+    loadingStores = stores.isEmpty; // no spinner over the saved copy
     notifyListeners();
     try {
       stores = await _catalog.getStores();
+      _storesFresh = true;
       error = null;
     } on ApiException catch (e) {
       error = e.message;
@@ -40,8 +52,16 @@ class CatalogProvider extends ChangeNotifier {
     }
   }
 
+  /// Same as [loadStores]: last launch's trending first, then the fresh list.
   Future<void> loadTrending() async {
-    loadingTrending = true;
+    if (trending.isEmpty) {
+      final saved = await _catalog.cachedTrending();
+      if (saved != null && saved.isNotEmpty && trending.isEmpty) {
+        trending = saved;
+        notifyListeners();
+      }
+    }
+    loadingTrending = trending.isEmpty;
     notifyListeners();
     try {
       trending = await _catalog.getTrending();

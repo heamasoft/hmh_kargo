@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\WalletTransactionResource;
 use App\Models\FxRate;
 use App\Services\InsufficientBalanceException;
+use App\Services\PricingService;
 use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -38,8 +39,10 @@ class WalletController extends Controller
         return response()->json([
             'balance_iqd' => $balances['IQD'],
             'balance_usd' => $balances['USD'],
-            // IQD per 1 USD — lets the app preview an exchange live.
-            'usd_rate' => (float) FxRate::rateFor('USD'),
+            // The pricing inputs (rates, markup, rounding) the Me page's rate
+            // cards and calculator use to show exactly what the cart charges.
+            // A rate of 0 means it isn't configured in fx_rates yet.
+            ...app(PricingService::class)->publicRates(),
             'transactions' => WalletTransactionResource::collection($transactions)->resolve(),
         ]);
     }

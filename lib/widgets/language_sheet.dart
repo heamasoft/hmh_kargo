@@ -7,16 +7,23 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
 /// Bottom sheet to pick the app language (EN / AR / KU).
-Future<void> showLanguageSheet(BuildContext context) {
+///
+/// On first launch pass [firstLaunch] true: the sheet can't be dismissed by
+/// tapping away or swiping, so the user must actively choose a language before
+/// continuing to the welcome screen.
+Future<void> showLanguageSheet(BuildContext context, {bool firstLaunch = false}) {
   return showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
-    builder: (_) => const _LanguageSheet(),
+    isDismissible: !firstLaunch,
+    enableDrag: !firstLaunch,
+    builder: (_) => _LanguageSheet(firstLaunch: firstLaunch),
   );
 }
 
 class _LanguageSheet extends StatelessWidget {
-  const _LanguageSheet();
+  final bool firstLaunch;
+  const _LanguageSheet({this.firstLaunch = false});
 
   @override
   Widget build(BuildContext context) {
@@ -30,6 +37,20 @@ class _LanguageSheet extends StatelessWidget {
       ('ku', l.languageKurdish, 'کوردی'),
     ];
 
+    // On first launch the sheet must not be back-dismissed either — the user
+    // has to tap a language to continue.
+    return PopScope(
+      canPop: !firstLaunch,
+      child: _sheetBody(context, l, options, current),
+    );
+  }
+
+  Widget _sheetBody(
+    BuildContext context,
+    AppLocalizations l,
+    List<(String, String, String)> options,
+    String current,
+  ) {
     return Container(
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -52,6 +73,13 @@ class _LanguageSheet extends StatelessWidget {
             ),
             const SizedBox(height: 14),
             Text(l.languageMenu, style: AppFonts.display(fontSize: 18)),
+            if (firstLaunch) ...[
+              const SizedBox(height: 4),
+              // Shown before any language is chosen, so it's written in all three
+              // so every user understands regardless of the current locale.
+              Text('Select language · اختر اللغة · زمان هەڵبژێرە',
+                  style: AppFonts.body(fontSize: 12.5, color: AppColors.muted)),
+            ],
             const SizedBox(height: 12),
             ...options.map((o) {
               final (code, name, native) = o;

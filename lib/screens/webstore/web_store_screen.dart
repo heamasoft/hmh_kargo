@@ -12,11 +12,16 @@ import '../../models/store.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/shell_controller.dart';
+import '../../router.dart';
 import '../../services/api_client.dart';
 import '../../services/capture_api.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../../utils/debug_log.dart';
 import '../../utils/launcher.dart';
+import '../../utils/link_text.dart';
+import '../../utils/store_region.dart';
+import '../../utils/webview_ua.dart';
 import '../../widgets/back_chip.dart';
 import '../../widgets/heama_toast.dart';
 import 'open_store.dart';
@@ -50,6 +55,11 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   bool _capturing = false;
   // Set when the user pastes a link: once the page finishes loading we capture it.
   bool _pendingCapture = false;
+
+  /// The capture in flight came from a pasted link, not a button tap — it is
+  /// retried ([_autoTries] times) while the page is still filling in.
+  bool _autoCapture = false;
+  int _autoTries = 0;
   // Set when the heart is tapped: the next scrape result is saved as a favourite.
   bool _pendingFavorite = false;
 
@@ -88,6 +98,47 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   // Last URL we rewrote to force the Turkey store, so a geo-redirect can't loop.
   String? _forcedUrl;
 
+  late final CaptureApi _captureApi;
+
+  /// Goods id recovered from an app share link. The page's own scraper usually
+  /// finds a SKU, but a share link already told us one — kept as the fallback.
+  String? _shareSku;
+
+  // Hosts that hand out share links instead of product pages: Shein's app
+  // "share" button gives onelink.shein.com, which carries no price or variants.
+  // The server turns one into the real product URL.
+  static final _shareHost = RegExp(
+    // Trendyol's app shares `ty.gl` links, which end in an `intent://` app
+    // hand-off the WebView refuses — the server reads the real page out.
+    r'^(onelink\.shein\.com|shein\.top|api-shein\.shein\.com|ty\.gl)$',
+    caseSensitive: false,
+  );
+
+  /// Swaps an app share link for the product URL it points at, so the WebView
+  /// loads a page the scraper can actually read. Anything else is returned
+  /// unchanged, and a failed lookup falls back to the original link.
+  Future<ResolvedLink> _resolveShare(String url) async {
+    final host = Uri.tryParse(url)?.host ?? '';
+    if (!_shareHost.hasMatch(host)) return ResolvedLink(url: url, isShare: false);
+    final r = await _captureApi.resolve(url);
+    if (r.isShare && r.sku != null) _shareSku = r.sku;
+    return r;
+  }
+
+  /// A shared CART (Shein) or collection (Trendyol) is many products, not one
+  /// page to capture — hand it to the import screen, which reads every row.
+  /// [replace] swaps this screen out when it was opened on the cart link and
+  /// so has no page of its own to go back to.
+  bool _handOffCart(ResolvedLink r, String link, {bool replace = false}) {
+    if (!r.isShare || !(r.isCart || r.isCollection)) return false;
+    if (replace) {
+      Navigator.pushReplacementNamed(context, Routes.sheinCart, arguments: link);
+    } else {
+      Navigator.pushNamed(context, Routes.sheinCart, arguments: link);
+    }
+    return true;
+  }
+
   /// Zara (Inditex) puts the country in the first path segment and prices by it.
   /// From Iraq it geo-redirects to /iq/ (IQD); rewrite the country to /tr/ so the
   /// page shows TL, matching the store's configured currency. Returns the fixed
@@ -105,7 +156,29 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     return null;
   }
 
+  /// Every storefront correction in one place: Zara to Turkey, Shein to the
+  /// UAE storefront. Returns null when the URL already points where it should.
+  ///
+  /// Shein's UAE storefront defaults to local money, so the first load goes
+  /// through [sheinStartUrl], whose `currency=USD` parameter switches it to
+  /// dollars for the session — see store_region.dart. If Shein ever ignores
+  /// that, the currency check in [_onScrape] refuses to price the page.
+  String? _forceRegion(String url) => _forceTurkey(url) ?? forceSheinRegion(url);
+
+
   bool get _isProductPage => _isProduct || _productUrl.hasMatch(_url);
+
+  // Stores bounce traffic they distrust to a human-verification page (Shein's
+  // /risk/challenge). Everything we inject — the 1.5s probe, the declutter
+  // stylesheet — keeps mutating the DOM while the shopper is solving it, which
+  // reads as automation and can shift the icons between their tap and the
+  // widget reading it. Leave these pages completely alone.
+  static final _challengeUrl = RegExp(
+    r'/risk/|/challenge|captcha|geetest|/verify',
+    caseSensitive: false,
+  );
+
+  bool get _onChallengePage => _challengeUrl.hasMatch(_url);
 
   // Reads the RENDERED product page. Prefers JSON-LD Product (best product image
   // + price), then OG tags, then the largest on-screen image (avoids logos), and
@@ -211,9 +284,9 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   //     not "price") and can grab the "3x 383,67 TL" installment by mistake, so
   //     this authoritative source OVERRIDES whatever else was found.
   if(/trendyol/i.test(location.hostname)){try{
-    var TS=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__||window.__NEXT_DATA__||window.__INITIAL_STATE__;
+    var TS=window['__envoy-mobile__SHARED_PROPS']||window.__PRODUCT_DETAIL_APP_INITIAL_STATE__||window.__NEXT_DATA__||window.__INITIAL_STATE__;
     var TP=TS&&(TS.product||(TS.props&&TS.props.pageProps&&TS.props.pageProps.product)||(TS.productDetail&&TS.productDetail.product));
-    var TPR=TP&&TP.price;
+    var TPR=TP&&(TP.price||(TP.merchantListing&&TP.merchantListing.winnerVariant&&TP.merchantListing.winnerVariant.price));
     if(TPR){
       var cand=TPR.discountedPrice||TPR.sellingPrice||TPR.originalPrice||TPR;
       var pv=(cand&&cand.value!=null)?cand.value:cand;
@@ -729,7 +802,11 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     var stack=[root],guard=0,visited=(typeof WeakSet!=='undefined')?new WeakSet():null;
     while(stack.length && guard<50000){guard++;var n=stack.pop();if(!n||typeof n!=='object')continue;
       if(visited){if(visited.has(n))continue;visited.add(n);}
-      var k=((n.key||n.name||n.attributeName||'')+'').toLowerCase();
+      // Trendyol's mobile record: {…, webColorName:"Siyah"} / slicingAttributes.DsmColor.
+      var named=n.webColorName||n.DsmColor;
+      if(typeof named==='string'){named=named.trim();if(named&&named.length<=40)return named;}
+      var k=((typeof n.key==='string'?n.key:'')||(typeof n.name==='string'?n.name:'')||n.attributeName||'')+'';
+      k=k.toLowerCase();
       if(/^renk$|^colou?r$/.test(k)){var v=n.value||n.attributeValue||n.beautifiedValue;
         if(v!=null){v=(''+v).trim();if(v&&v.length<=40&&!/^\d+$/.test(v))return v;}}
       for(var key in n){var v2=n[key];if(v2&&typeof v2==='object'&&stack.length<25000)stack.push(v2);}}
@@ -738,15 +815,21 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   function trendyolVariants(){
     var out={colors:[],sizes:[]};
     try{
-      var s=window.__PRODUCT_DETAIL_APP_INITIAL_STATE__||window.__NEXT_DATA__||window.__INITIAL_STATE__;
+      // The mobile site now keeps the product in `__envoy-mobile__SHARED_PROPS`;
+      // the older globals are kept for the desktop layout.
+      var s=window['__envoy-mobile__SHARED_PROPS']||window.__PRODUCT_DETAIL_APP_INITIAL_STATE__||window.__NEXT_DATA__||window.__INITIAL_STATE__;
       if(!s)return out;
       var p=s.product||(s.props&&s.props.pageProps&&s.props.pageProps.product)||(s.productDetail&&s.productDetail.product)||s;
-      var vs=p.allVariants||p.variants||[];
+      var vs=p.allVariants||p.variants||(p.merchantListing&&p.merchantListing.variants)||[];
+      // Offer only sizes that can be bought, when the data says which are.
+      var anyStock=false;for(var q=0;q<vs.length;q++)if(vs[q]&&vs[q].inStock===true)anyStock=true;
       for(var i=0;i<vs.length;i++){var v=vs[i];if(!v)continue;
+        if(anyStock&&v.inStock===false)continue;
         var val=(v.value!=null)?v.value:v.attributeValue;
         if(val!=null){val=(''+val).replace(/\s+/g,' ').trim();
           if(val && val.length<=24 && val.split(' ').length<=4 && out.sizes.indexOf(val)<0)out.sizes.push(val);}}
-      var col=p.color||p.colorName||p.productColor||p.mainColor||'';
+      // `color` is a theme hex ("#F27A1A") on the new site — the name is webColorName.
+      var col=p.webColorName||p.DsmColor||p.colorName||p.productColor||p.mainColor||(/^#/.test(''+(p.color||''))?'':p.color)||'';
       if(!col)col=deepColor(p);
       if(col){col=(''+col).replace(/\s+/g,' ').trim();if(col&&col.length<=40)out.colors.push(col);}
     }catch(e){}
@@ -791,6 +874,18 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   // Only keep the size chips if they truly look like a size list — otherwise
   // leave it empty for the shopper to type, rather than showing junk ("1"/"5").
   if(!coherentSizes(sizeOptions)){sizeOptions=[];size='';sizeSure=false;}
+  // Trendyol: its product record lists the buyable sizes — authoritative.
+  // The page pre-highlights the first size by itself, so a size counts as
+  // picked only once the address carries the shopper's choice (`v=`); a
+  // shared link never does (the app shares the product, not the size), and
+  // then the shopper picks it in the sheet instead of getting a silent "34".
+  if(/trendyol/i.test(location.hostname)){
+    if(jv.sizes.length>=2)sizeOptions=jv.sizes;
+    var tv=(location.search.match(/[?&]v=([^&]+)/)||[])[1];
+    if(tv){try{tv=decodeURIComponent(tv.replace(/\+/g,' '));}catch(e){}}
+    if(tv && sizeOptions.indexOf(tv)>=0){size=tv;sizeSure=true;}
+    else if(sizeOptions.length>=2){size='';sizeSure=false;}
+  }
   var hasSize=sizeOptions.length>=2;
   // COLOUR: real colour NAMES from the JSON make a safe picker; else prefill only.
   // Shein's own JSON first, then the Inditex colour list (Stradivarius/Zara…).
@@ -813,6 +908,9 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   var confident=colorSummary||colorFromLabel()||dc.sel;
   color=confident||colorClass||colorPos||(dc.has?'':ldColor)||'';
   var colorSure=!!confident||!!colorClass||!!colorPos;
+  // Trendyol names the product's colour in its record; the page text around
+  // it gave "Siyah," with stray punctuation.
+  if(/trendyol/i.test(location.hostname) && jv.colors.length===1){color=jv.colors[0];colorSure=true;}
   if(!color && jv.colors.length===1){color=jv.colors[0];colorSure=true;}
   else if(!color && jcz.length===1){color=jcz[0];colorSure=true;}
   color=dropSize(color); // never let a size fragment ride along in the colour
@@ -827,6 +925,17 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   function detectSku(){
     // Only Shein needs a SKU for now — skip it on every other store.
     if(!/shein/i.test(location.hostname||''))return '';
+    // 0) Shein's own record of THIS product: its goods_sn ("sm2601…") is the
+    //    SKU Shein prints. The page also embeds every colour's goods_sn, and a
+    //    scan of the HTML can land on another colour's — so match the goods id
+    //    in the address first.
+    try{
+      var PI=gbCommonInfo.contextForSSR.modules.productInfo;
+      var um=location.href.match(/-p-(\d+)/);
+      if(PI && PI.goods_sn && um && String(PI.goods_id)===um[1]) return String(PI.goods_sn);
+      var CI=gbCommonInfo.contextForSSR.modules.saleAttr.mainSaleAttribute.info||[];
+      for(var ci=0;ci<CI.length;ci++){ if(um && String(CI[ci].goods_id)===um[1] && CI[ci].goods_sn) return String(CI[ci].goods_sn); }
+    }catch(e){}
     var html='';try{html=(document.documentElement&&document.documentElement.outerHTML)||'';}catch(e){}
     var txt='';try{txt=(document.body&&document.body.innerText)||'';}catch(e){}
     var m;
@@ -878,7 +987,52 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     sizeOptions=[];colorOptions=[];size='';color='';sizeSure=false;colorSure=false;
     hasSize=true;hasColor=false;
   }
-  HeamaCapture.postMessage(JSON.stringify({url:location.href,title:title,image:image,price:price,currency:currency,color:color,size:size,sku:detectSku(),sizeSure:sizeSure,colorSure:colorSure,hasColor:hasColor,hasSize:hasSize,sizeOptions:sizeOptions,colorOptions:colorOptions,ai:aiBlob()}));
+  // On Shein, its own record of the pricing currency beats anything guessed
+  // from the page: its Gulf storefronts use new currency glyphs, and a price
+  // whose currency we miss would otherwise go out labelled as the store's.
+  try{ if(/shein/i.test(location.hostname) && typeof gbCommonInfo!=='undefined' && gbCommonInfo.currency){ currency=String(gbCommonInfo.currency).toUpperCase(); } }catch(e){}
+  // Shein's own product record beats the page heuristics: it names THIS
+  // item's colour (a colour is its own goods id — "Colour: X" text matching
+  // picked up other products' labels) and prices every size, which can
+  // differ (XS $7.31, S–XXL $13.29), so the price follows the size chosen.
+  // It's the server-rendered record, so it's used only while it describes
+  // the product in the address bar — after an in-page switch it's stale.
+  var sizePrices={};
+  try{ if(/shein/i.test(location.hostname) && typeof gbCommonInfo!=='undefined'){
+    var SM=gbCommonInfo.contextForSSR&&gbCommonInfo.contextForSSR.modules;
+    var gid=SM&&SM.productInfo?String(SM.productInfo.goods_id||''):'';
+    var um=location.href.match(/-p-(\d+)/);
+    if(gid && um && um[1]===gid){
+      var SA=SM.saleAttr||{};
+      var cinfo=(SA.mainSaleAttribute&&SA.mainSaleAttribute.info)||[];
+      for(var ci=0;ci<cinfo.length;ci++){
+        if(String(cinfo[ci].goods_id)===gid && cinfo[ci].attr_value){ color=String(cinfo[ci].attr_value).trim(); colorSure=true; }
+      }
+      // Other colours are other products (own goods id, own prices), so no
+      // colour chips: the colour is the one on screen.
+      colorOptions=[];
+      var ML=SA.multiLevelSaleAttribute||{};
+      var order=[], skc=(ML.skc_sale_attr||[]);
+      for(var si=0;si<skc.length;si++){
+        if(!/size/i.test(String(skc[si].attr_name_en||skc[si].attr_name||''))) continue;
+        var vl=skc[si].attr_value_list||[];
+        for(var sv=0;sv<vl.length;sv++){ var nm=String(vl[sv].attr_value_name||'').trim(); if(nm && order.indexOf(nm)<0) order.push(nm); }
+      }
+      var skus=ML.sku_list||[];
+      for(var sk=0;sk<skus.length;sk++){
+        var at=skus[sk].sku_sale_attr||[], nm2='';
+        for(var sa=0;sa<at.length;sa++){ if(/size/i.test(String(at[sa].attr_name_en||at[sa].attr_name||''))) nm2=String(at[sa].attr_value_name||'').trim(); }
+        if(!nm2 && at.length===1) nm2=String(at[0].attr_value_name||'').trim();
+        var pr=(skus[sk].price&&skus[sk].price.salePrice)||(skus[sk].priceInfo&&skus[sk].priceInfo.salePrice);
+        var amt=pr?parseFloat(pr.amount):NaN;
+        if(nm2 && amt>0) sizePrices[nm2]=amt;
+      }
+      if(order.length>=2){ sizeOptions=order; hasSize=true; }
+      // The price shown is the selected size's — when one is picked and priced.
+      if(size && sizePrices[size]>0) price=String(sizePrices[size]);
+    }
+  } }catch(e){}
+  HeamaCapture.postMessage(JSON.stringify({url:location.href,title:title,image:image,price:price,currency:currency,color:color,size:size,sku:detectSku(),sizeSure:sizeSure,colorSure:colorSure,hasColor:hasColor,hasSize:hasSize,sizeOptions:sizeOptions,colorOptions:colorOptions,sizePrices:sizePrices,ai:aiBlob()}));
 })();
 ''';
 
@@ -900,13 +1054,15 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   var isShein=/shein/i.test(host);
   var isTrendyol=/trendyol/i.test(host);
   if(isShein){
+    // NOTE: no broad [class*="promotion"] match — Shein wraps the colour and
+    // size pickers in `attrPromotionWrap`, so it hid them from the shopper.
     sel=sel.concat([
      'a[href*="/cart" i]','a[href*="wishlist" i]','a[href*="/wishlist" i]','a[href*="save-list" i]','a[href*="/user/wishlist" i]',
      '[aria-label="Cart" i]','[aria-label="Bag" i]','[aria-label="Shopping Bag" i]','[aria-label="Shopping Cart" i]','[aria-label="السلة"]','[aria-label="الحقيبة"]','[aria-label="عربة التسوق"]',
      '[aria-label*="wishlist" i]','[aria-label*="favourite" i]','[aria-label*="favorite" i]','[aria-label="المفضلة"]','[aria-label*="save for later" i]',
      '[class*="cart-icon" i]','[class*="cartIcon" i]','[class*="header-cart" i]','[class*="cart-num" i]','[class*="cartNum" i]','[class*="bag-icon" i]','[class*="bagIcon" i]','[class*="bag-num" i]',
      '[class*="wishlist" i]','[class*="save-icon" i]','[class*="saveIcon" i]','[class*="collect-icon" i]',
-     '[class*="coupon" i]','[class*="flash-sale" i]','[class*="flashSale" i]','[class*="countdown" i]','[class*="promotion" i]','[class*="promo-" i]','[class*="activity-banner" i]','[class*="activityBanner" i]','[class*="ad-banner" i]','[class*="adBanner" i]','[class*="advertise" i]','[class*="free-ship" i]','[class*="freeShip" i]','[class*="bottom-banner" i]'
+     '[class*="coupon" i]','[class*="flash-sale" i]','[class*="flashSale" i]','[class*="countdown" i]','[class*="promo-" i]','[class*="activity-banner" i]','[class*="activityBanner" i]','[class*="ad-banner" i]','[class*="adBanner" i]','[class*="advertise" i]','[class*="free-ship" i]','[class*="freeShip" i]','[class*="bottom-banner" i]'
     ]);
   }
   if(isTrendyol){
@@ -964,14 +1120,6 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
 ''';
 
 
-  // A real Android Chrome MOBILE user-agent. It must match the WebView's actual
-  // engine (Chrome), or bot-protection (Akamai on H&M) sees an iPhone-UA-on-Chrome
-  // mismatch and returns "Access Denied". The "Mobile" token still gets the mobile
-  // layout, and dropping the WebView "wv" marker avoids app-only walls.
-  static const _mobileUa =
-      'Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 '
-      '(KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
-
   // Detects a product page by its content (works on any store): the OpenGraph
   // product type or a JSON-LD Product block. Posts '1'/'0' back to Flutter.
   static const _probe = r'''
@@ -997,15 +1145,12 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     final rawStart = (widget.initialUrl != null && widget.initialUrl!.isNotEmpty)
         ? widget.initialUrl!
         : widget.store.url;
-    final start = _forceTurkey(rawStart) ?? rawStart;
+    final start = _forceRegion(rawStart) ?? rawStart;
     _url = start;
+    _captureApi = CaptureApi(context.read<ApiClient>());
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setBackgroundColor(Colors.white)
-      // Identify as a mobile Safari browser so stores serve their responsive
-      // MOBILE layout (Zara, Mango, H&M… switch layout by user-agent, and the
-      // default WebView UA can get the desktop or a WebView-flagged page).
-      ..setUserAgent(_mobileUa)
       ..addJavaScriptChannel('HeamaCapture', onMessageReceived: _onScrape)
       ..addJavaScriptChannel('HeamaProbe', onMessageReceived: (m) {
         final p = m.message == '1';
@@ -1013,9 +1158,17 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
       })
       ..setNavigationDelegate(NavigationDelegate(
         onNavigationRequest: (req) {
+          // Stores try to hand off to their own app (Shein fires
+          // `sheinlink://applink/goods/...` from a shared link). Following that
+          // either throws ERR_UNKNOWN_URL_SCHEME and kills the page or throws the
+          // shopper out of Heama — either way the capture is lost, so stay put.
+          final scheme = (Uri.tryParse(req.url)?.scheme ?? '').toLowerCase();
+          if (scheme != 'http' && scheme != 'https') {
+            return NavigationDecision.prevent;
+          }
           // Force Zara onto the Turkey store (TL). Guard against a redirect loop
           // by not re-forcing a URL we just forced.
-          final fixed = _forceTurkey(req.url);
+          final fixed = _forceRegion(req.url);
           if (fixed != null && fixed != _forcedUrl) {
             _forcedUrl = fixed;
             _controller.loadRequest(Uri.parse(fixed));
@@ -1031,9 +1184,9 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
             _url = url;
             _isProduct = false;
           });
-          // Once we've landed on a Turkey URL, clear the guard so a later
-          // geo-redirect to /iq/ gets forced again.
-          if (_forceTurkey(url) == null) _forcedUrl = null;
+          // Once we've landed on the right storefront, clear the guard so a
+          // later geo-redirect away from it gets forced again.
+          if (_forceRegion(url) == null) _forcedUrl = null;
           _runDeclutter(); // SPA navigation re-renders the store's bars
           _runProbe();
         },
@@ -1047,14 +1200,27 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     // SPA sites (Mango, Zara) change page without a reload/URL event, so keep
     // re-checking whether the current page is a product to drive the button.
     _probeTimer = Timer.periodic(const Duration(milliseconds: 1500), (_) {
-      if (mounted) _controller.runJavaScript(_probe);
+      if (mounted && !_onChallengePage) _controller.runJavaScript(_probe);
     });
   }
 
   /// Sets Shein's currency cookie to USD before loading, so every Shein site
   /// (incl. ar.shein.com, which otherwise shows a local/Gulf currency) renders
   /// prices in USD — matching the store's configured USD source currency.
-  Future<void> _bootstrapLoad(String start) async {
+  Future<void> _bootstrapLoad(String rawStart) async {
+    // A mobile browser identity matching this phone's real engine and version,
+    // set before the first page: stores serve their mobile layout by it, and
+    // bot checks (Shein's puzzle) fail when it doesn't match — see webview_ua.dart.
+    await applyStoreUserAgent(_controller);
+    if (!mounted) return;
+    // A share link names no product page, so resolve it before anything reads
+    // the host — the cookies below depend on where we actually end up.
+    final share = await _resolveShare(rawStart);
+    if (!mounted) return;
+    // Opened straight on a cart link: nothing to browse — the import takes over.
+    if (_handOffCart(share, rawStart, replace: true)) return;
+    final start = share.url;
+    if (start != rawStart) setState(() => _url = start);
     final host = (Uri.tryParse(start)?.host ?? '').toLowerCase();
     if (host.contains('shein')) {
       try {
@@ -1092,7 +1258,9 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         // best-effort — still load the page below
       }
     }
-    if (mounted) _controller.loadRequest(Uri.parse(start));
+    // Shein: open on the UAE storefront in dollars (sheinStartUrl); every
+    // other store comes back unchanged.
+    if (mounted) _controller.loadRequest(Uri.parse(sheinStartUrl(start)));
   }
 
   @override
@@ -1103,21 +1271,30 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
 
   /// Re-checks product signals a few times as the SPA renders.
   void _runProbe() {
+    if (_onChallengePage) return;
     for (final ms in [300, 1200, 2600]) {
       Future.delayed(Duration(milliseconds: ms), () {
-        if (mounted) _controller.runJavaScript(_probe);
+        if (mounted && !_onChallengePage) _controller.runJavaScript(_probe);
       });
     }
   }
 
   void _onPageFinished() {
     if (mounted) setState(() => _progress = 1);
+    // A verification page isn't the product — leave it untouched and keep the
+    // pending capture armed, so it fires on the real page once we're through.
+    if (_onChallengePage) return;
+    // Ship to the UAE, not the Gulf country Shein guessed (reloads once if so).
+    _controller.runJavaScript(sheinUaeAddressJs);
     _runDeclutter();
     _runProbe();
     if (_pendingCapture) {
       _pendingCapture = false;
       // Give the SPA a moment to render price/variants, then capture like the
       // Add-to-Heama button (reads the rendered page, works where the server can't).
+      // The price can still be missing then — _onScrape retries until it shows.
+      _autoCapture = true;
+      _autoTries = 0;
       Future.delayed(const Duration(milliseconds: 1500), () {
         if (mounted) _capture();
       });
@@ -1127,9 +1304,10 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   /// Runs the declutter script a few times to catch elements that load or
   /// re-render a moment after navigation.
   void _runDeclutter() {
+    if (_onChallengePage) return;
     for (final ms in [0, 800, 1800, 3500]) {
       Future.delayed(Duration(milliseconds: ms), () {
-        if (mounted) _controller.runJavaScript(_declutter);
+        if (mounted && !_onChallengePage) _controller.runJavaScript(_declutter);
       });
     }
   }
@@ -1203,6 +1381,43 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     } catch (_) {
       r = ScrapeResult(url: _url, title: '', image: '');
     }
+    dlog('store', 'scraped "${dcut(r.title)}" price=${r.price} ${r.currency} '
+        'colour="${r.color}" size="${r.size}" sizes=${r.sizeOptions.length} '
+        'colours=${r.colorOptions.length} url=${dcut(r.url)}');
+
+    // A pasted link is read on its own, and Shein fills in the price and the
+    // size buttons well after the page reports "loaded" — reading once then
+    // captured a bare title. Read again until the page is complete (~10s).
+    final pageCurNow = (r.currency ?? '').toUpperCase();
+    final incomplete = !r.hasPrice ||
+        (r.hasSize && r.sizeOptions.isEmpty) ||
+        (pageCurNow.length == 3 && pageCurNow != widget.store.currency.toUpperCase());
+    if (_autoCapture && !_pendingFavorite && incomplete && _autoTries < 10) {
+      _autoTries++;
+      dlog('store', 'page not ready — reading again ($_autoTries)');
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted && !_onChallengePage) _controller.runJavaScript(_scraper);
+      });
+      return;
+    }
+    _autoCapture = false;
+
+    // Shein reports its pricing currency authoritatively. If it isn't the
+    // store's, stop: the server prices every item of this store in the store's
+    // currency, so a Gulf-storefront 26.00 AED would be charged as $26.
+    final pageCur = (r.currency ?? '').toUpperCase();
+    final storeCur = widget.store.currency.toUpperCase();
+    final onShein = Uri.tryParse(_url)?.host.toLowerCase().contains('shein') ?? false;
+    if (onShein && pageCur.length == 3 && pageCur != storeCur) {
+      _pendingFavorite = false;
+      setState(() => _capturing = false);
+      showHeamaToast(
+        context,
+        'Shein is showing prices in $pageCur, but this store is priced in $storeCur. '
+        'Open Shein\'s menu (☰), set the currency to $storeCur, then try again.',
+      );
+      return;
+    }
 
     // Heart flow: save this product to favourites, don't open the sheet.
     if (_pendingFavorite) {
@@ -1237,11 +1452,12 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
           : widget.store.currency,
       initialColor: r.color,
       initialSize: r.size,
-      initialSku: r.sku,
+      initialSku: (r.sku != null && r.sku!.isNotEmpty) ? r.sku : _shareSku,
       offersColor: r.hasColor,
       offersSize: r.hasSize,
       colorOptions: r.colorOptions,
       sizeOptions: r.sizeOptions,
+      sizePrices: r.sizePrices,
       storeKey: widget.store.id,
     );
   }
@@ -1287,14 +1503,25 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
       ),
     );
     if (!mounted || url == null || url.isEmpty) return;
-    var u = url;
+    // A share button often copies a whole message with the link inside it, so
+    // take the URL out rather than rejecting the paste.
+    var u = linkFromPaste(url);
     if (!u.startsWith('http')) u = 'https://$u';
     final uri = Uri.tryParse(u);
     if (uri == null || !uri.hasAuthority) return;
-    // A pasted Zara /iq/ link → force it to the Turkey store (TL).
-    final forced = _forceTurkey(uri.toString());
     setState(() => _pendingCapture = true);
-    _controller.loadRequest(Uri.parse(forced ?? uri.toString()));
+    // A link shared from the store's own app points at the app, not at a page —
+    // swap it for the product URL first, so the scraper has something to read.
+    final share = await _resolveShare(uri.toString());
+    if (!mounted) return;
+    if (_handOffCart(share, uri.toString())) {
+      setState(() => _pendingCapture = false);
+      return;
+    }
+    final resolved = share.url;
+    // A pasted Zara /iq/ link → force it to the Turkey store (TL).
+    final forced = _forceRegion(resolved);
+    _controller.loadRequest(Uri.parse(sheinStartUrl(forced ?? resolved)));
   }
 
   @override

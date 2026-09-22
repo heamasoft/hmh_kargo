@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../providers/auth_provider.dart';
 import '../../router.dart';
 import '../../services/api_client.dart';
+import '../../utils/digits.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/app_typography.dart';
@@ -46,11 +47,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       _loading = true;
     });
     try {
-      await context.read<AuthProvider>().requestOtp(
-            identifier: phone,
-            channel: 'whatsapp',
-            purpose: 'reset',
-          );
+      await context.read<AuthProvider>().requestOtp(identifier: phone, channel: 'whatsapp', purpose: 'reset');
       if (mounted) Navigator.pushNamed(context, Routes.forgotOtp, arguments: phone);
     } on ApiException catch (e) {
       if (!mounted) return;
@@ -79,37 +76,40 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         LabeledField(
           label: l.phoneNumber,
           error: _phoneError,
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
-                decoration: BoxDecoration(
-                  color: AppColors.cloud,
-                  borderRadius: BorderRadius.circular(AppRadii.md),
-                  border: Border.all(color: AppColors.line, width: 1.5),
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 15),
+                  decoration: BoxDecoration(
+                    color: AppColors.cloud,
+                    borderRadius: BorderRadius.circular(AppRadii.md),
+                    border: Border.all(color: AppColors.line, width: 1.5),
+                  ),
+                  child: Text('🇮🇶 +964', style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w700)),
                 ),
-                child: Text('🇮🇶 +964',
-                    style: AppFonts.body(fontSize: 14.5, fontWeight: FontWeight.w700)),
-              ),
-              const SizedBox(width: 9),
-              Expanded(
-                child: TextField(
-                  controller: _phone,
-                  keyboardType: TextInputType.phone,
-                  decoration: InputDecoration(hintText: l.phoneHint),
-                  onChanged: (_) {
-                    if (_notRegistered) setState(() => _notRegistered = false);
-                  },
-                  onSubmitted: (_) => _submit(),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: TextField(
+                    controller: _phone,
+                    keyboardType: TextInputType.phone,
+                    // A phone number reads left-to-right in every language, and an
+                    // Arabic/Kurdish keyboard's digits are turned into 0–9.
+                    textDirection: TextDirection.ltr,
+                    inputFormatters: const [AsciiDigitsFormatter(maxLength: 15)],
+                    decoration: InputDecoration(hintText: l.phoneHint),
+                    onChanged: (_) {
+                      if (_notRegistered) setState(() => _notRegistered = false);
+                    },
+                    onSubmitted: (_) => _submit(),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        if (_notRegistered) ...[
-          const SizedBox(height: 18),
-          _registerPrompt(l),
-        ],
+        if (_notRegistered) ...[const SizedBox(height: 18), _registerPrompt(l)],
       ],
     );
   }
@@ -133,12 +133,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               const Icon(Icons.info_outline, size: 17, color: AppColors.pomegranate),
               const SizedBox(width: 8),
               Expanded(
-                child: Text(l.notRegistered,
-                    style: AppFonts.body(
-                        fontSize: 12.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.pomegranate,
-                        height: 1.4)),
+                child: Text(
+                  l.notRegistered,
+                  style: AppFonts.body(
+                    fontSize: 12.5,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.pomegranate,
+                    height: 1.4,
+                  ),
+                ),
               ),
             ],
           ),
@@ -152,9 +155,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 borderRadius: BorderRadius.circular(13),
               ),
               alignment: Alignment.center,
-              child: Text(l.createAccount,
-                  style: AppFonts.body(
-                      fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white)),
+              child: Text(
+                l.createAccount,
+                style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w700, color: Colors.white),
+              ),
             ),
           ),
         ],

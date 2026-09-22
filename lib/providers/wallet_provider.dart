@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../models/wallet.dart';
 import '../services/api_client.dart';
 import '../services/wallet_api.dart';
+import '../utils/charge_math.dart';
 
 /// Loads the wallet balance + transaction ledger.
 class WalletProvider extends ChangeNotifier {
@@ -16,6 +17,10 @@ class WalletProvider extends ChangeNotifier {
   num get balanceIqd => data.balanceIqd;
   num get balanceUsd => data.balanceUsd;
   num get usdRate => data.usdRate;
+  num get tryRate => data.tryRate;
+
+  /// The cart's own pricing rule, for the Me page's rate cards and calculator.
+  ChargeMath get chargeMath => data.chargeMath;
   num get outstandingCodIqd => data.outstandingCodIqd;
   num get outstandingCodUsd => data.outstandingCodUsd;
 
@@ -40,6 +45,12 @@ class WalletProvider extends ChangeNotifier {
       balanceIqd: iqd ?? data.balanceIqd,
       balanceUsd: usd ?? data.balanceUsd,
       usdRate: data.usdRate,
+      tryRate: data.tryRate,
+      usdTlRate: data.usdTlRate,
+      usdIqdTurkish: data.usdIqdTurkish,
+      markupPercent: data.markupPercent,
+      roundingStepIqd: data.roundingStepIqd,
+      roundingStepUsd: data.roundingStepUsd,
       outstandingCodIqd: data.outstandingCodIqd,
       outstandingCodUsd: data.outstandingCodUsd,
       transactions: data.transactions,

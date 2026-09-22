@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../l10n/app_localizations.dart';
-import '../l10n/l10n_keys.dart';
 import '../models/store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
-/// A store card: monogram glyph, name and category caption. Tapping the card
-/// opens the store in the in-app WebView.
+/// A store card: monogram glyph and name. Tapping the card opens the store in
+/// the in-app WebView.
 class StoreTile extends StatelessWidget {
   final Store store;
   final VoidCallback onTap;
@@ -16,7 +14,6 @@ class StoreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
     final tint = Color.lerp(store.glyphColor, Colors.white, 0.22)!;
     return GestureDetector(
       onTap: onTap,
@@ -69,14 +66,6 @@ class StoreTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              l.byKey(store.categoryKey),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppFonts.body(fontSize: 10, color: AppColors.muted),
             ),
           ],
         ),

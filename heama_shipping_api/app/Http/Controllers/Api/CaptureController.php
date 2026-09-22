@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Models\Store;
 use App\Services\PricingService;
 use App\Services\ScraperService;
+use App\Services\ShareLinkResolver;
+use App\Services\TrendyolLinkResolver;
+use App\Support\Domains;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -14,7 +17,79 @@ class CaptureController extends Controller
     public function __construct(
         private readonly PricingService $pricing,
         private readonly ScraperService $scraper,
+        private readonly ShareLinkResolver $shareLinks,
+        private readonly TrendyolLinkResolver $trendyolLinks,
     ) {}
+
+    /**
+     * POST /resolve — turns a link shared from a store's APP into the normal
+     * product URL, which the client then loads in its WebView and scrapes.
+     *
+     * A share link carries no price or variants, so pasting one used to capture
+     * a title and photo at best. Anything we can't resolve comes back unchanged
+     * with `share: false`, so the caller can just load what the user pasted.
+     */
+    public function resolve(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'url' => ['required', 'url', 'max:1024'],
+        ]);
+
+        // Trendyol: a shared product comes back as a URL to capture as usual; a
+        // shared collection (Trendyol's stand-in for sharing a cart) comes back
+        // with its items already read, so the client needs no browser for it.
+        if ($this->trendyolLinks->handles($data['url'])) {
+            $ty = $this->trendyolLinks->resolve($data['url']);
+            if ($ty === null) {
+                return response()->json([
+                    'share' => false,
+                    'url' => $data['url'],
+                    // Why it failed, for the app's debug log — a blocked server
+                    // and an unreadable link look identical without it. Its mere
+                    // presence also confirms this code is the one deployed.
+                    'reason' => $this->trendyolLinks->lastReason,
+                    'resolver' => 'trendyol-2',
+                ]);
+            }
+
+            return response()->json([
+                'share' => true,
+                'kind' => $ty['kind'],
+                'store_key' => 'trendyol',
+                'url' => $ty['url'],
+                'source_url' => $data['url'],
+                'title' => $ty['title'] ?? '',
+                'items' => $ty['items'] ?? [],
+                // Trendyol refused the server; the app reads `url` itself.
+                'read_on_device' => $ty['read_on_device'] ?? false,
+                'reason' => $this->trendyolLinks->lastReason,
+                'resolver' => 'trendyol-3',
+            ]);
+        }
+
+        // Build the product URL on the host the client is already browsing — a
+        // share link's own host (onelink.shein.com) still matches the store.
+        $store = $this->storeForUrl($data['url']);
+        $resolved = $this->shareLinks->resolve($data['url'], $store?->base_url);
+
+        if ($resolved === null) {
+            return response()->json([
+                'share' => false,
+                'url' => $data['url'],
+            ]);
+        }
+
+        return response()->json([
+            'share' => true,
+            // 'product' → one item's page; 'cart' → a shared cart of many items.
+            'kind' => $resolved['kind'] ?? 'product',
+            'url' => $resolved['url'],
+            'source_url' => $data['url'],
+            'sku' => $resolved['goods_id'],
+            'title' => $resolved['title'] ?? '',
+            'image_url' => $resolved['image'] ?? '',
+        ]);
+    }
 
     /**
      * POST /scrape — fetch a product URL server-side, extract its details, and
@@ -54,20 +129,29 @@ class CaptureController extends Controller
         ]);
     }
 
-    /** Matches a URL's host to a known store (by base_url host). */
+    /**
+     * Matches a URL to a known store by registrable domain.
+     *
+     * A shop answers on more hosts than the one row configures: Shein is set up
+     * as `ar.shein.com` but also serves `m.shein.com`, `www.shein.com` and
+     * `onelink.shein.com` for app share links. Comparing whole hosts missed all
+     * but the configured one, so those URLs fell through to the unknown-store
+     * defaults — charged in USD instead of IQD, with the free-store rule skipped.
+     */
     private function storeForUrl(string $url): ?Store
     {
-        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
-        if ($host === '') {
+        $domain = Domains::registrable(Domains::hostOf($url));
+        if ($domain === '') {
             return null;
         }
+
         foreach (Store::all() as $store) {
-            $storeHost = strtolower((string) parse_url($store->base_url, PHP_URL_HOST));
-            $bare = preg_replace('/^www\./', '', $storeHost);
-            if ($bare !== '' && str_contains($host, $bare)) {
+            $storeDomain = Domains::registrable(Domains::hostOf((string) $store->base_url));
+            if ($storeDomain !== '' && $storeDomain === $domain) {
                 return $store;
             }
         }
+
         return null;
     }
 
@@ -119,6 +203,9 @@ class CaptureController extends Controller
             'source_currency' => $currency,
             'charge_currency' => $chargeCurrency,
             'charge_amount' => $chargeAmount,
+            // Shipping added per unit at checkout, in charge_currency (0 for
+            // free-shipping stores like Shein) — shown next to the price.
+            'shipping_unit' => $this->pricing->shippingForItem($store, $chargeCurrency, 1),
             'iqd_price' => $this->pricing->toIqd((float) $data['source_price'], $currency),
             'color' => $data['color'] ?? null,
             'size' => $data['size'] ?? null,

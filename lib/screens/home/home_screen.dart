@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -17,6 +17,7 @@ import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
+import '../../utils/link_text.dart';
 import '../../widgets/heama_toast.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/search_pill.dart';
@@ -137,13 +138,17 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
     if (!mounted || url == null || url.isEmpty) return;
-    var u = url;
+    // A share button often copies a whole message with the link inside it, so
+    // take the URL out rather than rejecting the paste.
+    var u = linkFromPaste(url);
     if (!u.startsWith('http')) u = 'https://$u';
     final uri = Uri.tryParse(u);
     if (uri == null || !uri.hasAuthority) return;
 
     final stores = context.read<CatalogProvider>().stores;
-    final host = uri.host.replaceFirst('www.', '');
+    var host = uri.host.replaceFirst('www.', '');
+    // Trendyol's app shares short `ty.gl` links, which name no store.
+    if (host.toLowerCase() == 'ty.gl') host = 'trendyol.com';
     Store? store;
     for (final s in stores) {
       final sHost =
@@ -229,23 +234,6 @@ class _HomeScreenState extends State<HomeScreen> {
               onAction: () => context.read<ShellController>().goToTab(1),
             ),
             _StoresGrid(stores: homeStores, loading: catalog.loadingStores),
-            const SizedBox(height: 18),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              child: _PromoBanner(
-                onShop: () {
-                  if (catalog.stores.isEmpty) {
-                    context.read<ShellController>().goToTab(1);
-                    return;
-                  }
-                  final shein = catalog.stores.firstWhere(
-                    (s) => s.id == 'shein',
-                    orElse: () => catalog.stores.first,
-                  );
-                  openStore(context, shein);
-                },
-              ),
-            ),
             ..._buildReadyNow(l),
             ..._buildTrending(l, catalog),
           ],
@@ -596,43 +584,6 @@ class _MoreStoresTile extends StatelessWidget {
                 style: AppFonts.body(fontSize: 10, color: AppColors.muted)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _PromoBanner extends StatelessWidget {
-  final VoidCallback onShop;
-  const _PromoBanner({required this.onShop});
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [AppColors.pomegranate, Color(0xFFE1683B)]),
-        borderRadius: BorderRadius.circular(22),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(l.freeShippingTitle,
-              style: AppFonts.display(fontSize: 19, color: Colors.white, height: 1.15)),
-          const SizedBox(height: 6),
-          Text(l.freeShippingSub, style: AppFonts.body(fontSize: 12.5, color: const Color(0xFFFFE9DF))),
-          const SizedBox(height: 13),
-          GestureDetector(
-            onTap: onShop,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(999)),
-              child: Text('${l.shopNow} →',
-                  style: AppFonts.body(
-                      fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.pomegranateDark)),
-            ),
-          ),
-        ],
       ),
     );
   }

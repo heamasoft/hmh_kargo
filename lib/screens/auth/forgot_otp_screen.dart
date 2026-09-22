@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -10,6 +9,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/auth_scaffold.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/otp_boxes.dart';
 
 /// Step 2 of the password reset: verify the code sent to [phone]. Verifying
 /// signs the (existing) user in transiently so the new password can be set.
@@ -38,11 +38,6 @@ class _ForgotOtpScreenState extends State<ForgotOtpScreen> {
     super.dispose();
   }
 
-  void _onChanged(int i, String v) {
-    if (v.isNotEmpty && i < 3) _nodes[i + 1].requestFocus();
-    if (v.isEmpty && i > 0) _nodes[i - 1].requestFocus();
-  }
-
   Future<void> _verify() async {
     if (_loading) return;
     final l = AppLocalizations.of(context);
@@ -56,11 +51,7 @@ class _ForgotOtpScreenState extends State<ForgotOtpScreen> {
       _loading = true;
     });
     try {
-      await context.read<AuthProvider>().verifyOtp(
-            identifier: widget.phone,
-            channel: 'whatsapp',
-            code: code,
-          );
+      await context.read<AuthProvider>().verifyOtp(identifier: widget.phone, channel: 'whatsapp', code: code);
       if (!mounted) return;
       // Code accepted — now let them choose a new password.
       Navigator.pushNamed(context, Routes.forgotNewPassword, arguments: widget.phone);
@@ -75,10 +66,10 @@ class _ForgotOtpScreenState extends State<ForgotOtpScreen> {
     final l = AppLocalizations.of(context);
     try {
       await context.read<AuthProvider>().requestOtp(
-            identifier: widget.phone,
-            channel: 'whatsapp',
-            purpose: 'reset',
-          );
+        identifier: widget.phone,
+        channel: 'whatsapp',
+        purpose: 'reset',
+      );
       if (mounted) showHeamaToast(context, l.codeResent);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -97,29 +88,7 @@ class _ForgotOtpScreenState extends State<ForgotOtpScreen> {
       onButton: _verify,
       children: [
         const SizedBox(height: 22),
-        Row(
-          children: List.generate(4, (i) {
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(right: i == 3 ? 0 : 11),
-                child: TextField(
-                  controller: _controllers[i],
-                  focusNode: _nodes[i],
-                  maxLength: 1,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: AppFonts.display(fontSize: 22),
-                  decoration: const InputDecoration(
-                    counterText: '',
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onChanged: (v) => _onChanged(i, v),
-                ),
-              ),
-            );
-          }),
-        ),
+        OtpBoxes(controllers: _controllers, nodes: _nodes),
         if (_error != null) ...[
           const SizedBox(height: 8),
           Text(

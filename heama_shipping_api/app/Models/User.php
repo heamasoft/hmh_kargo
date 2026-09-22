@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'phone', 'email', 'city', 'password', 'is_admin'])]
@@ -57,6 +58,41 @@ class User extends Authenticatable
     public function walletTransactions(): HasMany
     {
         return $this->hasMany(WalletTransaction::class);
+    }
+
+    /**
+     * Blocked (deactivated) accounts can't log in or use the API. The flag is
+     * customer_status.blocked_at — shared with the admin dashboard, which sets
+     * and clears it; no row means active.
+     */
+    public function isBlocked(): bool
+    {
+        try {
+            return DB::table('customer_status')
+                ->where('user_id', $this->id)
+                ->whereNotNull('blocked_at')
+                ->exists();
+        } catch (\Throwable $e) {
+            return false; // table missing — nobody is blocked
+        }
+    }
+
+    /** Blocks the account, keeping any verified_at and appending [note]. */
+    public function block(string $note): void
+    {
+        $row = DB::table('customer_status')->where('user_id', $this->id)->first();
+        $line = now()->toDateTimeString().' — '.$note;
+        $values = [
+            'blocked_at' => now(),
+            'note' => trim(($row->note ?? '')."\n".$line),
+            'updated_at' => now(),
+        ];
+
+        if ($row) {
+            DB::table('customer_status')->where('user_id', $this->id)->update($values);
+        } else {
+            DB::table('customer_status')->insert(['user_id' => $this->id] + $values);
+        }
     }
 
     /** Convenience: current wallet balance in IQD (0 if no wallet yet). */

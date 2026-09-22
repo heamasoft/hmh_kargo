@@ -926,10 +926,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get deleteAccountConfirm =>
-      'سيؤدي هذا إلى حذف حسابك وبياناتك الشخصية نهائياً (الملف الشخصي، العناوين، السلة، المحفوظات). لا يمكن التراجع عن ذلك. قد نحتفظ بسجلات الطلبات المكتملة وفقاً للقانون.';
+      'سيؤدي هذا إلى إغلاق حسابك: سيتم تسجيل خروجك ولن تتمكن من الدخول بهذا الرقم مجدداً. تبقى طلباتك ومحفظتك محفوظة — تواصل معنا إذا أردت إعادة فتحه.';
 
   @override
-  String get deleteAccountDone => 'تم حذف حسابك.';
+  String get deleteAccountDone => 'تم إغلاق حسابك.';
 
   @override
   String get deleteAccountError => 'تعذّر حذف الحساب. حاول مرة أخرى.';
@@ -993,4 +993,276 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get languageKurdish => 'کوردی';
+
+  @override
+  String get exchangeRates => 'أسعار الصرف';
+
+  @override
+  String get tapToCalculate => 'اضغط للحساب';
+
+  @override
+  String get dollarToDinar => 'دولار ← دينار';
+
+  @override
+  String get liraToDollar => 'ليرة ← دولار';
+
+  @override
+  String get rateNotSet => 'لم يُحدَّد السعر بعد';
+
+  @override
+  String get amountLabel => 'المبلغ';
+
+  @override
+  String get inDinars => 'بالدينار';
+
+  @override
+  String get inDollars => 'بالدولار';
+
+  @override
+  String get sameAsCart => 'نفس السعر الذي تحتسبه السلة';
+
+  @override
+  String get orderForCustomer => 'الطلب لعميل';
+
+  @override
+  String get chooseCustomer => 'اختر العميل';
+
+  @override
+  String get searchCustomers => 'ابحث بالاسم أو رقم الهاتف…';
+
+  @override
+  String get noCustomersFound => 'لا يوجد عملاء';
+
+  @override
+  String get chooseCustomerFirst => 'اختر العميل الذي سيكون هذا الطلب باسمه.';
+
+  @override
+  String chargedToWallet(String name) {
+    return 'يُخصم من محفظة $name';
+  }
+
+  @override
+  String orderPlacedFor(String name) {
+    return 'تم تقديم الطلب باسم $name';
+  }
+
+  @override
+  String get addByLink => 'أضف منتجًا عبر الرابط';
+
+  @override
+  String get addByLinkSub => 'لم تجده في متاجرنا؟ الصق رابطه وسعره.';
+
+  @override
+  String get productName => 'اسم المنتج';
+
+  @override
+  String get productPrice => 'السعر';
+
+  @override
+  String get linkRequired => 'الصق رابط المنتج.';
+
+  @override
+  String get priceRequired => 'أدخل سعر المنتج.';
+
+  @override
+  String fromStore(String store) {
+    return 'من $store — بعملة المتجر';
+  }
+
+  @override
+  String get cartAdd => 'إضافة';
+
+  @override
+  String get addToCartTitle => 'أضف إلى سلّتك';
+
+  @override
+  String get importSharedCart => 'استيراد سلة مشتركة';
+
+  @override
+  String get importSharedCartSub => 'رابط سلة شي إن أو مجموعة ترينديول';
+
+  @override
+  String get icTitle => 'استيراد السلة';
+
+  @override
+  String get icFinding => 'جارٍ البحث عن سلتك…';
+
+  @override
+  String icOpening(String store) {
+    return 'جارٍ فتح $store…';
+  }
+
+  @override
+  String get icReading => 'جارٍ قراءة سلتك…';
+
+  @override
+  String get icPleaseWait => 'يرجى الانتظار — يستغرق ذلك بضع ثوانٍ.';
+
+  @override
+  String get icNotALink => 'هذا لا يبدو رابطًا.';
+
+  @override
+  String get icTooLong =>
+      'استغرق التحميل وقتًا طويلًا. تحقّق من اتصالك واضغط تحميل مرة أخرى.';
+
+  @override
+  String get icServerCantRead =>
+      'تعذّرت قراءة هذا الرابط. تأكّد أنه رابط سلة شي إن أو مجموعة ترينديول.';
+
+  @override
+  String get icEmptyCollection =>
+      'لا تحتوي هذه المجموعة على منتجات يمكن طلبها. تأكّد أن منتجاتها ما زالت متوفرة، ثم اضغط تحميل مرة أخرى.';
+
+  @override
+  String get icSingleProduct =>
+      'هذا الرابط لمنتج واحد وليس لسلة. شارك سلتك (شي إن) أو مجموعة (ترينديول)، أو استخدم \"لصق الرابط\" في صفحة المتجر لمنتج واحد.';
+
+  @override
+  String get icCouldNotRead => 'تعذّرت قراءة السلة. اضغط تحميل مرة أخرى.';
+
+  @override
+  String get icNoItems =>
+      'لم يُعثر على منتجات في هذه السلة. تأكّد أن الرابط لسلة شي إن مشتركة وأنها ما زالت تحتوي منتجات، ثم اضغط تحميل مرة أخرى.';
+
+  @override
+  String icPickSizeOne(String title) {
+    return 'اختر مقاسًا لـ \"$title\" أولًا — اضغط \"اختر المقاس\".';
+  }
+
+  @override
+  String icPickSizeMany(int count) {
+    return 'اختر مقاسًا لـ $count منتجات أولًا — اضغط \"اختر المقاس\" لكل منها.';
+  }
+
+  @override
+  String get icStoresLoading => 'ما زالت المتاجر قيد التحميل — حاول بعد لحظة.';
+
+  @override
+  String get icNothingAdded => 'لم تتم إضافة أي منتج.';
+
+  @override
+  String icCouldNotAdd(String title) {
+    return 'تعذّرت الإضافة: $title';
+  }
+
+  @override
+  String icAdded(int count) {
+    return 'أُضيف $count منتج إلى سلتك.';
+  }
+
+  @override
+  String get icBringOver => 'انقل سلتك إلى هنا';
+
+  @override
+  String get icBringOverSub =>
+      'شارك سلتك من تطبيق شي إن، أو مجموعة من تطبيق ترينديول، والصق الرابط أعلاه ثم اضغط تحميل.';
+
+  @override
+  String get icShareCart => 'السلة ← مشاركة';
+
+  @override
+  String get icShareCollection => 'المجموعة ← مشاركة';
+
+  @override
+  String get icHumanCheck =>
+      'يطلب شي إن تحققًا سريعًا بأنك لست روبوتًا. أكمله في الأسفل — وسيستمر التحميل تلقائيًا بعد ذلك.';
+
+  @override
+  String get icLinkLabel => 'رابط سلة شي إن أو مجموعة ترينديول';
+
+  @override
+  String get icLinkHint => 'الصق الرابط من التطبيق';
+
+  @override
+  String get icLoad => 'تحميل';
+
+  @override
+  String icCurrencyAdvice(String foreign, String store) {
+    return 'يعرض شي إن الأسعار بعملة $foreign، لكن هذا المتجر مسعّر بعملة $store — إضافتها الآن ستحتسب مبلغًا خاطئًا. اضغط تحميل مرة أخرى؛ وإذا استمرت المشكلة أخبرنا.';
+  }
+
+  @override
+  String get icChooseSize => 'اختر المقاس';
+
+  @override
+  String icSizeValue(String size) {
+    return 'المقاس $size';
+  }
+
+  @override
+  String icAddChosen(int count) {
+    return 'أضف $count إلى السلة';
+  }
+
+  @override
+  String get closeAccountSection => 'إغلاق الحساب';
+
+  @override
+  String get closeAccountSub => 'يسجّل خروجك ويمنع هذا الرقم من تسجيل الدخول.';
+
+  @override
+  String get deleteAccountAck => 'أفهم أن حسابي سيتم إغلاقه';
+
+  @override
+  String get couponHave => 'لديك كوبون؟';
+
+  @override
+  String get couponHint => 'رمز الكوبون';
+
+  @override
+  String get couponApply => 'تطبيق';
+
+  @override
+  String get couponRemove => 'إزالة';
+
+  @override
+  String couponApplied(String code, String percent) {
+    return 'تم تطبيق الكوبون $code — خصم $percent';
+  }
+
+  @override
+  String couponDiscount(String code) {
+    return 'كوبون ($code)';
+  }
+
+  @override
+  String get coupons => 'الكوبونات';
+
+  @override
+  String get couponNew => 'كوبون جديد';
+
+  @override
+  String get couponPercent => 'نسبة الخصم %';
+
+  @override
+  String get couponExpires => 'ينتهي في';
+
+  @override
+  String get couponNoExpiry => 'بدون تاريخ انتهاء';
+
+  @override
+  String get couponCreate => 'إنشاء الكوبون';
+
+  @override
+  String get couponCreated => 'تم إنشاء الكوبون';
+
+  @override
+  String get couponsEmpty => 'لا توجد كوبونات بعد. أنشئ واحدًا بزر +.';
+
+  @override
+  String couponUsedTimes(int count) {
+    return 'استُخدم $count مرة';
+  }
+
+  @override
+  String get couponActive => 'فعّال';
+
+  @override
+  String get couponOff => 'متوقف';
+
+  @override
+  String get couponExpired => 'منتهي';
+
+  @override
+  String get couponOnePerCustomer => 'يمكن لكل عميل استخدام الكوبون مرة واحدة.';
 }

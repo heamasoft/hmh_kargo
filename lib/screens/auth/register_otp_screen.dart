@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
@@ -12,6 +11,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/auth_scaffold.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/otp_boxes.dart';
 
 class RegisterOtpScreen extends StatefulWidget {
   const RegisterOtpScreen({super.key});
@@ -37,11 +37,6 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
     super.dispose();
   }
 
-  void _onChanged(int i, String v) {
-    if (v.isNotEmpty && i < 3) _nodes[i + 1].requestFocus();
-    if (v.isEmpty && i > 0) _nodes[i - 1].requestFocus();
-  }
-
   Future<void> _verify() async {
     if (_loading) return;
     final l = AppLocalizations.of(context);
@@ -58,12 +53,12 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
     });
     try {
       await context.read<AuthProvider>().verifyOtp(
-            identifier: reg.phone,
-            channel: 'whatsapp',
-            code: code,
-            name: reg.name,
-            city: reg.cityKey.isEmpty ? null : l.byKey(reg.cityKey),
-          );
+        identifier: reg.phone,
+        channel: 'whatsapp',
+        code: code,
+        name: reg.name,
+        city: reg.cityKey.isEmpty ? null : l.byKey(reg.cityKey),
+      );
       if (!mounted) return;
       // Signed in via OTP. Continue to set an optional backup password.
       Navigator.pushNamed(context, Routes.registerPassword);
@@ -79,10 +74,10 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
     final reg = context.read<RegistrationProvider>();
     try {
       await context.read<AuthProvider>().requestOtp(
-            identifier: reg.phone,
-            channel: 'whatsapp',
-            purpose: 'register',
-          );
+        identifier: reg.phone,
+        channel: 'whatsapp',
+        purpose: 'register',
+      );
       if (mounted) showHeamaToast(context, l.codeResent);
     } on ApiException catch (e) {
       if (mounted) setState(() => _error = e.message);
@@ -102,29 +97,7 @@ class _RegisterOtpScreenState extends State<RegisterOtpScreen> {
       onButton: _verify,
       children: [
         const SizedBox(height: 22),
-        Row(
-          children: List.generate(4, (i) {
-            return Expanded(
-              child: Padding(
-                padding: EdgeInsets.only(right: i == 3 ? 0 : 11),
-                child: TextField(
-                  controller: _controllers[i],
-                  focusNode: _nodes[i],
-                  maxLength: 1,
-                  textAlign: TextAlign.center,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  style: AppFonts.display(fontSize: 22),
-                  decoration: const InputDecoration(
-                    counterText: '',
-                    contentPadding: EdgeInsets.symmetric(vertical: 16),
-                  ),
-                  onChanged: (v) => _onChanged(i, v),
-                ),
-              ),
-            );
-          }),
-        ),
+        OtpBoxes(controllers: _controllers, nodes: _nodes),
         if (_error != null) ...[
           const SizedBox(height: 8),
           Text(
