@@ -37,6 +37,11 @@ workflows:
         - $FCI_BUILD_DIR/ios/Pods
         - $HOME/.pub-cache
     environment:
+      # Holds CERTIFICATE_PRIVATE_KEY — the private key of the iOS distribution
+      # certificate. Add it in Codemagic → app settings → Environment variables,
+      # group "ios_signing", marked secure. See the signing step below for why.
+      groups:
+        - ios_signing
       vars:
         BUNDLE_ID: "com.hmhkargo.app"
         APP_STORE_APPLE_ID: 6802223643       # HMH Kargo — Apple ID (App Store Connect → App Information)
@@ -61,12 +66,24 @@ workflows:
       - name: Set up code signing (create cert + profile)
         script: |
           keychain initialize
-          # fetch-signing-files --create needs a PRIVATE KEY to generate the new
-          # distribution certificate — without it you get "Cannot save Signing
-          # Certificates without certificate private key". Generate one, then it
-          # creates the certificate + App Store profile and keeps the pair to sign.
+          # A distribution certificate can only be used by whoever holds the
+          # private key it was made from. Apple also allows just one current
+          # distribution certificate per account, so a key generated per build
+          # is a dead end: the second build is refused with
+          #   409 ... You already have a current Distribution certificate
+          # and the certificate already on the account cannot be used, because
+          # its key is gone. So the key lives in CERTIFICATE_PRIVATE_KEY (secure
+          # variable, group "ios_signing") and every build reuses the same one:
+          # the certificate is created on the first build and fetched after that.
           CERT_KEY="$HOME/ios_distribution_key.pem"
-          ssh-keygen -t rsa -b 2048 -m PEM -f "$CERT_KEY" -q -N ""
+          if [ -n "$CERTIFICATE_PRIVATE_KEY" ]; then
+            printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > "$CERT_KEY"
+          else
+            echo "CERTIFICATE_PRIVATE_KEY is not set — falling back to a throwaway key."
+            echo "This only works while the Apple account has no distribution certificate."
+            ssh-keygen -t rsa -b 2048 -m PEM -f "$CERT_KEY" -q -N ""
+          fi
+          chmod 600 "$CERT_KEY"
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key=@file:"$CERT_KEY" \
@@ -77,9 +94,11 @@ workflows:
           security find-identity -v -p codesigning
           if security find-identity -v -p codesigning | grep -qE '^ +0 valid identities found'; then
             echo "No signing certificate reached the keychain."
-            echo "Most likely the Apple account already has the maximum number of"
-            echo "distribution certificates — revoke the unused ones at"
-            echo "https://developer.apple.com/account/resources/certificates and rebuild."
+            echo "Either CERTIFICATE_PRIVATE_KEY does not match any certificate on the"
+            echo "account, or Apple refused to create one because a distribution"
+            echo "certificate already exists. Revoke the unused certificates at"
+            echo "https://developer.apple.com/account/resources/certificates so this"
+            echo "build can create one from CERTIFICATE_PRIVATE_KEY, then rebuild."
             exit 1
           fi
       - name: Flutter analyze
