@@ -27,6 +27,15 @@ workflows:
       cancel_previous_builds: true
     integrations:
       app_store_connect: HMH_ASC_API_KEY   # <-- must match the integration name in Codemagic
+    cache:
+      cache_paths:
+        # CocoaPods spec index and the resolved Pods — without these every build
+        # re-downloads the whole index, which is the slow "Install CocoaPods
+        # dependencies" step (10-20 min cold, under a minute cached).
+        - $HOME/Library/Caches/CocoaPods
+        - $HOME/.cocoapods/repos
+        - $FCI_BUILD_DIR/ios/Pods
+        - $HOME/.pub-cache
     environment:
       vars:
         BUNDLE_ID: "com.hmhkargo.app"
@@ -46,7 +55,9 @@ workflows:
         script: flutter build ios --release --config-only --no-codesign
       - name: Install CocoaPods dependencies
         script: |
-          find . -name "Podfile" -execdir pod install \;
+          # Only the app's own Podfile — a bare `find` also walks into the
+          # plugin sample projects and installs pods the app never uses.
+          cd ios && pod install
       - name: Set up code signing (create cert + profile)
         script: |
           keychain initialize
