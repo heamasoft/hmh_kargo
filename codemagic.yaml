@@ -34,7 +34,7 @@ workflows:
         # dependencies" step (10-20 min cold, under a minute cached).
         - $HOME/Library/Caches/CocoaPods
         - $HOME/.cocoapods/repos
-        - $FCI_BUILD_DIR/ios/Pods
+        - $CM_BUILD_DIR/ios/Pods
         - $HOME/.pub-cache
     environment:
       # Holds CERTIFICATE_PRIVATE_KEY — the private key of the iOS distribution
@@ -60,9 +60,17 @@ workflows:
         script: flutter build ios --release --config-only --no-codesign
       - name: Install CocoaPods dependencies
         script: |
-          # Only the app's own Podfile — a bare `find` also walks into the
-          # plugin sample projects and installs pods the app never uses.
-          cd ios && pod install
+          # Flutter wires the plugins through Swift Package Manager now, so the
+          # project may have no Podfile at all. Install the pods when there is
+          # one — only the app's own, since a bare `find` also walks into the
+          # plugin sample projects — and otherwise leave it to the build, which
+          # creates the Podfile itself if any plugin still needs CocoaPods.
+          ls ios
+          if [ -f ios/Podfile ]; then
+            cd ios && pod install
+          else
+            echo "No ios/Podfile — the plugins resolve through Swift Package Manager."
+          fi
       - name: Set up code signing (create cert + profile)
         script: |
           keychain initialize
