@@ -37,9 +37,10 @@ workflows:
         - $CM_BUILD_DIR/ios/Pods
         - $HOME/.pub-cache
     environment:
-      # Holds CERTIFICATE_PRIVATE_KEY — the private key of the iOS distribution
-      # certificate. Add it in Codemagic → app settings → Environment variables,
-      # group "ios_signing", marked secure. See the signing step below for why.
+      # Holds CERTIFICATE_PRIVATE_KEY_B64 — the private key of the iOS
+      # distribution certificate, base64-encoded. Add it in Codemagic → app
+      # settings → Environment variables, group "ios_signing", marked secure.
+      # See the signing step below for why it is base64 and not the PEM text.
       groups:
         - ios_signing
       vars:
@@ -80,18 +81,33 @@ workflows:
           # is a dead end: the second build is refused with
           #   409 ... You already have a current Distribution certificate
           # and the certificate already on the account cannot be used, because
-          # its key is gone. So the key lives in CERTIFICATE_PRIVATE_KEY (secure
-          # variable, group "ios_signing") and every build reuses the same one:
-          # the certificate is created on the first build and fetched after that.
+          # its key is gone. So the key lives in CERTIFICATE_PRIVATE_KEY_B64
+          # (secure variable, group "ios_signing") and every build reuses the
+          # same one: the certificate is created on the first build, and every
+          # build after that fetches it.
           CERT_KEY="$HOME/ios_distribution_key.pem"
-          if [ -n "$CERTIFICATE_PRIVATE_KEY" ]; then
+          if [ -n "$CERTIFICATE_PRIVATE_KEY_B64" ]; then
+            # A PEM key is 27 lines, and pasting that into the environment
+            # variable form loses the line breaks — the key then reaches the
+            # build as one run-on line and is rejected with "Not a valid
+            # certificate private key". Base64 is a single line to begin with,
+            # so nothing can be lost on the way here.
+            printf '%s' "$CERTIFICATE_PRIVATE_KEY_B64" | tr -d '[:space:]' | base64 --decode > "$CERT_KEY"
+          elif [ -n "$CERTIFICATE_PRIVATE_KEY" ]; then
             printf '%s\n' "$CERTIFICATE_PRIVATE_KEY" > "$CERT_KEY"
           else
-            echo "CERTIFICATE_PRIVATE_KEY is not set — falling back to a throwaway key."
+            echo "No certificate key is set — falling back to a throwaway one."
             echo "This only works while the Apple account has no distribution certificate."
             ssh-keygen -t rsa -b 2048 -m PEM -f "$CERT_KEY" -q -N ""
           fi
           chmod 600 "$CERT_KEY"
+          if ! openssl rsa -in "$CERT_KEY" -check -noout >/dev/null 2>&1; then
+            echo "The private key did not survive the trip into this build."
+            echo "Add it to Codemagic as CERTIFICATE_PRIVATE_KEY_B64 instead — the"
+            echo "same key base64-encoded, which is one line and cannot lose its"
+            echo "line breaks the way the PEM text does."
+            exit 1
+          fi
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key=@file:"$CERT_KEY" \
