@@ -39,6 +39,28 @@ class CapturedProduct {
     this.shippingUnit,
   });
 
+  /// Same product at a different price — used when an admin sets the charged
+  /// price by hand in the capture sheet.
+  CapturedProduct copyWith({
+    double? sourcePrice,
+    num? chargeAmount,
+    num? iqdPrice,
+  }) =>
+      CapturedProduct(
+        storeId: storeId,
+        storeName: storeName,
+        sourceUrl: sourceUrl,
+        title: title,
+        imageUrl: imageUrl,
+        sourcePrice: sourcePrice ?? this.sourcePrice,
+        sourceCurrency: sourceCurrency,
+        chargeCurrency: chargeCurrency,
+        chargeAmount: chargeAmount ?? this.chargeAmount,
+        iqdPrice: iqdPrice ?? this.iqdPrice,
+        auto: auto,
+        shippingUnit: shippingUnit,
+      );
+
   factory CapturedProduct.fromJson(Map<String, dynamic> json) {
     final store = json['store'] as Map<String, dynamic>?;
     final iqd = (json['iqd_price'] ?? 0) as num;

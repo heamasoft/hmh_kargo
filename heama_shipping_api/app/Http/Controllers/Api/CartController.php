@@ -46,7 +46,19 @@ class CartController extends Controller
         // charge_amount is the all-in unit price in minor units of charge_currency.
         // Fall back to the legacy iqd_price (IQD) for older clients.
         $chargeCurrency = strtoupper($data['charge_currency'] ?? 'IQD');
-        $chargeAmount = $data['charge_amount'] ?? $data['iqd_price'] ?? 0;
+        $sent = $data['charge_amount'] ?? $data['iqd_price'] ?? null;
+
+        // An admin may set the price by hand in the capture sheet, so theirs is
+        // taken as sent. Everyone else's is priced here from the site price,
+        // whatever their app said: the number arrives over the wire, and a
+        // shopper must pay what our own pricing says, not what they ask to pay.
+        $chargeAmount = ($sent !== null && $request->user()->is_admin)
+            ? (float) $sent
+            : $this->pricing->chargeUnit(
+                (float) $data['source_price'],
+                strtoupper($data['source_currency']),
+                $chargeCurrency,
+            );
 
         $cart = $this->cartFor($request->user());
 

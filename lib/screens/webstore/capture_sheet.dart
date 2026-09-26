@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/captured_product.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../services/api_client.dart';
 import '../../services/capture_api.dart';
@@ -75,6 +76,11 @@ class _CaptureSheetState extends State<CaptureSheet> {
   final _title = TextEditingController();
   final _price = TextEditingController();
   final _currency = TextEditingController(text: 'USD');
+
+  /// The all-in price the customer pays. Read-only for shoppers; an admin can
+  /// type into it, and the site price above follows.
+  final _charge = TextEditingController();
+  final _chargeFocus = FocusNode();
   final _color = TextEditingController();
   final _size = TextEditingController();
   final _note = TextEditingController();
@@ -119,14 +125,69 @@ class _CaptureSheetState extends State<CaptureSheet> {
 
   @override
   void dispose() {
-    for (final c in [_url, _title, _price, _currency, _color, _size, _note]) {
+    for (final c in [_url, _title, _price, _currency, _color, _size, _note, _charge]) {
       c.dispose();
     }
+    _chargeFocus.dispose();
     super.dispose();
   }
 
   double get _priceValue =>
       double.tryParse(_price.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+
+  /// Only an admin may set the charged price by hand; a shopper always pays
+  /// what the server's pricing says. The server checks this too.
+  bool get _isAdmin => context.read<AuthProvider>().user?.isAdmin ?? false;
+
+  /// Charge per one unit of the source currency, as the server last priced this
+  /// item — markup and rounding included. Typing a charged price divides by it
+  /// to get the site price that would produce it: $1 → 1,500 IQD means 2,250
+  /// IQD is $1.50.
+  double? _rate;
+
+  /// Keeps the admin's charge box showing the current price.
+  void _syncCharge() {
+    final p = _priced;
+    if (p == null) {
+      _charge.text = '';
+      return;
+    }
+    if (p.sourcePrice > 0 && p.chargeAmount > 0) {
+      _rate = p.chargeAmount / p.sourcePrice;
+    }
+    _charge.text = _formatCharge(p.chargeAmount, p.chargeCurrency);
+  }
+
+  /// Dinars are whole; dollars and lira keep their cents.
+  String _formatCharge(num amount, String currency) =>
+      currency.toUpperCase() == 'IQD' ? amount.round().toString() : amount.toStringAsFixed(2);
+
+  /// The admin typed a charged price: take it as the price, and move the site
+  /// price with it so the two figures keep telling the same story.
+  void _applyAdminCharge() {
+    final p = _priced;
+    if (p == null) return;
+    final typed = double.tryParse(_charge.text.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0;
+    if (typed <= 0) {
+      _syncCharge(); // not a price — put back what it was
+      return;
+    }
+    if ((typed - p.chargeAmount).abs() < 0.001) return;
+
+    final rate = _rate;
+    if (rate != null && rate > 0) _price.text = (typed / rate).toStringAsFixed(2);
+
+    final isIqd = p.chargeCurrency.toUpperCase() == 'IQD';
+    final ratio = p.chargeAmount > 0 ? typed / p.chargeAmount : 1;
+    setState(() {
+      _priced = p.copyWith(
+        sourcePrice: rate != null && rate > 0 ? typed / rate : null,
+        chargeAmount: typed,
+        iqdPrice: isIqd ? typed : p.iqdPrice * ratio,
+      );
+      _charge.text = _formatCharge(typed, p.chargeCurrency);
+    });
+  }
 
   /// Some products cost more in some sizes (a Shein top: XS $7.31, S $13.29).
   /// Picking a size the page priced moves the price — and the dinars — with it.
@@ -159,6 +220,7 @@ class _CaptureSheetState extends State<CaptureSheet> {
       } else {
         _priced = null; // no price found — user must enter it
       }
+      _syncCharge();
     } on ApiException catch (e) {
       _error = e.message;
     } finally {
@@ -180,6 +242,7 @@ class _CaptureSheetState extends State<CaptureSheet> {
         sourceCurrency: _currency.text.trim().isEmpty ? 'USD' : _currency.text.trim().toUpperCase(),
       );
       _error = null;
+      _syncCharge();
     } on ApiException catch (e) {
       _error = e.message;
       _priced = null;
@@ -365,7 +428,10 @@ class _CaptureSheetState extends State<CaptureSheet> {
                           flex: 2,
                           child: _field(l.priceOnSite, _price,
                               keyboard: const TextInputType.numberWithOptions(decimal: true),
-                              onChanged: (_) => setState(() => _priced = null),
+                              onChanged: (_) => setState(() {
+                                    _priced = null;
+                                    _charge.text = '';
+                                  }),
                               onSubmitted: (_) => _reprice()),
                         ),
                         const SizedBox(width: 10),
@@ -462,6 +528,45 @@ class _CaptureSheetState extends State<CaptureSheet> {
     );
   }
 
+  /// The admin's price box: type what the customer pays, and the site price
+  /// above moves to match. Sized to the number so the row still reads as a
+  /// price rather than a form.
+  Widget _chargeBox(AppLocalizations l) {
+    final currency = _priced!.chargeCurrency.toUpperCase();
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.baseline,
+      textBaseline: TextBaseline.alphabetic,
+      children: [
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 110),
+          child: IntrinsicWidth(
+            child: TextField(
+              controller: _charge,
+              focusNode: _chargeFocus,
+              textAlign: TextAlign.end,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              textInputAction: TextInputAction.done,
+              style: AppFonts.display(fontSize: 17),
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(vertical: 4),
+              ),
+              onSubmitted: (_) => _applyAdminCharge(),
+              onTapOutside: (_) {
+                _chargeFocus.unfocus();
+                _applyAdminCharge();
+              },
+            ),
+          ),
+        ),
+        const SizedBox(width: 5),
+        Text(currency == 'IQD' ? l.iqd : currency,
+            style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700, color: AppColors.muted)),
+      ],
+    );
+  }
+
   Widget _iqdRow(AppLocalizations l) {
     // Shein/manual are charged in IQD ("All-in, in dinars"); other stores in USD.
     final isUsd = _priced?.chargeCurrency.toUpperCase() == 'USD';
@@ -489,8 +594,11 @@ class _CaptureSheetState extends State<CaptureSheet> {
               crossAxisAlignment: CrossAxisAlignment.baseline,
               textBaseline: TextBaseline.alphabetic,
               children: [
-                Text(formatMoney(_priced!.chargeAmount, _priced!.chargeCurrency, iqdLabel: l.iqd),
-                    style: AppFonts.display(fontSize: 17)),
+                if (_isAdmin)
+                  _chargeBox(l)
+                else
+                  Text(formatMoney(_priced!.chargeAmount, _priced!.chargeCurrency, iqdLabel: l.iqd),
+                      style: AppFonts.display(fontSize: 17)),
                 // Trendyol and the other paid-shipping stores add a per-item
                 // shipping fee at checkout — say so beside the price, not later.
                 // Shein ships free (0), so nothing shows there.
