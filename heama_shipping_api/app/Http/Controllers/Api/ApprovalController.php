@@ -192,6 +192,13 @@ class ApprovalController extends Controller
                 $item->update(['approval' => 'rejected']);
 
                 if ($order) {
+                    // Never give back more than is still paid on the order, so
+                    // a reject after an admin-side refund cannot pay twice.
+                    $net = app(WalletService::class)->netChargedForOrder($order, $currency);
+                    if ($net !== null) {
+                        $refund = min($refund, max(0.0, $net));
+                    }
+
                     $remaining = $order->activeItems()->with('store')->get();
 
                     if ($remaining->isEmpty()) {

@@ -112,6 +112,36 @@ class WalletService
         });
     }
 
+    /**
+     * What the customer has actually paid for one order and not had back: the
+     * sum of every ledger row belonging to it, sign flipped (a charge is
+     * negative in the ledger, a refund positive).
+     *
+     * This is what a cancel should give back. The stored orders.total_iqd is
+     * not: a rejected item, a cancelled item or a cancel done in the admin CMS
+     * each refunds part of an order, and whichever system did it may leave the
+     * stored total untouched — refunding that total then pays the customer
+     * twice for the same money.
+     *
+     * Rows are matched by id or by code, because the app writes order_id and
+     * the CMS writes order_code. Returns null when the order has no ledger
+     * rows at all, so the caller can fall back rather than refund nothing.
+     */
+    public function netChargedForOrder(Order $order, ?string $currency = null): ?float
+    {
+        $currency = strtoupper($currency ?: ($order->currency ?: 'IQD'));
+
+        $total = WalletTransaction::query()
+            ->where('user_id', $order->user_id)
+            ->whereRaw("UPPER(COALESCE(NULLIF(currency, ''), 'IQD')) = ?", [$currency])
+            ->where(fn ($q) => $q->where('order_id', $order->id)->orWhere('order_code', $order->code))
+            ->selectRaw('SUM('.WalletTransaction::amountSql().') as total')
+            ->value('total');
+
+        // SUM over no rows is NULL — the order was never charged here.
+        return $total === null ? null : round(-(float) $total, 2);
+    }
+
     /** Credits a wallet (top-up / refund). Returns the new balance. */
     public function credit(User $user, float $amount, string $currency = 'IQD', string $type = 'topup', ?string $note = null, ?int $adminId = null, ?int $orderId = null): float
     {

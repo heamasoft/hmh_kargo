@@ -260,6 +260,12 @@ class OrderController extends Controller
             ->value('old_shipping');
         $paidShipping = $pendingOld !== null ? (float) $pendingOld : (float) ($item->shipping ?? 0);
         $refund = round((float) $item->iqd_price * (int) $item->qty + $paidShipping, 2);
+        // Never give back more than is still paid on the order — the item may
+        // already have been refunded on the admin side.
+        $net = $this->wallet->netChargedForOrder($order, $currency);
+        if ($net !== null) {
+            $refund = min($refund, max(0.0, $net));
+        }
 
         DB::transaction(function () use ($order, $item, $user, $currency, $refund) {
             // Close any open shipping approval on this item so the admin side
@@ -332,11 +338,16 @@ class OrderController extends Controller
 
         $user = $request->user();
         $currency = strtoupper($order->currency ?: 'IQD');
+        // Give back what is still paid on this order, not its stored total: a
+        // rejected or cancelled item — here or in the admin CMS — has already
+        // refunded part of it, and refunding the total as well pays twice.
+        $net = $this->wallet->netChargedForOrder($order, $currency);
+        $refund = $net === null ? round((float) $order->total_iqd, 2) : max(0.0, $net);
         $amountLabel = $currency === 'USD'
-            ? '$'.number_format((float) $order->total_iqd, 2)
-            : number_format((float) $order->total_iqd).' IQD';
+            ? '$'.number_format($refund, 2)
+            : number_format($refund).' IQD';
 
-        DB::transaction(function () use ($order, $user, $currency, $amountLabel) {
+        DB::transaction(function () use ($order, $user, $currency, $amountLabel, $refund) {
             $order->update(['status' => 'cancelled']);
 
             // No shipping answer is needed any more for this order's items.
@@ -351,15 +362,19 @@ class OrderController extends Controller
                 'happened_at' => now(),
             ]);
 
-            // Both methods drew from the wallet, so a cancel always refunds it.
-            $this->wallet->credit(
-                $user,
-                (float) $order->total_iqd,
-                $currency,
-                type: 'refund',
-                note: "Refund for cancelled {$order->code}",
-                orderId: $order->id,
-            );
+            // Both methods drew from the wallet, so a cancel refunds it — what
+            // is left of it. Nothing outstanding (already refunded in full)
+            // leaves the balance alone.
+            if ($refund > 0) {
+                $this->wallet->credit(
+                    $user,
+                    $refund,
+                    $currency,
+                    type: 'refund',
+                    note: "Refund for cancelled {$order->code}",
+                    orderId: $order->id,
+                );
+            }
 
             // Alert the admin dashboard.
             AdminNotification::create([
