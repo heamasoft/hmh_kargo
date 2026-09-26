@@ -172,6 +172,60 @@ abstract class AppLocalizations {
   /// **'Please enter your full name.'**
   String get errName;
 
+  /// No description provided for @firstName.
+  ///
+  /// In en, this message translates to:
+  /// **'First name'**
+  String get firstName;
+
+  /// No description provided for @middleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Middle name'**
+  String get middleName;
+
+  /// No description provided for @lastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Last name'**
+  String get lastName;
+
+  /// No description provided for @firstNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Aland'**
+  String get firstNameHint;
+
+  /// No description provided for @middleNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Hassan'**
+  String get middleNameHint;
+
+  /// No description provided for @lastNameHint.
+  ///
+  /// In en, this message translates to:
+  /// **'e.g. Ahmed'**
+  String get lastNameHint;
+
+  /// No description provided for @errFirstName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your first name.'**
+  String get errFirstName;
+
+  /// No description provided for @errMiddleName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your middle name.'**
+  String get errMiddleName;
+
+  /// No description provided for @errLastName.
+  ///
+  /// In en, this message translates to:
+  /// **'Please enter your last name.'**
+  String get errLastName;
+
   /// No description provided for @continueLabel.
   ///
   /// In en, this message translates to:

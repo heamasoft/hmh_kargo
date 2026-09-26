@@ -47,6 +47,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get errName => 'Please enter your full name.';
 
   @override
+  String get firstName => 'First name';
+
+  @override
+  String get middleName => 'Middle name';
+
+  @override
+  String get lastName => 'Last name';
+
+  @override
+  String get firstNameHint => 'e.g. Aland';
+
+  @override
+  String get middleNameHint => 'e.g. Hassan';
+
+  @override
+  String get lastNameHint => 'e.g. Ahmed';
+
+  @override
+  String get errFirstName => 'Please enter your first name.';
+
+  @override
+  String get errMiddleName => 'Please enter your middle name.';
+
+  @override
+  String get errLastName => 'Please enter your last name.';
+
+  @override
   String get continueLabel => 'Continue';
 
   @override

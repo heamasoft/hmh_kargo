@@ -46,6 +46,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get errName => 'الرجاء إدخال اسمك الكامل.';
 
   @override
+  String get firstName => 'الاسم الأول';
+
+  @override
+  String get middleName => 'الاسم الأوسط';
+
+  @override
+  String get lastName => 'الاسم الأخير';
+
+  @override
+  String get firstNameHint => 'مثال: آلان';
+
+  @override
+  String get middleNameHint => 'مثال: حسن';
+
+  @override
+  String get lastNameHint => 'مثال: أحمد';
+
+  @override
+  String get errFirstName => 'الرجاء إدخال الاسم الأول.';
+
+  @override
+  String get errMiddleName => 'الرجاء إدخال الاسم الأوسط.';
+
+  @override
+  String get errLastName => 'الرجاء إدخال الاسم الأخير.';
+
+  @override
   String get continueLabel => 'متابعة';
 
   @override

@@ -47,6 +47,33 @@ class AppLocalizationsKu extends AppLocalizations {
   String get errName => 'تکایە ناوی تەواوت بنووسە.';
 
   @override
+  String get firstName => 'ناوی یەکەم';
+
+  @override
+  String get middleName => 'ناوی ناوەڕاست';
+
+  @override
+  String get lastName => 'ناوی کۆتایی';
+
+  @override
+  String get firstNameHint => 'بۆ نموونە: ئالان';
+
+  @override
+  String get middleNameHint => 'بۆ نموونە: حەسەن';
+
+  @override
+  String get lastNameHint => 'بۆ نموونە: ئەحمەد';
+
+  @override
+  String get errFirstName => 'تکایە ناوی یەکەمت بنووسە.';
+
+  @override
+  String get errMiddleName => 'تکایە ناوی ناوەڕاستت بنووسە.';
+
+  @override
+  String get errLastName => 'تکایە ناوی کۆتاییت بنووسە.';
+
+  @override
   String get continueLabel => 'بەردەوامبوون';
 
   @override
