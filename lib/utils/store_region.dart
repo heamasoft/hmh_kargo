@@ -86,8 +86,10 @@ String sheinStartUrl(String url) {
 /// localStorage `addressCookie`, which the `countryCode` parameter doesn't
 /// touch; product pages then read "Shipping to: Bahrain". Rewriting the saved
 /// value sticks across reloads (checked on a real device), so this runs after
-/// each Shein page and reloads once when it had to change something. The
-/// sessionStorage counter stops a reload loop should Shein ever put it back.
+/// each Shein page and reloads the STOREFRONT once when it had to change
+/// something — never a product page, which Shein answers by redirecting to the
+/// storefront. The sessionStorage counter stops a reload loop should Shein ever
+/// put the country back.
 const sheinUaeAddressJs = r'''
 (function(){
   try{
@@ -104,7 +106,12 @@ const sheinUaeAddressJs = r'''
     a.displayAddress='United Arab Emirates'; a.displayAddressWithMinLevel='United Arab Emirates';
     a.addressId=''; a.state=''; a.stateId=''; a.city=''; a.cityId=''; a.district=''; a.districtId=''; a.postcode='';
     localStorage.setItem('addressCookie', JSON.stringify(a));
-    location.reload();
+    // Only the storefront reloads. Reloading a PRODUCT page here sent the
+    // shopper back to the home feed — Shein answers a reload that changes the
+    // ship-to country with a redirect to the storefront whenever the item is
+    // not sold there — and tapping a product then looked like it did nothing.
+    // The value is written either way, so the next page opens on the UAE.
+    if(!/-p-\d{3,}/i.test(location.pathname)) location.reload();
   }catch(e){}
 })();
 ''';
