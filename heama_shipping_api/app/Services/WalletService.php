@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Order;
 use App\Models\User;
 use App\Models\Wallet;
 use App\Models\WalletTransaction;
@@ -54,8 +55,13 @@ class WalletService
     {
         $wallet = $this->walletFor($user);
 
+        // The amount comes from whichever column the writing system used — the
+        // CMS keeps dollars in amount_usd — or a cancel done in the CMS reads
+        // as zero here and this method writes that zero over a correct balance.
         $sums = WalletTransaction::where('user_id', $user->id)
-            ->selectRaw("UPPER(COALESCE(NULLIF(currency, ''), 'IQD')) as cur, SUM(amount_iqd) as total")
+            ->selectRaw(
+                "UPPER(COALESCE(NULLIF(currency, ''), 'IQD')) as cur, SUM(".WalletTransaction::amountSql().') as total'
+            )
             ->groupBy('cur')
             ->pluck('total', 'cur');
 
@@ -158,13 +164,21 @@ class WalletService
 
             $wallet->update([$col => $newBalance]);
 
+            // Write the row the way the admin CMS writes and reads it: dinars
+            // in amount_iqd, dollars in amount_usd. Both systems then agree on
+            // what a row means, so a cancel on either side shows on both.
+            $isUsd = $currency === 'USD';
             WalletTransaction::create([
                 'user_id' => $user->id,
                 'type' => $type,
                 'currency' => $currency,
-                'amount_iqd' => $delta,      // minor units of $currency (legacy column name)
-                'balance_after' => $newBalance,
+                'amount_iqd' => $isUsd ? 0 : $delta,
+                'balance_after' => $isUsd ? 0 : $newBalance,
+                'amount_usd' => $isUsd ? $delta : 0,
+                'balance_usd_after' => $isUsd ? $newBalance : 0,
                 'order_id' => $orderId,
+                // The CMS lists transactions by code, not by id.
+                'order_code' => $orderId ? Order::whereKey($orderId)->value('code') : null,
                 'note' => $note,
                 'admin_id' => $adminId,
             ]);

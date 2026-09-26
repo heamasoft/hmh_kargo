@@ -14,9 +14,11 @@ class WalletTransactionResource extends JsonResource
             'id' => $this->id,
             'type' => $this->type,
             'currency' => $this->currency ?: 'IQD',
-            // Real amount in currency (IQD dinars / USD dollars).
-            'amount_iqd' => (float) $this->amount_iqd,
-            'balance_after' => (float) $this->balance_after,
+            // Real amount in currency (IQD dinars / USD dollars), read from
+            // whichever column holds it — the admin CMS keeps dollars in
+            // amount_usd, so reading amount_iqd alone shows those rows as 0.
+            'amount_iqd' => $this->resource->amount(),
+            'balance_after' => $this->resource->balanceAfter(),
             'note' => $this->note,
             'created_at' => $this->created_at,
         ];
