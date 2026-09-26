@@ -27,14 +27,34 @@ class _WalletScreenState extends State<WalletScreen> {
   /// The "Top up with" section (FIB, cash). Off until top-ups go live.
   static const _showTopUp = false;
 
+  late final ShellController _shell;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (context.read<AuthProvider>().isAuthenticated) {
-        context.read<WalletProvider>().load();
-      }
-    });
+    // The tabs are kept alive in the shell's IndexedStack, so this page is
+    // built once: without listening for the switch it goes on showing the
+    // balance as it was when the app started, and only an order or a trip into
+    // the ledger brought it up to date. Reload it whenever the tab is opened.
+    _shell = context.read<ShellController>()..addListener(_onTabChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  void _onTabChanged() {
+    if (_shell.tab == ShellController.me) _refresh();
+  }
+
+  void _refresh() {
+    if (!mounted) return;
+    if (context.read<AuthProvider>().isAuthenticated) {
+      context.read<WalletProvider>().load();
+    }
+  }
+
+  @override
+  void dispose() {
+    _shell.removeListener(_onTabChanged);
+    super.dispose();
   }
 
   @override
