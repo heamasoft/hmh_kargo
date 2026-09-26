@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Services\PricingService;
-use App\Services\WalletService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,9 +23,15 @@ use Throwable;
  * ACCEPT → the admin may buy the item at the new price.
  * REJECT → the item comes OUT of the order for the customer: the row STAYS in
  * order_items with approval='rejected' (so the admin keeps the history) but is
- * hidden from the app, what was paid (price × qty + the ORIGINAL shipping) is
- * refunded to the wallet and the order's totals are recomputed. If it was the
- * last active item, the whole order is cancelled.
+ * hidden from the app. If it was the last active item, the whole order is
+ * cancelled.
+ *
+ * Neither answer moves money. The admin console charges the difference as soon
+ * as it changes the price — before the customer has answered — and refunds
+ * what was paid when it then cancels the order or removes the item. This side
+ * paying as well meant the same money moved twice: a rejected item was
+ * refunded here and again when the admin cancelled, leaving the customer with
+ * more than they started with.
  */
 class ApprovalController extends Controller
 {
@@ -134,36 +139,16 @@ class ApprovalController extends Controller
                 DB::table('order_items')->where('id', $a->item_id)
                     ->update(['approval' => 'accepted', 'updated_at' => now()]);
 
-                // Charge the customer the DIFFERENCE between the new and old
-                // shipping (the admin already wrote the new price into
-                // order_items.shipping). Higher new price → debit the extra;
-                // lower → refund it. Then recompute the order's totals so the
-                // balance and the order agree.
+                // The money is NOT touched here. The admin side charges the
+                // difference the moment the price is changed — before the
+                // customer has answered — so the new shipping is already paid
+                // by the time this runs. Debiting it again would charge twice.
+                // Recompute the order so its totals match its items.
                 $item = OrderItem::query()->find($a->item_id);
                 if ($item) {
                     $order = Order::query()->find($item->order_id);
-                    $currency = strtoupper($a->currency ?: ($order?->currency ?: 'USD'));
-                    $old = $a->old_shipping !== null ? (float) $a->old_shipping : (float) ($item->shipping ?? 0);
-                    $new = (float) ($a->new_shipping ?? $item->shipping ?? 0);
-                    $diff = round($new - $old, 2);
-
                     if ($order) {
-                        if ($diff > 0) {
-                            app(WalletService::class)->debit(
-                                $user, $diff, $currency,
-                                type: 'debit',
-                                note: "Shipping increase accepted — {$order->code}",
-                                orderId: $order->id,
-                            );
-                        } elseif ($diff < 0) {
-                            app(WalletService::class)->credit(
-                                $user, -$diff, $currency,
-                                type: 'refund',
-                                note: "Shipping decrease — {$order->code}",
-                                orderId: $order->id,
-                            );
-                        }
-
+                        $currency = strtoupper($a->currency ?: ($order->currency ?: 'USD'));
                         $this->recomputeOrder($order, $currency);
                     }
                 }
@@ -174,35 +159,28 @@ class ApprovalController extends Controller
                 ]);
             }
 
-            // REJECTED → keep the row (approval='rejected') so the admin sees
-            // the history, but hide it from the app and refund what was paid
-            // for it (price × qty + the ORIGINAL shipping — never the new one).
+            // REJECTED → record the answer: keep the row (approval='rejected')
+            // so the admin sees the history, and hide it from the app.
+            //
+            // The money is NOT touched here either. The admin has already
+            // charged the new shipping, and it is the admin who then cancels
+            // the order or removes the item — refunding what was paid as they
+            // do. Refunding here as well returned the same money twice: the
+            // customer ended up better off than before they ordered.
             $item = OrderItem::query()->find($a->item_id);
             if ($item) {
                 $order = Order::query()->find($item->order_id);
-                $currency = strtoupper($a->currency ?: ($order?->currency ?: 'USD'));
-                // The admin already wrote the NEW price into order_items.shipping,
-                // so the shipping the customer actually PAID is the approval's
-                // old_shipping (fall back to the item column when absent).
-                $paidShipping = $a->old_shipping !== null
-                    ? (float) $a->old_shipping
-                    : (float) ($item->shipping ?? 0);
-                $refund = round((float) $item->iqd_price * (int) $item->qty + $paidShipping, 2);
                 $title = $item->title;
                 $item->update(['approval' => 'rejected']);
 
                 if ($order) {
-                    // Never give back more than is still paid on the order, so
-                    // a reject after an admin-side refund cannot pay twice.
-                    $net = app(WalletService::class)->netChargedForOrder($order, $currency);
-                    if ($net !== null) {
-                        $refund = min($refund, max(0.0, $net));
-                    }
+                    // The order's stored totals are left as they are, because
+                    // they are what the admin side refunds against. Trimming
+                    // the rejected item out of them here would make that
+                    // refund fall short of what the customer paid.
+                    $remaining = $order->activeItems()->count();
 
-                    $remaining = $order->activeItems()->with('store')->get();
-
-                    if ($remaining->isEmpty()) {
-                        // Nothing left — the whole order is cancelled.
+                    if ($remaining === 0) {
                         $order->update(['status' => 'cancelled']);
                         $order->events()->create([
                             'status' => 'cancelled',
@@ -210,29 +188,17 @@ class ApprovalController extends Controller
                             'happened_at' => now(),
                         ]);
                     } else {
-                        $this->recomputeOrder($order, $currency, $remaining);
                         $order->events()->create([
                             'status' => $order->status,
                             'note' => 'Item removed (shipping rejected): '.mb_substr($title, 0, 70),
                             'happened_at' => now(),
                         ]);
                     }
-
-                    if ($refund > 0) {
-                        app(WalletService::class)->credit(
-                            $user,
-                            $refund,
-                            $currency,
-                            type: 'refund',
-                            note: "Rejected shipping — item removed from {$order->code}",
-                            orderId: $order->id,
-                        );
-                    }
                 }
             }
 
             return response()->json([
-                'message' => 'Shipping price rejected — the item was removed and refunded.',
+                'message' => 'Shipping price rejected — the item was removed from your order.',
                 'data' => ['id' => $id, 'status' => 'rejected'],
             ]);
         });
