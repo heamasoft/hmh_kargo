@@ -5,6 +5,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/order.dart';
 import '../../providers/approvals_provider.dart';
 import '../../providers/orders_provider.dart';
+import '../../providers/shell_controller.dart';
 import '../../router.dart';
 import '../tracking/tracking_screen.dart';
 import '../../theme/app_colors.dart';
@@ -26,18 +27,33 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   String? _status;
   String? _currency;
 
+  late final ShellController _shell;
+
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<OrdersProvider>().load();
-      // Poll for shipping-fee approvals the admin is waiting on.
-      context.read<ApprovalsProvider>().load();
-    });
+    // The five tabs live in an IndexedStack, so this page is built once and
+    // then kept. Without listening for the switch it shows whatever was loaded
+    // when the app started: a shipping request the admin sent since then only
+    // appeared after a trip into the tracker and back.
+    _shell = context.read<ShellController>()..addListener(_onTabChanged);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refresh());
+  }
+
+  void _onTabChanged() {
+    if (_shell.tab == ShellController.orders) _refresh();
+  }
+
+  /// The orders themselves and the shipping requests waiting on an answer.
+  void _refresh() {
+    if (!mounted) return;
+    context.read<OrdersProvider>().load();
+    context.read<ApprovalsProvider>().refreshSilently();
   }
 
   @override
   void dispose() {
+    _shell.removeListener(_onTabChanged);
     _tabs.dispose();
     super.dispose();
   }

@@ -19,6 +19,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/ads_carousel.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/notification_bell.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
@@ -140,6 +141,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 9),
                           Text(l.appName, style: AppFonts.display(fontSize: 20, color: Colors.white)),
                           const Spacer(),
+                          // What the admin is waiting on an answer for — a
+                          // changed shipping price — found from the first
+                          // screen instead of inside an order.
+                          const NotificationBell(),
+                          const SizedBox(width: 4),
                           PopupMenuButton<String>(
                             offset: const Offset(0, 42),
                             color: Colors.white,
