@@ -43,7 +43,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
       );
     }
     // Keep the approvals badge fresh without a manual refresh: check the
-    // server every 45 s while the shell is alive.
+    // server every 20 s while the shell is alive.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _approvals = context.read<ApprovalsProvider>()..startPolling();

@@ -37,9 +37,15 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int? _busyStockId;
 
+  late final ShellController _shell;
+
   @override
   void initState() {
     super.initState();
+    // Home is kept alive in the shell's IndexedStack, so coming back to it
+    // rebuilds nothing on its own. Check for waiting answers on every return,
+    // so the bell is right when the customer is looking at it.
+    _shell = context.read<ShellController>()..addListener(_onTabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final catalog = context.read<CatalogProvider>();
       catalog.loadStores();
@@ -54,6 +60,19 @@ class _HomeScreenState extends State<HomeScreen> {
         context.read<StockProvider>().load(lang: 'en');
       }
     });
+  }
+
+  void _onTabChanged() {
+    if (!mounted || _shell.tab != ShellController.home) return;
+    if (context.read<AuthProvider>().isAuthenticated) {
+      context.read<ApprovalsProvider>().refreshSilently();
+    }
+  }
+
+  @override
+  void dispose() {
+    _shell.removeListener(_onTabChanged);
+    super.dispose();
   }
 
   /// Finds the store a trending product belongs to (by id, then by name).

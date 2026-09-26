@@ -26,9 +26,14 @@ class ApprovalsProvider extends ChangeNotifier {
   /// those orders in the list until the customer answers.
   Set<String> get pendingOrderCodes => pending.map((a) => a.orderCode).toSet();
 
-  /// Starts the background check (default every 45 s) and runs one right away.
+  /// Starts the background check (default every 20 s) and runs one right away.
   /// Safe to call repeatedly — the previous timer is replaced.
-  void startPolling({Duration every = const Duration(seconds: 45)}) {
+  ///
+  /// 20 s rather than a minute because the bell sits on Home: a customer
+  /// looking straight at it should not be waiting on the next tick to learn
+  /// the admin has asked them something. The reply is small, and a silent
+  /// refresh only notifies when the list actually changed.
+  void startPolling({Duration every = const Duration(seconds: 20)}) {
     _poll?.cancel();
     _poll = Timer.periodic(every, (_) => refreshSilently());
     refreshSilently();
