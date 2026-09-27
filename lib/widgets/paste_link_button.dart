@@ -73,8 +73,26 @@ class _LinkDialog extends StatefulWidget {
 class _LinkDialogState extends State<_LinkDialog> {
   late final TextEditingController _field = TextEditingController(text: widget.initial);
 
+  /// Drives the clear button: it is only there when there is something to
+  /// clear. The box opens on whatever was copied, which is usually the link
+  /// wanted — but not always, and then it has to be emptied in one tap rather
+  /// than held down and selected word by word.
+  late bool _hasText = widget.initial.trim().isNotEmpty;
+
+  @override
+  void initState() {
+    super.initState();
+    _field.addListener(_watchText);
+  }
+
+  void _watchText() {
+    final has = _field.text.trim().isNotEmpty;
+    if (has != _hasText) setState(() => _hasText = has);
+  }
+
   @override
   void dispose() {
+    _field.removeListener(_watchText);
     _field.dispose();
     super.dispose();
   }
@@ -92,7 +110,19 @@ class _LinkDialogState extends State<_LinkDialog> {
         minLines: 1,
         keyboardType: TextInputType.url,
         style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
-        decoration: const InputDecoration(hintText: 'https://…', isDense: true),
+        decoration: InputDecoration(
+          hintText: 'https://…',
+          isDense: true,
+          suffixIcon: _hasText
+              ? IconButton(
+                  icon: const Icon(Icons.close_rounded, size: 18, color: AppColors.muted),
+                  splashRadius: 18,
+                  // Keep the keyboard up: they are about to paste another one.
+                  onPressed: () => _field.clear(),
+                )
+              : null,
+          suffixIconConstraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+        ),
         onSubmitted: (v) => Navigator.pop(context, v.trim()),
       ),
       actions: [
