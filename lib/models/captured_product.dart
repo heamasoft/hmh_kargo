@@ -115,6 +115,12 @@ class ScrapeResult {
   /// Compact variant context for the AI fallback (empty if none).
   final String aiBlob;
 
+  /// True when the options came from the page's own embedded record (Shein's
+  /// server-rendered product data) rather than from reading the rendered page.
+  /// That record is complete the moment it is there, so a capture carrying it
+  /// need not be read again; without it the page is still filling itself in.
+  final bool ssr;
+
   const ScrapeResult({
     required this.url,
     required this.title,
@@ -132,6 +138,7 @@ class ScrapeResult {
     this.sizeOptions = const [],
     this.aiBlob = '',
     this.sizePrices = const {},
+    this.ssr = false,
   });
 
   bool get hasPrice => price != null && price! > 0;
@@ -165,6 +172,7 @@ class ScrapeResult {
             (sizeOptions != null && sizeOptions.isNotEmpty) ? sizeOptions : this.sizeOptions,
         aiBlob: aiBlob,
         sizePrices: sizePrices,
+        ssr: ssr,
       );
 
   factory ScrapeResult.fromJson(Map<String, dynamic> json) {
@@ -179,12 +187,16 @@ class ScrapeResult {
       return (s == null || s.isEmpty) ? null : s;
     }
 
-    List<String> parseList(dynamic v) {
+    // Sizes are short ("XS", "EUR 38"); a long one is page text that got
+    // mistaken for an option. Colour names are written out in full, though —
+    // "Baby Blue And White Stripe" is a real Shein colour — so they are given
+    // the room they need rather than being dropped for being descriptive.
+    List<String> parseList(dynamic v, {int maxLen = 24}) {
       if (v is! List) return const [];
       final seen = <String>[];
       for (final e in v) {
         final s = e?.toString().trim() ?? '';
-        if (s.isNotEmpty && s.length <= 24 && !seen.contains(s)) seen.add(s);
+        if (s.isNotEmpty && s.length <= maxLen && !seen.contains(s)) seen.add(s);
       }
       return seen;
     }
@@ -212,10 +224,11 @@ class ScrapeResult {
       sizeSure: (json['sizeSure'] ?? true) as bool,
       hasColor: (json['hasColor'] ?? true) as bool,
       hasSize: (json['hasSize'] ?? true) as bool,
-      colorOptions: parseList(json['colorOptions']),
+      colorOptions: parseList(json['colorOptions'], maxLen: 48),
       sizeOptions: parseList(json['sizeOptions']),
       aiBlob: (json['ai'] ?? '') as String? ?? '',
       sizePrices: parsePrices(json['sizePrices']),
+      ssr: (json['ssr'] ?? false) as bool,
     );
   }
 }

@@ -997,42 +997,61 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   // differ (XS $7.31, S–XXL $13.29), so the price follows the size chosen.
   // It's the server-rendered record, so it's used only while it describes
   // the product in the address bar — after an in-page switch it's stale.
-  var sizePrices={};
+  var sizePrices={}, ssrOk=false;
   try{ if(/shein/i.test(location.hostname) && typeof gbCommonInfo!=='undefined'){
     var SM=gbCommonInfo.contextForSSR&&gbCommonInfo.contextForSSR.modules;
     var gid=SM&&SM.productInfo?String(SM.productInfo.goods_id||''):'';
     var um=location.href.match(/-p-(\d+)/);
     if(gid && um && um[1]===gid){
       var SA=SM.saleAttr||{};
+      var attrName=function(a){ return String((a&&(a.attr_name_en||a.attr_name))||''); };
+      // COLOUR. Shein gives every colour of an item its own goods id, and this
+      // record names them all — so it is the whole set the product page offers,
+      // not just the one on screen. The one on screen is the pre-selected one.
       var cinfo=(SA.mainSaleAttribute&&SA.mainSaleAttribute.info)||[];
+      var cnames=[];
       for(var ci=0;ci<cinfo.length;ci++){
-        if(String(cinfo[ci].goods_id)===gid && cinfo[ci].attr_value){ color=String(cinfo[ci].attr_value).trim(); colorSure=true; }
+        var cv=String(cinfo[ci].attr_value||cinfo[ci].attr_value_name||'').trim();
+        if(!cv) continue;
+        if(cnames.indexOf(cv)<0) cnames.push(cv);
+        if(String(cinfo[ci].goods_id)===gid){ color=cv; colorSure=true; }
       }
-      // Other colours are other products (own goods id, own prices), so no
-      // colour chips: the colour is the one on screen.
-      colorOptions=[];
+      if(cnames.length>=2){ colorOptions=cnames; hasColor=true; }
+      else if(color){ hasColor=true; }
+      // SIZE. Usually the attribute is called "Size", but Shein also uses "Shoe
+      // Size", "Bust", "Waist" and the storefront's own language — so when only
+      // one attribute is offered it is taken as the size whatever it is called,
+      // and the buyable combinations (sku_list) are folded in, since a size can
+      // appear there that the attribute list left out.
+      var SIZEISH=/size|taille|talla|gr[oö]ss?e|misura|tama[ñn]o|bust|waist|length|مقاس|قياس|الحجم/i;
       var ML=SA.multiLevelSaleAttribute||{};
-      var order=[], skc=(ML.skc_sale_attr||[]);
-      for(var si=0;si<skc.length;si++){
-        if(!/size/i.test(String(skc[si].attr_name_en||skc[si].attr_name||''))) continue;
-        var vl=skc[si].attr_value_list||[];
+      var order=[], skc=(ML.skc_sale_attr||[]), sizeAttr=null;
+      for(var si=0;si<skc.length;si++){ if(SIZEISH.test(attrName(skc[si]))){ sizeAttr=skc[si]; break; } }
+      if(!sizeAttr && skc.length===1) sizeAttr=skc[0];
+      if(sizeAttr){
+        var vl=sizeAttr.attr_value_list||[];
         for(var sv=0;sv<vl.length;sv++){ var nm=String(vl[sv].attr_value_name||'').trim(); if(nm && order.indexOf(nm)<0) order.push(nm); }
       }
       var skus=ML.sku_list||[];
       for(var sk=0;sk<skus.length;sk++){
         var at=skus[sk].sku_sale_attr||[], nm2='';
-        for(var sa=0;sa<at.length;sa++){ if(/size/i.test(String(at[sa].attr_name_en||at[sa].attr_name||''))) nm2=String(at[sa].attr_value_name||'').trim(); }
+        for(var sa=0;sa<at.length;sa++){ if(SIZEISH.test(attrName(at[sa]))) nm2=String(at[sa].attr_value_name||'').trim(); }
         if(!nm2 && at.length===1) nm2=String(at[0].attr_value_name||'').trim();
+        if(!nm2) continue;
+        if(order.indexOf(nm2)<0) order.push(nm2);
         var pr=(skus[sk].price&&skus[sk].price.salePrice)||(skus[sk].priceInfo&&skus[sk].priceInfo.salePrice);
         var amt=pr?parseFloat(pr.amount):NaN;
-        if(nm2 && amt>0) sizePrices[nm2]=amt;
+        if(amt>0) sizePrices[nm2]=amt;
       }
       if(order.length>=2){ sizeOptions=order; hasSize=true; }
       // The price shown is the selected size's — when one is picked and priced.
       if(size && sizePrices[size]>0) price=String(sizePrices[size]);
+      // This record describes the product in the address bar, so what it gave
+      // is the whole story: the sheet can open on it without reading again.
+      ssrOk=true;
     }
   } }catch(e){}
-  HeamaCapture.postMessage(JSON.stringify({url:location.href,title:title,image:image,price:price,currency:currency,color:color,size:size,sku:detectSku(),sizeSure:sizeSure,colorSure:colorSure,hasColor:hasColor,hasSize:hasSize,sizeOptions:sizeOptions,colorOptions:colorOptions,sizePrices:sizePrices,ai:aiBlob()}));
+  HeamaCapture.postMessage(JSON.stringify({url:location.href,title:title,image:image,price:price,currency:currency,color:color,size:size,sku:detectSku(),sizeSure:sizeSure,colorSure:colorSure,hasColor:hasColor,hasSize:hasSize,sizeOptions:sizeOptions,colorOptions:colorOptions,sizePrices:sizePrices,ssr:ssrOk,ai:aiBlob()}));
 })();
 ''';
 
@@ -1389,8 +1408,16 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     // size buttons well after the page reports "loaded" — reading once then
     // captured a bare title. Read again until the page is complete (~10s).
     final pageCurNow = (r.currency ?? '').toUpperCase();
+    // A Shein product page carries its sizes and colours in its own embedded
+    // record. A read without it is a read taken too early — the sheet would
+    // open with no options in it — so give the page a few more moments. Capped
+    // short: after an in-page colour switch the record describes the previous
+    // colour and never matches, and the shopper should not wait for that.
+    final sheinRecordMissing =
+        !r.ssr && r.url.contains('shein') && RegExp(r'-p-\d+').hasMatch(r.url);
     final incomplete = !r.hasPrice ||
         (r.hasSize && r.sizeOptions.isEmpty) ||
+        (sheinRecordMissing && _autoTries < 4) ||
         (pageCurNow.length == 3 && pageCurNow != widget.store.currency.toUpperCase());
     if (_autoCapture && !_pendingFavorite && incomplete && _autoTries < 10) {
       _autoTries++;
