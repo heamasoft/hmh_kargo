@@ -366,6 +366,7 @@
   "linkRequired": "بەستەری بەرهەمەکە بلکێنە.",
   "priceRequired": "نرخی بەرهەمەکە بنووسە.",
   "fromStore": "لە {store} — بە دراوی فرۆشگاکە",
+  "loadFromStore": "نرخ و قەبارە و ڕەنگەکانی لە {store} باربکە",
   "cartAdd": "زیادکردن",
   "addToCartTitle": "زیادی بکە بۆ سەبەتەکەت",
   "importSharedCart": "هێنانی سەبەتەیەکی هاوبەشکراو",

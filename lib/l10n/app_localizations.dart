@@ -2134,6 +2134,12 @@ abstract class AppLocalizations {
   /// **'From {store} — priced in its currency'**
   String fromStore(String store);
 
+  /// No description provided for @loadFromStore.
+  ///
+  /// In en, this message translates to:
+  /// **'Load its price, sizes and colours from {store}'**
+  String loadFromStore(String store);
+
   /// No description provided for @cartAdd.
   ///
   /// In en, this message translates to:

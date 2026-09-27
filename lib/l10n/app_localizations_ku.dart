@@ -1110,6 +1110,11 @@ class AppLocalizationsKu extends AppLocalizations {
   }
 
   @override
+  String loadFromStore(String store) {
+    return 'نرخ و قەبارە و ڕەنگەکانی لە $store باربکە';
+  }
+
+  @override
   String get cartAdd => 'زیادکردن';
 
   @override

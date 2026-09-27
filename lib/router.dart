@@ -106,7 +106,11 @@ class Routes {
       case webStore:
         final wsArgs = settings.arguments;
         if (wsArgs is WebStoreArgs) {
-          page = WebStoreScreen(store: wsArgs.store, initialUrl: wsArgs.url);
+          page = WebStoreScreen(
+            store: wsArgs.store,
+            initialUrl: wsArgs.url,
+            captureOnOpen: wsArgs.captureOnOpen,
+          );
         } else {
           page = WebStoreScreen(store: wsArgs as Store);
         }

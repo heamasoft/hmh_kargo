@@ -20,6 +20,7 @@ import '../../theme/app_typography.dart';
 import '../../widgets/ads_carousel.dart';
 import '../../widgets/heama_toast.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/paste_link_button.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
@@ -160,6 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
                           const SizedBox(width: 9),
                           Text(l.appName, style: AppFonts.display(fontSize: 20, color: Colors.white)),
                           const Spacer(),
+                          // A product link from any shop, pasted here rather
+                          // than by opening that store and finding its own
+                          // paste field first.
+                          const PasteLinkButton(),
+                          const SizedBox(width: 2),
                           // What the admin is waiting on an answer for — a
                           // changed shipping price — found from the first
                           // screen instead of inside an order.

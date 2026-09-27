@@ -1107,6 +1107,11 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String loadFromStore(String store) {
+    return 'Load its price, sizes and colours from $store';
+  }
+
+  @override
   String get cartAdd => 'Add';
 
   @override

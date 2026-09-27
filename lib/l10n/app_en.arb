@@ -389,6 +389,8 @@
   "priceRequired": "Enter the product's price.",
   "fromStore": "From {store} — priced in its currency",
   "@fromStore": { "placeholders": { "store": { "type": "String" } } },
+  "loadFromStore": "Load its price, sizes and colours from {store}",
+  "@loadFromStore": { "placeholders": { "store": { "type": "String" } } },
   "cartAdd": "Add",
   "addToCartTitle": "Add to your cart",
   "importSharedCart": "Import a shared cart",

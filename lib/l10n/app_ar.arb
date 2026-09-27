@@ -366,6 +366,7 @@
   "linkRequired": "الصق رابط المنتج.",
   "priceRequired": "أدخل سعر المنتج.",
   "fromStore": "من {store} — بعملة المتجر",
+  "loadFromStore": "حمّل السعر والمقاسات والألوان من {store}",
   "cartAdd": "إضافة",
   "addToCartTitle": "أضف إلى سلّتك",
   "importSharedCart": "استيراد سلة مشتركة",

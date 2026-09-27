@@ -14,20 +14,26 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/link_text.dart';
 import '../../widgets/heama_toast.dart';
+import '../webstore/open_store.dart';
 import '../../widgets/product_image.dart';
 
 /// Adds a product the in-app stores don't carry: its link and price, with an
 /// optional colour, size and note. It becomes a normal cart line — and so a
 /// normal order item — priced by the server's usual rule.
-Future<void> showManualItemSheet(BuildContext context) => showModalBottomSheet<void>(
+Future<void> showManualItemSheet(BuildContext context, {String? initialUrl}) =>
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => const _ManualItemSheet(),
+      builder: (_) => _ManualItemSheet(initialUrl: initialUrl),
     );
 
 class _ManualItemSheet extends StatefulWidget {
-  const _ManualItemSheet();
+  /// A link the shopper already pasted elsewhere — filled in and looked up on
+  /// open, so they don't paste it twice.
+  final String? initialUrl;
+
+  const _ManualItemSheet({this.initialUrl});
 
   @override
   State<_ManualItemSheet> createState() => _ManualItemSheetState();
@@ -60,6 +66,30 @@ class _ManualItemSheetState extends State<_ManualItemSheet> {
   /// The catalogue store the link belongs to, if any — its currency and cart
   /// rules then apply (the server prices a known store in its own currency).
   Store? _store;
+
+  @override
+  void initState() {
+    super.initState();
+    final url = widget.initialUrl?.trim() ?? '';
+    if (url.isEmpty) return;
+    _link.text = url;
+    // Same path as typing it: name the shop, then read the product's name.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _onLinkChanged(url);
+    });
+  }
+
+  /// Hands the link to its own store's page, where the product describes
+  /// itself. The navigator's context is used because this sheet is gone by
+  /// then, and it outlives it.
+  void _loadFromStore() {
+    final url = _url;
+    if (url.isEmpty) return;
+    final nav = Navigator.of(context, rootNavigator: true);
+    final host = nav.context;
+    nav.pop();
+    openPastedLink(host, url);
+  }
 
   @override
   void dispose() {
@@ -225,13 +255,38 @@ class _ManualItemSheetState extends State<_ManualItemSheet> {
                     keyboard: TextInputType.url,
                     error: _linkError,
                     onChanged: _onLinkChanged),
-                if (_store != null)
+                if (_store != null) ...[
                   Padding(
                     padding: const EdgeInsets.only(top: 6),
                     child: Text(l.fromStore(_store!.name),
                         style: AppFonts.body(
                             fontSize: 11.5, fontWeight: FontWeight.w600, color: AppColors.green)),
                   ),
+                  // We carry this shop, so the product itself can be read
+                  // rather than described: its own page gives the price, the
+                  // sizes and the colours, which no one should have to type.
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: GestureDetector(
+                      onTap: _loadFromStore,
+                      behavior: HitTestBehavior.opaque,
+                      child: Row(
+                        children: [
+                          const Icon(Icons.open_in_new_rounded,
+                              size: 15, color: AppColors.pomegranate),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(l.loadFromStore(_store!.name),
+                                style: AppFonts.body(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.pomegranate)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.end,

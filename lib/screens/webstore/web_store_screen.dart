@@ -35,7 +35,18 @@ class WebStoreScreen extends StatefulWidget {
   /// Optional product URL to open directly (e.g. a trending item). Falls back to
   /// the store's home page.
   final String? initialUrl;
-  const WebStoreScreen({super.key, required this.store, this.initialUrl});
+
+  /// Opened on a link the shopper pasted: read the product as soon as the page
+  /// is there, so the add-to-cart sheet comes up on its own rather than asking
+  /// them to press capture on a page they never chose to browse.
+  final bool captureOnOpen;
+
+  const WebStoreScreen({
+    super.key,
+    required this.store,
+    this.initialUrl,
+    this.captureOnOpen = false,
+  });
 
   @override
   State<WebStoreScreen> createState() => _WebStoreScreenState();
@@ -45,7 +56,11 @@ class WebStoreScreen extends StatefulWidget {
 class WebStoreArgs {
   final Store store;
   final String? url;
-  const WebStoreArgs(this.store, {this.url});
+
+  /// Read the product as soon as it loads (a link the shopper pasted).
+  final bool captureOnOpen;
+
+  const WebStoreArgs(this.store, {this.url, this.captureOnOpen = false});
 }
 
 class _WebStoreScreenState extends State<WebStoreScreen> {
@@ -1166,6 +1181,7 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         : widget.store.url;
     final start = _forceRegion(rawStart) ?? rawStart;
     _url = start;
+    _pendingCapture = widget.captureOnOpen;
     _captureApi = CaptureApi(context.read<ApiClient>());
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)

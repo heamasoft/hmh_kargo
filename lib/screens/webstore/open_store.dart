@@ -5,9 +5,13 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/store.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/catalog_provider.dart';
 import '../../router.dart';
 import '../../utils/launcher.dart';
+import '../../utils/link_text.dart';
+import '../../utils/store_link.dart';
 import '../../widgets/heama_toast.dart';
+import '../cart/manual_item_sheet.dart';
 import 'capture_sheet.dart';
 import 'web_store_screen.dart';
 
@@ -35,6 +39,41 @@ void openProductInStore(BuildContext context, Store store, String url) {
     Navigator.pushNamed(context, Routes.webStore,
         arguments: WebStoreArgs(store, url: url));
   }
+}
+
+/// Opens whatever the shopper pasted, wherever they pasted it.
+///
+/// A link to a store we carry goes into that store's page with the capture
+/// armed: the page is read where it stands, so the sheet comes up with the
+/// price, the sizes and the colours the product actually has — which is what
+/// browsing to it by hand would have given them. Anything else goes to the
+/// add-by-hand sheet with the link already filled in, where they name the price
+/// themselves.
+void openPastedLink(BuildContext context, String pasted) {
+  var url = linkFromPaste(pasted.trim());
+  if (url.isEmpty) return;
+  if (!url.startsWith('http')) url = 'https://$url';
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.hasAuthority) {
+    showHeamaToast(context, AppLocalizations.of(context).icNotALink);
+    return;
+  }
+
+  final store = storeForLink(url, context.read<CatalogProvider>().stores);
+  if (store == null) {
+    showManualItemSheet(context, initialUrl: url);
+    return;
+  }
+  if (kIsWeb) {
+    openUrl(url);
+    showCaptureSheet(context, initialUrl: url, storeKey: store.id, autoServerFetch: true);
+    return;
+  }
+  Navigator.pushNamed(
+    context,
+    Routes.webStore,
+    arguments: WebStoreArgs(store, url: url, captureOnOpen: true),
+  );
 }
 
 /// Shows the capture sheet. On mobile the initial fields come straight from the

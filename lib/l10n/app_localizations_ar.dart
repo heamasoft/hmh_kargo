@@ -1097,6 +1097,11 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String loadFromStore(String store) {
+    return 'حمّل السعر والمقاسات والألوان من $store';
+  }
+
+  @override
   String get cartAdd => 'إضافة';
 
   @override
