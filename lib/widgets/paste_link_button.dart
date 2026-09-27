@@ -46,40 +46,68 @@ class PasteLinkButton extends StatelessWidget {
     final clip = (await Clipboard.getData(Clipboard.kTextPlain))?.text ?? '';
     if (!context.mounted) return;
 
-    final field = TextEditingController(text: clip.trim());
     final typed = await showDialog<String>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l.productLink, style: AppFonts.display(fontSize: 17)),
-        content: TextField(
-          controller: field,
-          autofocus: true,
-          maxLines: 2,
-          minLines: 1,
-          keyboardType: TextInputType.url,
-          style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
-          decoration: const InputDecoration(hintText: 'https://…', isDense: true),
-          onSubmitted: (v) => Navigator.pop(ctx, v.trim()),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(MaterialLocalizations.of(ctx).cancelButtonLabel,
-                style: AppFonts.body(fontSize: 13, color: AppColors.muted)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, field.text.trim()),
-            child: Text(l.fetchDetails,
-                style: AppFonts.body(
-                    fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
-          ),
-        ],
-      ),
+      builder: (_) => _LinkDialog(initial: clip.trim(), title: l.productLink, action: l.fetchDetails),
     );
-    field.dispose();
     if (!context.mounted || typed == null || typed.isEmpty) return;
     openPastedLink(context, typed);
+  }
+}
+
+/// The dialog owns its text controller, rather than the caller creating one and
+/// disposing it when [showDialog] returns: the dialog is still on screen then,
+/// animating out, and its field would be reading a controller that no longer
+/// exists — which is a red error screen for as long as the animation lasts.
+class _LinkDialog extends StatefulWidget {
+  const _LinkDialog({required this.initial, required this.title, required this.action});
+
+  final String initial;
+  final String title;
+  final String action;
+
+  @override
+  State<_LinkDialog> createState() => _LinkDialogState();
+}
+
+class _LinkDialogState extends State<_LinkDialog> {
+  late final TextEditingController _field = TextEditingController(text: widget.initial);
+
+  @override
+  void dispose() {
+    _field.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(widget.title, style: AppFonts.display(fontSize: 17)),
+      content: TextField(
+        controller: _field,
+        autofocus: true,
+        maxLines: 2,
+        minLines: 1,
+        keyboardType: TextInputType.url,
+        style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
+        decoration: const InputDecoration(hintText: 'https://…', isDense: true),
+        onSubmitted: (v) => Navigator.pop(context, v.trim()),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text(MaterialLocalizations.of(context).cancelButtonLabel,
+              style: AppFonts.body(fontSize: 13, color: AppColors.muted)),
+        ),
+        TextButton(
+          onPressed: () => Navigator.pop(context, _field.text.trim()),
+          child: Text(widget.action,
+              style: AppFonts.body(
+                  fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.pomegranate)),
+        ),
+      ],
+    );
   }
 }
