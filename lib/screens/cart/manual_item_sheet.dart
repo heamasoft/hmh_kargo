@@ -13,6 +13,7 @@ import '../../services/capture_api.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/link_text.dart';
+import '../../utils/store_link.dart';
 import '../../widgets/heama_toast.dart';
 import '../webstore/open_store.dart';
 import '../../widgets/product_image.dart';
@@ -204,6 +205,10 @@ class _ManualItemSheetState extends State<_ManualItemSheet> {
         size: opt(_size),
         note: opt(_note),
         qty: _qty,
+        // A shop we don't carry has no store row to be named by, so the name
+        // read off its link travels with the item — the admin who buys it sees
+        // "Hepsiburada" beside it as they would any other store.
+        storeName: _store?.name ?? storeNameFromLink(_url),
       );
       if (!mounted) return;
       if (ok) {

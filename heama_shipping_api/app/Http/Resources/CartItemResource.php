@@ -26,7 +26,10 @@ class CartItemResource extends JsonResource
         return [
             'id' => $this->id,
             'store_id' => $this->store_id,
-            'store' => $this->store?->name,
+            // One of our stores answers for itself; a hand-added item carries
+            // the shop's name on the line, so the cart still says where it is
+            // from rather than showing a blank.
+            'store' => $this->store?->name ?? $this->store_name,
             'store_key' => $this->store?->key,
             'source_url' => $this->source_url,
             'title' => $this->title,

@@ -128,7 +128,9 @@ class OrderController extends Controller
 
                         $order->items()->create([
                             'store_id' => $item->store_id,
-                            'store_name' => $item->store?->name,
+                            // A hand-added item has no store row, so the name
+                            // kept on the cart line comes across with it.
+                            'store_name' => $item->store?->name ?? $item->store_name,
                             'source_url' => $item->source_url,
                             'title' => $item->title,
                             'image_url' => $item->image_url,

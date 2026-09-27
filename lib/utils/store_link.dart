@@ -34,6 +34,20 @@ String linkDomain(String url) {
   return _shareHostStore[host] ?? registrableDomain(host);
 }
 
+/// A readable name for a shop we don't carry, taken from its own link:
+/// "https://www.hepsiburada.com/…" → "Hepsiburada". It is what the admin who
+/// has to buy the item sees beside it, in place of a bare URL.
+String storeNameFromLink(String url) {
+  final domain = linkDomain(url);
+  if (!domain.contains('.')) return '';
+  final label = domain.split('.').first;
+  return label
+      .split(RegExp(r'[-_]+'))
+      .where((w) => w.isNotEmpty)
+      .map((w) => w[0].toUpperCase() + w.substring(1))
+      .join(' ');
+}
+
 /// The catalogue store [url] belongs to, or null when none of them matches —
 /// a link from a shop we don't carry, which is added by hand instead.
 Store? storeForLink(String url, List<Store> stores) {

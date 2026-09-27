@@ -36,6 +36,22 @@ void main() {
     });
   });
 
+  group('naming a shop we do not carry', () {
+    test('reads the name off its own address', () {
+      expect(storeNameFromLink('https://www.hepsiburada.com/a-b-c-p-1'), 'Hepsiburada');
+      expect(storeNameFromLink('https://www.lcwaikiki.com/tr-TR/TR'), 'Lcwaikiki');
+    });
+
+    test('a hyphenated name reads as words', () {
+      expect(storeNameFromLink('https://shop-name.com/item'), 'Shop Name');
+    });
+
+    test('nothing to go on gives nothing', () {
+      expect(storeNameFromLink('not a link'), '');
+      expect(storeNameFromLink(''), '');
+    });
+  });
+
   group('the store a pasted link belongs to', () {
     test('finds the store however the link names it', () {
       expect(storeForLink('https://m.shein.com/ar-en/a-dress-p-123456.html', _stores)?.id, 'shein');

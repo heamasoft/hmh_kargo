@@ -43,8 +43,14 @@ class CartProvider extends ChangeNotifier {
 
   /// Adds a captured (scraped + priced) product to the cart.
   Future<bool> addCaptured(CapturedProduct c,
-      {String? color, String? size, String? note, String? sku, int qty = 1}) async {
-    return _mutate(() => _api.addCaptured(c, color: color, size: size, note: note, sku: sku, qty: qty));
+      {String? color,
+      String? size,
+      String? note,
+      String? sku,
+      int qty = 1,
+      String? storeName}) async {
+    return _mutate(() => _api.addCaptured(c,
+        color: color, size: size, note: note, sku: sku, qty: qty, storeName: storeName));
   }
 
   Future<bool> updateQty(int itemId, int qty) async {

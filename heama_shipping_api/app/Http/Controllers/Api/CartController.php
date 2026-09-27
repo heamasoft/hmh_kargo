@@ -28,6 +28,8 @@ class CartController extends Controller
     {
         $data = $request->validate([
             'store_id' => ['nullable', 'integer', 'exists:stores,id'],
+            // The shop a hand-added item came from, for the admin who buys it.
+            'store_name' => ['nullable', 'string', 'max:120'],
             'source_url' => ['required', 'string', 'max:1024'],
             'title' => ['required', 'string', 'max:255'],
             'image_url' => ['nullable', 'string', 'max:1024'],
@@ -61,6 +63,15 @@ class CartController extends Controller
             );
 
         $cart = $this->cartFor($request->user());
+        $newStore = isset($data['store_id']) ? Store::find($data['store_id']) : null;
+
+        // Which shop this came from, in words. One of ours answers for itself;
+        // a hand-added item carries the name the app worked out from its link,
+        // and failing that the link's own host — anything rather than leaving
+        // the admin who has to buy it with a bare URL.
+        $storeName = $newStore?->name
+            ?: (trim((string) ($data['store_name'] ?? '')) ?: null)
+            ?: (parse_url($data['source_url'], PHP_URL_HOST) ?: null);
 
         // Cart mixing rule: "exclusive" stores (Shein only) must be ordered on
         // their OWN — a cart holding an exclusive item can contain only that store,
@@ -68,7 +79,6 @@ class CartController extends Controller
         // stores — including Trendyol — may be freely mixed together.
         $existing = $cart->items()->with('store')->first();
         if ($existing) {
-            $newStore = isset($data['store_id']) ? Store::find($data['store_id']) : null;
             $newGroup = $this->cartGroup($newStore?->key);
             $curGroup = $this->cartGroup($existing->store?->key);
             if ($newGroup !== $curGroup) {
@@ -85,6 +95,7 @@ class CartController extends Controller
 
         $cart->items()->create([
             'store_id' => $data['store_id'] ?? null,
+            'store_name' => $storeName,
             'source_url' => $data['source_url'],
             'title' => $data['title'],
             'image_url' => $data['image_url'] ?? null,

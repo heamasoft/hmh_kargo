@@ -34,9 +34,18 @@ class CartApi {
 
   /// Adds a captured (scraped + priced) product to the cart.
   Future<Cart> addCaptured(CapturedProduct c,
-      {String? color, String? size, String? note, String? sku, int qty = 1}) async {
+      {String? color,
+      String? size,
+      String? note,
+      String? sku,
+      int qty = 1,
+      String? storeName}) async {
     final json = await _client.post('/cart/items', data: {
       'store_id': c.storeId,
+      // Which shop this came from, in words. One of ours is named by its own
+      // row; an item added by hand carries the name read off its link, so the
+      // order does not reach the admin with a URL and nothing else.
+      'store_name': (storeName != null && storeName.isNotEmpty) ? storeName : c.storeName,
       'source_url': c.sourceUrl,
       'title': c.title,
       'image_url': c.imageUrl,
