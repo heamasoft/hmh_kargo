@@ -1040,6 +1040,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dollarToDinar => 'Dollar → Dinar';
 
   @override
+  String get rateForShein => 'For Shein orders';
+
+  @override
+  String get rateForTurkiye => 'For Türkiye stores';
+
+  @override
   String get liraToDollar => 'Lira → Dollar';
 
   @override

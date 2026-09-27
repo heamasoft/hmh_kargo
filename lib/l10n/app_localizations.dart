@@ -2014,6 +2014,18 @@ abstract class AppLocalizations {
   /// **'Dollar → Dinar'**
   String get dollarToDinar;
 
+  /// No description provided for @rateForShein.
+  ///
+  /// In en, this message translates to:
+  /// **'For Shein orders'**
+  String get rateForShein;
+
+  /// No description provided for @rateForTurkiye.
+  ///
+  /// In en, this message translates to:
+  /// **'For Türkiye stores'**
+  String get rateForTurkiye;
+
   /// No description provided for @liraToDollar.
   ///
   /// In en, this message translates to:

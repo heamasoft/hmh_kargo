@@ -1043,6 +1043,12 @@ class AppLocalizationsKu extends AppLocalizations {
   String get dollarToDinar => 'دۆلار ← دینار';
 
   @override
+  String get rateForShein => 'بۆ داواکاریەکانی شێین';
+
+  @override
+  String get rateForTurkiye => 'بۆ فرۆشگاکانی تورکیا';
+
+  @override
   String get liraToDollar => 'لیرە ← دۆلار';
 
   @override

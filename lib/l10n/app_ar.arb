@@ -346,6 +346,8 @@
   "exchangeRates": "أسعار الصرف",
   "tapToCalculate": "اضغط للحساب",
   "dollarToDinar": "دولار ← دينار",
+  "rateForShein": "لطلبات شي إن",
+  "rateForTurkiye": "لمتاجر تركيا",
   "liraToDollar": "ليرة ← دولار",
   "rateNotSet": "لم يُحدَّد السعر بعد",
   "amountLabel": "المبلغ",

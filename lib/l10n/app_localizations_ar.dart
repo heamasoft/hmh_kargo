@@ -1031,6 +1031,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dollarToDinar => 'دولار ← دينار';
 
   @override
+  String get rateForShein => 'لطلبات شي إن';
+
+  @override
+  String get rateForTurkiye => 'لمتاجر تركيا';
+
+  @override
   String get liraToDollar => 'ليرة ← دولار';
 
   @override

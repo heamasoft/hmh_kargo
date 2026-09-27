@@ -23,6 +23,12 @@ enum RateKind {
   String get unit => this == usd ? '\$' : 'TL';
 
   bool known(ChargeMath m) => this == usd ? m.hasUsd : m.hasTlUsd;
+
+  /// Which shopping this rate is the one for. The two are not
+  /// interchangeable — Shein is priced in dollars and charged in dinars, the
+  /// Turkish stores are priced in lira — so each card says which it belongs to
+  /// rather than leaving the shopper to work it out from the flags.
+  String storesLabel(AppLocalizations l) => this == usd ? l.rateForShein : l.rateForTurkiye;
 }
 
 /// The converted amount, large: dinars for dollars, dollars for lira.
@@ -126,7 +132,16 @@ class _RateCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
+            // Which of the two kinds of shopping this rate is for.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(kind.storesLabel(l),
+                  style: AppFonts.body(
+                      fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.ink)),
+            ),
+            const SizedBox(height: 6),
             Text('100 ${kind.unit}',
                 style: AppFonts.body(
                     fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted)),
@@ -253,7 +268,21 @@ class _RateCalculatorState extends State<_RateCalculator> {
                     child: Text(kind.flags, style: const TextStyle(fontSize: 13)),
                   ),
                   const SizedBox(width: 10),
-                  Expanded(child: Text(title, style: AppFonts.display(fontSize: 18))),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(title, style: AppFonts.display(fontSize: 18)),
+                        const SizedBox(height: 2),
+                        Text(kind.storesLabel(l),
+                            style: AppFonts.body(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.muted)),
+                      ],
+                    ),
+                  ),
                 ],
               ),
               const SizedBox(height: 18),

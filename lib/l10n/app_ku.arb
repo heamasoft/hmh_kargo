@@ -346,6 +346,8 @@
   "exchangeRates": "نرخی ئاڵوگۆڕ",
   "tapToCalculate": "کلیک بکە بۆ هەژمارکردن",
   "dollarToDinar": "دۆلار ← دینار",
+  "rateForShein": "بۆ داواکاریەکانی شێین",
+  "rateForTurkiye": "بۆ فرۆشگاکانی تورکیا",
   "liraToDollar": "لیرە ← دۆلار",
   "rateNotSet": "نرخ هێشتا دیاری نەکراوە",
   "amountLabel": "بڕ",

@@ -366,6 +366,8 @@
   "exchangeRates": "Exchange rates",
   "tapToCalculate": "Tap to calculate",
   "dollarToDinar": "Dollar → Dinar",
+  "rateForShein": "For Shein orders",
+  "rateForTurkiye": "For Türkiye stores",
   "liraToDollar": "Lira → Dollar",
   "rateNotSet": "Rate not set yet",
   "amountLabel": "Amount",
