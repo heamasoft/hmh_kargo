@@ -124,6 +124,12 @@ class CartController extends Controller
             'size' => ['nullable', 'string', 'max:60'],
             'note' => ['nullable', 'string', 'max:500'],
         ]);
+        // A stock line is one physical piece already sitting in the company,
+        // and there is only ever the one of it — asking for more would charge
+        // for a second that cannot be delivered.
+        if ($item->stock_item_id) {
+            unset($data['qty']);
+        }
         $item->update(array_filter($data, fn ($v) => $v !== null));
 
         return response()->json($this->cartPayload($request->user()));

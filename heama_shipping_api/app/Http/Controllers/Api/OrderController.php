@@ -126,30 +126,50 @@ class OrderController extends Controller
                             }
                         }
 
-                        $order->items()->create([
-                            'store_id' => $item->store_id,
-                            // A hand-added item has no store row, so the name
-                            // kept on the cart line comes across with it.
-                            'store_name' => $item->store?->name ?? $item->store_name,
-                            'source_url' => $item->source_url,
-                            'title' => $item->title,
-                            'image_url' => $item->image_url,
-                            'source_price' => $item->source_price,
-                            'source_currency' => $item->source_currency,
-                            'charge_currency' => $currency,
-                            'iqd_price' => $item->iqd_price,
-                            // Stock items ship free (their price already includes
-                            // it). Normal items carry $2/unit — the admin re-prices.
-                            'shipping' => $item->stock_item_id
-                                ? 0.0
-                                : $this->pricing->shippingForItem($item->store, $currency, (int) $item->qty),
-                            'color' => $item->color,
-                            'size' => $item->size,
-                            'sku' => $item->sku,
-                            'note' => $item->note,
-                            'qty' => $item->qty,
-                            'stock_item_id' => $item->stock_item_id,
-                        ]);
+                        // Every unit is its own order line. Each one is bought,
+                        // boxed and shipped on its own — two of the same shirt
+                        // can be bought on different days and travel in
+                        // different parcels, and each carries its own step,
+                        // shipping price and cancellation — so a cart line of
+                        // two becomes two lines of one rather than a single row
+                        // with a quantity written on it.
+                        //
+                        // The money is untouched by this: the order's totals
+                        // were worked out from the cart above, and unit price
+                        // times one, summed over the units, is the same figure.
+                        // A stock item is one physical piece already in the
+                        // company — the one claimed above — so it is never more
+                        // than a single line however the cart is edited.
+                        $units = $item->stock_item_id ? 1 : max(1, (int) $item->qty);
+                        // Shipping is per unit now that each line is one unit.
+                        // Stock items ship free — their price already includes
+                        // it. Normal items carry $2/unit; the admin re-prices.
+                        $shipping = $item->stock_item_id
+                            ? 0.0
+                            : $this->pricing->shippingForItem($item->store, $currency, 1);
+
+                        for ($unit = 0; $unit < $units; $unit++) {
+                            $order->items()->create([
+                                'store_id' => $item->store_id,
+                                // A hand-added item has no store row, so the name
+                                // kept on the cart line comes across with it.
+                                'store_name' => $item->store?->name ?? $item->store_name,
+                                'source_url' => $item->source_url,
+                                'title' => $item->title,
+                                'image_url' => $item->image_url,
+                                'source_price' => $item->source_price,
+                                'source_currency' => $item->source_currency,
+                                'charge_currency' => $currency,
+                                'iqd_price' => $item->iqd_price,
+                                'shipping' => $shipping,
+                                'color' => $item->color,
+                                'size' => $item->size,
+                                'sku' => $item->sku,
+                                'note' => $item->note,
+                                'qty' => 1,
+                                'stock_item_id' => $item->stock_item_id,
+                            ]);
+                        }
                     }
 
                     // Both wallet and cash-on-delivery draw the amount down from
