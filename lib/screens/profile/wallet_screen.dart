@@ -12,6 +12,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
 import '../../providers/shell_controller.dart';
+import '../../widgets/sign_in_required.dart';
 import '../../widgets/developer_footer.dart';
 import '../../widgets/language_sheet.dart';
 import 'rate_cards.dart';
@@ -60,6 +61,12 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    if (!context.watch<AuthProvider>().isAuthenticated) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SignInRequired(title: l.guestAccount, icon: Icons.person_outline_rounded),
+      );
+    }
     final reg = context.watch<RegistrationProvider>();
     // Prefer the signed-in user returned by the API.
     final authUser = context.watch<AuthProvider>().user;

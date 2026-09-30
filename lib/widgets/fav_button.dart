@@ -4,7 +4,9 @@ import 'package:provider/provider.dart';
 import '../l10n/app_localizations.dart';
 import '../models/favorite_item.dart';
 import '../models/product.dart';
+import '../providers/auth_provider.dart';
 import '../providers/favorites_provider.dart';
+import '../router.dart';
 import '../theme/app_colors.dart';
 import 'heama_toast.dart';
 
@@ -21,6 +23,13 @@ class FavButton extends StatelessWidget {
     final on = favs.isFavorite(product.id);
     return GestureDetector(
       onTap: () {
+        // A saved list is a person's own, kept on the server, so a guest is
+        // offered a login here rather than having the heart quietly do nothing.
+        if (!context.read<AuthProvider>().isAuthenticated) {
+          showHeamaToast(context, AppLocalizations.of(context).guestAccount);
+          Navigator.pushNamed(context, Routes.login);
+          return;
+        }
         final saved = context
             .read<FavoritesProvider>()
             .toggle(FavoriteItem.fromProduct(product));

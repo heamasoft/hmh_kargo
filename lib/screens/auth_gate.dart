@@ -10,13 +10,15 @@ import '../providers/wallet_provider.dart';
 import '../services/ads_api.dart';
 import '../services/api_client.dart';
 import '../widgets/heama_splash.dart';
-import 'auth/welcome_screen.dart';
 import 'shell/main_shell.dart';
 
 /// Decides the first screen based on the saved session:
 ///  - still checking → splash
-///  - signed in      → the app (Home)
-///  - signed out     → Welcome
+///  - otherwise      → the app (Home), signed in or not
+///
+/// The shop is open to anyone: browsing the stores, the products and their
+/// prices needs no account. A signed-out shopper is asked to log in on the
+/// parts that are their own — the cart, their orders, their wallet.
 ///
 /// While the splash is up (it stays at least ~1.3 s for its animation) it also
 /// fetches what Home shows — stores, trending, ads, and their images — so Home
@@ -92,8 +94,11 @@ class _AuthGateState extends State<AuthGate> {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _warmSignedIn();
       });
-      return const MainShell();
     }
-    return const WelcomeScreen();
+    // Signed out or not, the app opens on the shop. The stores, the products
+    // and the prices belong to no one in particular, so no one is asked who
+    // they are to look at them; the cart, the orders and the wallet are a
+    // person's own and ask there, where the reason for asking is plain.
+    return const MainShell();
   }
 }

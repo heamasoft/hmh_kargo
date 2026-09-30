@@ -1090,6 +1090,30 @@ abstract class AppLocalizations {
   /// **'Log in to add items to your cart.'**
   String get loginToAdd;
 
+  /// No description provided for @guestCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to use your cart'**
+  String get guestCart;
+
+  /// No description provided for @guestOrders.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to see your orders'**
+  String get guestOrders;
+
+  /// No description provided for @guestAccount.
+  ///
+  /// In en, this message translates to:
+  /// **'Log in to your account'**
+  String get guestAccount;
+
+  /// No description provided for @guestSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Browsing is open to everyone — an account is only needed to order.'**
+  String get guestSub;
+
   /// No description provided for @quantity.
   ///
   /// In en, this message translates to:

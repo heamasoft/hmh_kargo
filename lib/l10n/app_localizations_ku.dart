@@ -533,6 +533,19 @@ class AppLocalizationsKu extends AppLocalizations {
   String get loginToAdd => 'بچۆ ژوورەوە بۆ زیادکردنی بەرهەم بۆ سەبەتەکەت.';
 
   @override
+  String get guestCart => 'بچۆ ژوورەوە بۆ بەکارهێنانی سەبەتەکەت';
+
+  @override
+  String get guestOrders => 'بچۆ ژوورەوە بۆ بینینی داواکاریەکانت';
+
+  @override
+  String get guestAccount => 'بچۆ ژوورەوە بۆ هەژمارەکەت';
+
+  @override
+  String get guestSub =>
+      'گەڕان بۆ هەمووان کراوەیە — هەژمار تەنها بۆ داواکردن پێویستە.';
+
+  @override
   String get quantity => 'بڕ';
 
   @override

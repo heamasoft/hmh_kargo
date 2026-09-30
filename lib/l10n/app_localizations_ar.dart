@@ -527,6 +527,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get loginToAdd => 'سجّل الدخول لإضافة المنتجات إلى سلّتك.';
 
   @override
+  String get guestCart => 'سجّل الدخول لاستخدام سلّتك';
+
+  @override
+  String get guestOrders => 'سجّل الدخول لعرض طلباتك';
+
+  @override
+  String get guestAccount => 'سجّل الدخول إلى حسابك';
+
+  @override
+  String get guestSub => 'التصفّح متاح للجميع — الحساب مطلوب فقط عند الطلب.';
+
+  @override
   String get quantity => 'الكمية';
 
   @override

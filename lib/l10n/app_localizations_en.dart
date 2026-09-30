@@ -532,6 +532,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get loginToAdd => 'Log in to add items to your cart.';
 
   @override
+  String get guestCart => 'Log in to use your cart';
+
+  @override
+  String get guestOrders => 'Log in to see your orders';
+
+  @override
+  String get guestAccount => 'Log in to your account';
+
+  @override
+  String get guestSub =>
+      'Browsing is open to everyone — an account is only needed to order.';
+
+  @override
   String get quantity => 'Quantity';
 
   @override

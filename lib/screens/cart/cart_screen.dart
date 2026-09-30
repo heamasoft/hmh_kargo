@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/cart.dart';
 import '../../models/store.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../providers/stock_provider.dart';
@@ -11,6 +12,7 @@ import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
+import '../../widgets/sign_in_required.dart';
 import '../../widgets/product_image.dart';
 import '../webstore/open_store.dart';
 import 'manual_item_sheet.dart';
@@ -27,6 +29,8 @@ class _CartScreenState extends State<CartScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      // A cart belongs to a person, so a guest has none to fetch.
+      if (!mounted || !context.read<AuthProvider>().isAuthenticated) return;
       context.read<CartProvider>().load();
     });
   }
@@ -34,6 +38,12 @@ class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    if (!context.watch<AuthProvider>().isAuthenticated) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SignInRequired(title: l.guestCart, icon: Icons.shopping_bag_outlined),
+      );
+    }
     final cart = context.watch<CartProvider>();
 
     final hasItems = !cart.isEmpty;

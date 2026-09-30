@@ -9,6 +9,7 @@ import '../../l10n/app_localizations.dart';
 import '../../models/captured_product.dart';
 import '../../models/favorite_item.dart';
 import '../../models/store.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/shell_controller.dart';
@@ -1363,6 +1364,13 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   /// Heart tap: toggle the current product in favourites. Removing needs no
   /// scrape; adding scrapes the page (like Add to Heama) to grab its details.
   void _favorite() {
+    // Browsing the store needs no account; a saved list is kept per person, so
+    // a guest is offered a login rather than having the heart do nothing.
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      showHeamaToast(context, AppLocalizations.of(context).guestAccount);
+      Navigator.pushNamed(context, Routes.login);
+      return;
+    }
     final favs = context.read<FavoritesProvider>();
     if (favs.isFavorite(_favId)) {
       favs.removeById(_favId);

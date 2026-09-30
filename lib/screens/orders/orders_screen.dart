@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/order.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/approvals_provider.dart';
 import '../../providers/orders_provider.dart';
 import '../../providers/shell_controller.dart';
@@ -11,6 +12,7 @@ import '../tracking/tracking_screen.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
+import '../../widgets/sign_in_required.dart';
 import '../../widgets/product_image.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -45,8 +47,9 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   }
 
   /// The orders themselves and the shipping requests waiting on an answer.
+  /// Both are a signed-in shopper's own; a guest has neither.
   void _refresh() {
-    if (!mounted) return;
+    if (!mounted || !context.read<AuthProvider>().isAuthenticated) return;
     context.read<OrdersProvider>().load();
     context.read<ApprovalsProvider>().refreshSilently();
   }
@@ -61,6 +64,12 @@ class _OrdersScreenState extends State<OrdersScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
+    if (!context.watch<AuthProvider>().isAuthenticated) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: SignInRequired(title: l.guestOrders, icon: Icons.receipt_long_outlined),
+      );
+    }
     final provider = context.watch<OrdersProvider>();
     // One entry per ordered ITEM, not per order: every item moves through its
     // own steps (the admin buys and ships them one by one), so each is shown

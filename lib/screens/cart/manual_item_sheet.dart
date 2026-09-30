@@ -6,10 +6,12 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/store.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../services/api_client.dart';
 import '../../services/capture_api.dart';
+import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/link_text.dart';
@@ -21,13 +23,21 @@ import '../../widgets/product_image.dart';
 /// Adds a product the in-app stores don't carry: its link and price, with an
 /// optional colour, size and note. It becomes a normal cart line — and so a
 /// normal order item — priced by the server's usual rule.
-Future<void> showManualItemSheet(BuildContext context, {String? initialUrl}) =>
-    showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (_) => _ManualItemSheet(initialUrl: initialUrl),
-    );
+Future<void> showManualItemSheet(BuildContext context, {String? initialUrl}) {
+  // It ends in a cart, which belongs to a person — so a guest is sent to log
+  // in here rather than filling the form and being refused at the end.
+  if (!context.read<AuthProvider>().isAuthenticated) {
+    showHeamaToast(context, AppLocalizations.of(context).loginToAdd);
+    Navigator.pushNamed(context, Routes.login);
+    return Future.value();
+  }
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _ManualItemSheet(initialUrl: initialUrl),
+  );
+}
 
 class _ManualItemSheet extends StatefulWidget {
   /// A link the shopper already pasted elsewhere — filled in and looked up on

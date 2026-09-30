@@ -3,7 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/product.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
+import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
@@ -34,6 +36,13 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
   Future<void> _addToCart() async {
     if (_adding) return;
     final l = AppLocalizations.of(context);
+    // The product is open to anyone; a cart belongs to a person, so this is
+    // where a guest is asked to log in.
+    if (!context.read<AuthProvider>().isAuthenticated) {
+      showHeamaToast(context, l.loginToAdd);
+      Navigator.pushNamed(context, Routes.login);
+      return;
+    }
     if (_color == null || _size == null) {
       setState(() => _error = true);
       return;
