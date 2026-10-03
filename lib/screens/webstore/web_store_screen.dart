@@ -881,6 +881,12 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   var dsDark=ds.sure?ds.sel:'';
   var size=sizeSummary||sgDark||dsDark||(dw&&dw.sel)||(sg&&sg.selected)||ds.sel||'';
   var sizeSure=!!sizeSummary||!!sgDark||!!dsDark;
+  // Kept before the rules below are allowed to throw it away. They judge a
+  // size by whether it looks like one — "M", "EUR 38" — and Shein sells plenty
+  // of products sized by a phrase ("9pcs Makeup Brushes"), whose selection they
+  // discard. Where the page's own record lists the sizes, it can say whether
+  // this was one of them, and the shopper keeps the size they tapped.
+  var rawSize=size;
   // Never rewrite a real option; only normalise a STRAY value (a badge left on it,
   // e.g. "L3 left" -> "L") and only drop it when it's junk that isn't an option.
   if(size && sizeOptions.indexOf(size)<0){var stok=sizeToken(size); if(stok)size=stok;}
@@ -1060,6 +1066,37 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         if(amt>0) sizePrices[nm2]=amt;
       }
       if(order.length>=2){ sizeOptions=order; hasSize=true; }
+      // WHICH size is chosen on screen. The record says what the product
+      // sells, not what the shopper has just tapped, and the rules above throw
+      // away a selection that does not look like a size — so a Shein product
+      // sized by a phrase arrived with its sizes listed and none of them
+      // chosen, and the shopper had to pick the size they had already picked.
+      //
+      // Matching against the record's own list settles it without guessing
+      // what a size looks like: the value read off the page, or failing that
+      // the text of whatever the page marks as chosen, is a size when it is
+      // one of the sizes the product sells.
+      if(sizeOptions.length){
+        var norm=function(s){ return String(s||'').trim().replace(/\s+/g,' ').toLowerCase(); };
+        var asOption=function(t){
+          var n=norm(t);
+          if(!n) return '';
+          for(var oi=0;oi<sizeOptions.length;oi++){ if(norm(sizeOptions[oi])===n) return sizeOptions[oi]; }
+          return '';
+        };
+        var chosen=asOption(size)||asOption(rawSize);
+        if(!chosen){
+          var marked=document.querySelectorAll('[class*="active" i],[class*="selected" i],[class*="checked" i],[aria-checked="true"],[aria-selected="true"]');
+          for(var mi=0; mi<marked.length && !chosen; mi++){
+            var tx=(marked[mi].textContent||'').trim();
+            // A whole container can carry a "selected" class; only something
+            // the size of a chip's label can be a size.
+            if(!tx || tx.length>80) continue;
+            chosen=asOption(tx);
+          }
+        }
+        if(chosen){ size=chosen; sizeSure=true; }
+      }
       // The price shown is the selected size's — when one is picked and priced.
       if(size && sizePrices[size]>0) price=String(sizePrices[size]);
       // This record describes the product in the address bar, so what it gave
