@@ -73,6 +73,14 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   // Set when the user pastes a link: once the page finishes loading we capture it.
   bool _pendingCapture = false;
 
+  /// The product already loaded at its own address to make Shein write its
+  /// record. Held so a page that genuinely has none is not loaded forever.
+  String _recordReloadFor = '';
+
+  /// A size chosen before that load, to give back afterwards — the load is our
+  /// doing, and it should not cost the shopper their choice.
+  String _sizeBeforeReload = '';
+
   /// The capture in flight came from a pasted link, not a button tap — it is
   /// retried ([_autoTries] times) while the page is still filling in.
   bool _autoCapture = false;
@@ -1406,6 +1414,12 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
 
   void _capture() {
     setState(() => _capturing = true);
+    // Read again while the page is still filling itself in, exactly as a
+    // pasted link does. Without this a tap took whatever the first read
+    // returned — on a store page that had not finished, that is a title
+    // belonging to the storefront and no options at all.
+    _autoCapture = true;
+    _autoTries = 0;
     // Scroll to the top so the product photo is visible, THEN scrape.
     _controller.runJavaScript('window.scrollTo(0,0);');
     Future.delayed(const Duration(milliseconds: 450), () {
@@ -1502,6 +1516,21 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         (r.hasSize && r.sizeOptions.isEmpty) ||
         (sheinRecordMissing && _autoTries < 4) ||
         (pageCurNow.length == 3 && pageCurNow != widget.store.currency.toUpperCase());
+    // Shein's store is one page that rewrites itself: its product record is
+    // written when the SERVER renders a page, and tapping through the feed
+    // never asks the server again — so the record still describes the feed,
+    // and so does the title. Reading again cannot help, however long we wait.
+    // Loading the product at its own address makes Shein render that product,
+    // record and all. Once per product, so a page that simply has no record
+    // cannot put us in a loop.
+    if (!_pendingFavorite && sheinRecordMissing && _recordReloadFor != r.url) {
+      _recordReloadFor = r.url;
+      _sizeBeforeReload = r.size ?? '';
+      _pendingCapture = true; // capture once the page has come back
+      dlog('store', 'record belongs to another page — loading the product itself');
+      _controller.loadRequest(Uri.parse(r.url));
+      return;
+    }
     if (_autoCapture && !_pendingFavorite && incomplete && _autoTries < 10) {
       _autoTries++;
       dlog('store', 'page not ready — reading again ($_autoTries)');
@@ -1509,6 +1538,14 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         if (mounted && !_onChallengePage) _controller.runJavaScript(_scraper);
       });
       return;
+    }
+    // A size chosen before that reload is still the shopper's choice, so long
+    // as the product really sells it.
+    if ((r.size ?? '').isEmpty && _sizeBeforeReload.isNotEmpty) {
+      if (r.sizeOptions.contains(_sizeBeforeReload)) {
+        r = r.mergeAi(size: _sizeBeforeReload);
+      }
+      _sizeBeforeReload = '';
     }
     _autoCapture = false;
 
