@@ -1098,8 +1098,26 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         }
         if(chosen){ size=chosen; sizeSure=true; }
       }
-      // The price shown is the selected size's — when one is picked and priced.
-      if(size && sizePrices[size]>0) price=String(sizePrices[size]);
+      // THE PRICE comes from the record too, not from the page. A product
+      // whose sizes cost different amounts shows "From $1.28" on screen — the
+      // cheapest size, which is not what the shopper is buying. The record
+      // knows what each size costs, and what the product costs as it stands.
+      var recPrice=0;
+      if(size && sizePrices[size]>0) recPrice=sizePrices[size];
+      if(!recPrice){
+        var pinfo=SM.productInfo||{};
+        var cand=[pinfo.salePrice,pinfo.retailPrice,pinfo.price];
+        for(var ci2=0; ci2<cand.length && !recPrice; ci2++){
+          var amt2=cand[ci2]&&cand[ci2].amount;
+          var pv=amt2?parseFloat(String(amt2).replace(/[^0-9.]/g,'')):NaN;
+          if(pv>0) recPrice=pv;
+        }
+      }
+      if(recPrice>0) price=String(recPrice);
+      // And the currency it is priced in, rather than reading a symbol off the
+      // page and deciding what it meant.
+      var recCur=String((gbCommonInfo&&(gbCommonInfo.currency||gbCommonInfo.CURRENCY))||'').toUpperCase();
+      if(/^[A-Z]{3}$/.test(recCur)) currency=recCur;
       // This record describes the product in the address bar, so what it gave
       // is the whole story: the sheet can open on it without reading again.
       ssrOk=true;
