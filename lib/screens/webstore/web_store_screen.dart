@@ -1515,9 +1515,18 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     }
 
     if (r.title.isEmpty && !r.hasPrice) {
-      // The page gave us nothing — let the server try the URL as a fallback.
+      // The page gave us nothing — let the server try the URL as a fallback,
+      // but only where the address really is a product. A storefront's front
+      // page answers with whatever it happens to be promoting, so scraping one
+      // fills the sheet with another product's name and another product's
+      // price — worse than an empty sheet, because it looks right.
       setState(() => _capturing = false);
-      showCaptureSheet(context, initialUrl: _url, storeKey: widget.store.id, autoServerFetch: true);
+      showCaptureSheet(
+        context,
+        initialUrl: _url,
+        storeKey: widget.store.id,
+        autoServerFetch: _productUrl.hasMatch(_url),
+      );
       return;
     }
     _openCaptureSheet(r);

@@ -14,17 +14,39 @@ use Illuminate\Support\Facades\Log;
 class ScraperService
 {
     /**
+     * The Shein storefront the app browses: the Arabic-English site, shipping
+     * to the UAE, priced in dollars. Mirrors lib/utils/store_region.dart — read
+     * from the same shop as the shopper, or the page answers with another
+     * storefront's listing, which carries another title and another price.
+     */
+    private const SHEIN_SITE = 'ar-en';
+    private const SHEIN_COUNTRY = 'AE';
+    private const SHEIN_CURRENCY = 'USD';
+
+    /**
      * @return array{title:?string, image:?string, price:?float, currency:?string}
      */
     public function fetch(string $url): array
     {
         try {
-            $response = Http::withHeaders([
+            $url = $this->pinStorefront($url);
+            $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+
+            $request = Http::withHeaders([
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
                     .'(KHTML, like Gecko) Chrome/124.0 Safari/537.36',
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
                 'Accept-Language' => 'en-US,en;q=0.9',
-            ])->timeout(15)->get($url);
+            ])->timeout(15);
+
+            // The storefront in the address is not enough on its own: Shein
+            // keeps the shopper's currency in a cookie, as the app's browser
+            // does when it opens the store.
+            if (str_contains($host, 'shein.')) {
+                $request = $request->withCookies(['currency' => self::SHEIN_CURRENCY], $host);
+            }
+
+            $response = $request->get($url);
 
             if ($response->failed()) {
                 return $this->empty();
@@ -35,6 +57,38 @@ class ScraperService
             Log::info('Scrape failed', ['url' => $url, 'error' => $e->getMessage()]);
             return $this->empty();
         }
+    }
+
+    /**
+     * Puts a Shein link on the storefront the app browses, as the app does
+     * before it opens one: the site segment in the path, and the country and
+     * currency in the address. Everything else is left exactly as it came.
+     */
+    private function pinStorefront(string $url): string
+    {
+        $parts = parse_url($url);
+        $host = strtolower($parts['host'] ?? '');
+        // Share links name no product yet — they are resolved before this.
+        if (! str_contains($host, 'shein.') || str_starts_with($host, 'onelink.')) {
+            return $url;
+        }
+
+        $segments = array_values(array_filter(explode('/', $parts['path'] ?? ''), fn ($s) => $s !== ''));
+        // A storefront segment is a short code — "ar-en", "us", "de" — where a
+        // product's is its whole name. Swap one, add one where there is none.
+        if (! empty($segments) && preg_match('/^[a-z]{2}(-[a-z]{2})?$/i', $segments[0])) {
+            $segments[0] = self::SHEIN_SITE;
+        } else {
+            array_unshift($segments, self::SHEIN_SITE);
+        }
+
+        parse_str($parts['query'] ?? '', $query);
+        $query['countryCode'] = self::SHEIN_COUNTRY;
+        $query['currency'] = self::SHEIN_CURRENCY;
+
+        return ($parts['scheme'] ?? 'https').'://'.$parts['host']
+            .'/'.implode('/', $segments)
+            .'?'.http_build_query($query);
     }
 
     private function parse(string $html): array
