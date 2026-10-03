@@ -223,6 +223,10 @@ class ScrapeResult {
       return out;
     }
 
+    // Whether this came from the page's own product record rather than from
+    // reading the rendered page — it decides how far the options are trusted.
+    final fromRecord = (json['ssr'] ?? false) as bool;
+
     return ScrapeResult(
       url: (json['url'] ?? '') as String,
       title: cappedTitle((json['title'] ?? '') as String),
@@ -236,11 +240,17 @@ class ScrapeResult {
       sizeSure: (json['sizeSure'] ?? true) as bool,
       hasColor: (json['hasColor'] ?? true) as bool,
       hasSize: (json['hasSize'] ?? true) as bool,
-      colorOptions: parseList(json['colorOptions'], maxLen: 48),
-      sizeOptions: parseList(json['sizeOptions']),
+      // Options from the store's own record are its own words and are taken as
+      // given: a Shein size is often a whole phrase ("13pcs Makeup Brushes +
+      // Holder"), and the short limit was quietly dropping exactly those, so a
+      // product came up missing some of the sizes it sells. Options guessed
+      // from the rendered page keep the tight limit, where a long string is
+      // page text mistaken for an option rather than a real one.
+      colorOptions: parseList(json['colorOptions'], maxLen: fromRecord ? 80 : 48),
+      sizeOptions: parseList(json['sizeOptions'], maxLen: fromRecord ? 80 : 24),
       aiBlob: (json['ai'] ?? '') as String? ?? '',
       sizePrices: parsePrices(json['sizePrices']),
-      ssr: (json['ssr'] ?? false) as bool,
+      ssr: fromRecord,
     );
   }
 }

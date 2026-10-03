@@ -333,6 +333,19 @@ class _CaptureSheetState extends State<CaptureSheet> {
         : null;
     final colorLabel = _colorRequired ? l.colour : '${l.colour} (${l.optional})';
     final sizeLabel = _sizeRequired ? l.size : '${l.size} (${l.optional})';
+    // What the product offers a choice of has to be chosen: an item ordered
+    // without saying which colour or which size cannot be bought. The button
+    // waits until it has been, and says what it is waiting for, rather than
+    // being tappable and then refusing.
+    final needsColor = _colorRequired && _color.text.trim().isEmpty;
+    final needsSize = _sizeRequired && _size.text.trim().isEmpty;
+    final String? waitingFor = (needsColor && needsSize)
+        ? l.chooseColorAndSize
+        : needsColor
+            ? l.chooseColorFirst
+            : needsSize
+                ? l.chooseSizeFirst
+                : null;
     // Exclusive-store rule: if adding this product would mix an exclusive store
     // (Shein/Trendyol) with others, block it inline and disable the button.
     final cart = context.watch<CartProvider>();
@@ -474,26 +487,41 @@ class _CaptureSheetState extends State<CaptureSheet> {
             ),
             // Pinned footer button
             const SizedBox(height: 10),
+            if (waitingFor != null && blockName == null) ...[
+              Text(
+                waitingFor,
+                textAlign: TextAlign.center,
+                style: AppFonts.body(
+                    fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.muted),
+              ),
+              const SizedBox(height: 8),
+            ],
             SafeArea(
               top: false,
               minimum: const EdgeInsets.only(bottom: 4),
-              child: GestureDetector(
-                onTap: (_adding || blockName != null) ? null : _add,
-                child: Container(
-                  height: 52,
-                  decoration: BoxDecoration(
-                      color: blockName != null ? AppColors.line : AppColors.pomegranate,
-                      borderRadius: BorderRadius.circular(15)),
-                  alignment: Alignment.center,
-                  child: _adding
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text(l.addToCart,
-                          style: AppFonts.body(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: blockName != null ? AppColors.muted : Colors.white)),
-                ),
-              ),
+              child: Builder(builder: (_) {
+                final held = blockName != null || waitingFor != null;
+                return GestureDetector(
+                  onTap: (_adding || held) ? null : _add,
+                  child: Container(
+                    height: 52,
+                    decoration: BoxDecoration(
+                        color: held ? AppColors.line : AppColors.pomegranate,
+                        borderRadius: BorderRadius.circular(15)),
+                    alignment: Alignment.center,
+                    child: _adding
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text(l.addToCart,
+                            style: AppFonts.body(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: held ? AppColors.muted : Colors.white)),
+                  ),
+                );
+              }),
             ),
           ],
         ),
