@@ -12,6 +12,7 @@ import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
+import '../../widgets/admin_price_field.dart';
 import '../../widgets/sign_in_required.dart';
 import '../../widgets/product_image.dart';
 import '../webstore/open_store.dart';
@@ -411,8 +412,9 @@ class _CartRow extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 6),
-                Text(formatMoney(item.iqdPrice, item.chargeCurrency, iqdLabel: l.iqd),
-                    style: AppFonts.display(fontSize: 15)),
+                // Plain text for a shopper; an admin sets it here, where the
+                // whole cart is in front of them, and the totals below follow.
+                AdminPriceField(item: item),
                 // This line's shipping — $2 per unit × qty (0 for Shein), so the
                 // shopper sees exactly what each product adds to the total.
                 if (item.shipping > 0) ...[
