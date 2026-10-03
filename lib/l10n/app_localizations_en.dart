@@ -516,6 +516,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get productLink => 'Product link';
 
   @override
+  String get linkCopied => 'Link copied';
+
+  @override
   String get fetchDetails => 'Fetch';
 
   @override

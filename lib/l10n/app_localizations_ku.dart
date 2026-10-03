@@ -517,6 +517,9 @@ class AppLocalizationsKu extends AppLocalizations {
   String get productLink => 'بەستەری بەرهەم';
 
   @override
+  String get linkCopied => 'بەستەرەکە کۆپی کرا';
+
+  @override
   String get fetchDetails => 'هێنان';
 
   @override

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -1461,9 +1462,12 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     } catch (_) {
       r = ScrapeResult(url: _url, title: '', image: '');
     }
+    // `record=` is the one that explains the rest: with it, the options and the
+    // price are the store's own figures; without it they were pieced together
+    // from the rendered page, which is where a missing size comes from.
     dlog('store', 'scraped "${dcut(r.title)}" price=${r.price} ${r.currency} '
         'colour="${r.color}" size="${r.size}" sizes=${r.sizeOptions.length} '
-        'colours=${r.colorOptions.length} url=${dcut(r.url)}');
+        'colours=${r.colorOptions.length} record=${r.ssr} url=${dcut(r.url)}');
 
     // A pasted link is read on its own, and Shein fills in the price and the
     // size buttons well after the page reports "loaded" — reading once then
@@ -1699,10 +1703,21 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
             ),
           ),
           const SizedBox(width: 6),
+          // The stores' own share sheets offer their social networks and no
+          // way to copy the address, so the page's link is taken here instead.
+          _round(Icons.copy_rounded, _copyLink),
+          const SizedBox(width: 6),
           _round(Icons.refresh, () => _controller.reload()),
         ],
       ),
     );
+  }
+
+  /// Puts the page's address on the clipboard, to paste or send on.
+  Future<void> _copyLink() async {
+    await Clipboard.setData(ClipboardData(text: _url));
+    if (!mounted) return;
+    showHeamaToast(context, AppLocalizations.of(context).linkCopied);
   }
 
   Widget _round(IconData icon, VoidCallback onTap) => GestureDetector(

@@ -511,6 +511,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get productLink => 'رابط المنتج';
 
   @override
+  String get linkCopied => 'تم نسخ الرابط';
+
+  @override
   String get fetchDetails => 'جلب';
 
   @override

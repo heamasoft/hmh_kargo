@@ -1060,6 +1060,12 @@ abstract class AppLocalizations {
   /// **'Product link'**
   String get productLink;
 
+  /// No description provided for @linkCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Link copied'**
+  String get linkCopied;
+
   /// No description provided for @fetchDetails.
   ///
   /// In en, this message translates to:
