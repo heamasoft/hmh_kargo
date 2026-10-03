@@ -126,7 +126,18 @@ class CartController extends Controller
             'color' => ['nullable', 'string', 'max:60'],
             'size' => ['nullable', 'string', 'max:60'],
             'note' => ['nullable', 'string', 'max:500'],
+            // The all-in unit price, set by hand. Admins only — see below.
+            'charge_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
+
+        // What a line costs is ours to decide, not the buyer's: an admin may
+        // set it by hand, here as in the capture sheet, and for anyone else the
+        // field is ignored however the request was made.
+        $price = $data['charge_amount'] ?? null;
+        unset($data['charge_amount']);
+        if ($price !== null && $request->user()->is_admin) {
+            $data['iqd_price'] = (float) $price;
+        }
         // A stock line is one physical piece already sitting in the company,
         // and there is only ever the one of it — asking for more would charge
         // for a second that cannot be delivered.

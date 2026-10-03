@@ -63,6 +63,13 @@ class CartApi {
     return Cart.fromJson(json);
   }
 
+  /// Sets what one unit of a line costs. Admins only — the server ignores it
+  /// from anyone else — and the cart comes back with its totals redone.
+  Future<Cart> updatePrice(int itemId, num amount) async {
+    return Cart.fromJson(
+        await _client.patch('/cart/items/$itemId', data: {'charge_amount': amount}));
+  }
+
   Future<Cart> updateQty(int itemId, int qty) async {
     return Cart.fromJson(await _client.patch('/cart/items/$itemId', data: {'qty': qty}));
   }

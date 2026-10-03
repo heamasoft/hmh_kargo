@@ -58,6 +58,13 @@ class CartProvider extends ChangeNotifier {
     return _mutate(() => _api.updateQty(itemId, qty));
   }
 
+  /// Sets what one unit of a line costs (admins only). The cart's totals come
+  /// back worked out again, so everything showing a total follows.
+  Future<bool> updatePrice(int itemId, num amount) async {
+    if (amount < 0) return true;
+    return _mutate(() => _api.updatePrice(itemId, amount));
+  }
+
   Future<bool> remove(int itemId) async {
     return _mutate(() => _api.remove(itemId));
   }

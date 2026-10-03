@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/address.dart';
+import '../../models/cart.dart';
 import '../../providers/address_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
@@ -18,6 +19,7 @@ import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
 import '../../widgets/back_chip.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/product_image.dart';
 import '../addresses/address_form_sheet.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -325,6 +327,17 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             if (context.watch<AuthProvider>().user?.isAdmin ?? false) ...[
               _sectionLabel(l.orderForCustomer),
               _customerCard(l),
+              // An admin settles what each line costs, here as in the capture
+              // sheet — the last chance before the order is placed, and the
+              // one place the whole order is in front of them. Every total on
+              // the page is worked out from the cart, so they all follow.
+              _sectionLabel(l.yourCart),
+              for (final item in cart.items)
+                _AdminPriceRow(
+                  key: ValueKey(item.id),
+                  item: item,
+                  onSubmit: (value) => context.read<CartProvider>().updatePrice(item.id, value),
+                ),
             ],
             _sectionLabel(l.deliverTo),
             Container(
@@ -704,6 +717,138 @@ class _CustomerPickerState extends State<_CustomerPicker> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// One cart line on the checkout page with its price open to an admin.
+///
+/// The price typed here is what the customer is charged for that unit; the
+/// order's totals are worked out from the cart, so changing one line moves the
+/// figure at the top of the page and on the Place order button with it.
+class _AdminPriceRow extends StatefulWidget {
+  const _AdminPriceRow({super.key, required this.item, required this.onSubmit});
+
+  final CartLine item;
+  final Future<bool> Function(num amount) onSubmit;
+
+  @override
+  State<_AdminPriceRow> createState() => _AdminPriceRowState();
+}
+
+class _AdminPriceRowState extends State<_AdminPriceRow> {
+  late final TextEditingController _price = TextEditingController(text: _shown(widget.item.iqdPrice));
+  final _focus = FocusNode();
+  bool _saving = false;
+
+  /// Dinars are whole; dollars and lira keep their cents.
+  String _shown(num amount) => widget.item.chargeCurrency.toUpperCase() == 'IQD'
+      ? amount.round().toString()
+      : amount.toStringAsFixed(2);
+
+  @override
+  void didUpdateWidget(covariant _AdminPriceRow old) {
+    super.didUpdateWidget(old);
+    // The cart came back from the server; follow it unless it is being typed in.
+    if (!_focus.hasFocus && widget.item.iqdPrice != old.item.iqdPrice) {
+      _price.text = _shown(widget.item.iqdPrice);
+    }
+  }
+
+  @override
+  void dispose() {
+    _price.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final typed = double.tryParse(_price.text.replaceAll(RegExp(r'[^0-9.]'), ''));
+    if (typed == null || typed < 0) {
+      _price.text = _shown(widget.item.iqdPrice); // not a price — put it back
+      return;
+    }
+    if ((typed - widget.item.iqdPrice).abs() < 0.001) return;
+
+    setState(() => _saving = true);
+    final ok = await widget.onSubmit(typed);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (!ok) {
+      _price.text = _shown(widget.item.iqdPrice);
+      showHeamaToast(context, context.read<CartProvider>().error ?? 'Could not save the price.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final currency = widget.item.chargeCurrency.toUpperCase();
+
+    return Container(
+      margin: const EdgeInsets.fromLTRB(18, 0, 18, 10),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.line),
+      ),
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: SizedBox(
+              width: 46,
+              height: 46,
+              child: ProductImage(url: widget.item.imageUrl, gradient: CartLine.defaultGradient),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.item.title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text('× ${widget.item.qty}',
+                    style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (_saving)
+            const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+          else
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 92),
+              child: IntrinsicWidth(
+                child: TextField(
+                  controller: _price,
+                  focusNode: _focus,
+                  textAlign: TextAlign.end,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  textInputAction: TextInputAction.done,
+                  style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w800),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                    suffixText: currency == 'IQD' ? l.iqd : currency,
+                    suffixStyle: AppFonts.body(
+                        fontSize: 11, fontWeight: FontWeight.w700, color: AppColors.muted),
+                  ),
+                  onSubmitted: (_) => _save(),
+                  onTapOutside: (_) {
+                    _focus.unfocus();
+                    _save();
+                  },
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }
