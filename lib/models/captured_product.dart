@@ -1,4 +1,16 @@
 /// A product scraped from a store website and priced in IQD by the API.
+/// A store's title for a product can run to a paragraph — Shein's regularly do,
+/// listing every variant in the name — and a title is kept in 255 characters.
+/// Cut it there, at the last word rather than mid-syllable, so a long name
+/// shortens the title instead of refusing the item.
+String cappedTitle(String title, {int max = 255}) {
+  final t = title.trim();
+  if (t.length <= max) return t;
+  final cut = t.substring(0, max);
+  final lastSpace = cut.lastIndexOf(' ');
+  return (lastSpace > max * 0.6 ? cut.substring(0, lastSpace) : cut).trimRight();
+}
+
 class CapturedProduct {
   final int? storeId;
   final String? storeName;
@@ -68,7 +80,7 @@ class CapturedProduct {
       storeId: store?['id'] as int?,
       storeName: store?['name'] as String?,
       sourceUrl: (json['source_url'] ?? '') as String,
-      title: (json['title'] ?? '') as String,
+      title: cappedTitle((json['title'] ?? '') as String),
       imageUrl: (json['image_url'] ?? '') as String? ?? '',
       sourcePrice: ((json['source_price'] ?? 0) as num).toDouble(),
       sourceCurrency: (json['source_currency'] ?? 'USD') as String,
@@ -213,7 +225,7 @@ class ScrapeResult {
 
     return ScrapeResult(
       url: (json['url'] ?? '') as String,
-      title: (json['title'] ?? '') as String,
+      title: cappedTitle((json['title'] ?? '') as String),
       image: (json['image'] ?? '') as String,
       price: parsePrice(json['price']),
       currency: nonEmpty(json['currency'])?.toUpperCase(),

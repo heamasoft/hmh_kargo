@@ -164,7 +164,10 @@ class CaptureController extends Controller
         $data = $request->validate([
             'store_key' => ['nullable', 'string', 'max:60'],
             'source_url' => ['required', 'string', 'max:1024'],
-            'title' => ['required', 'string', 'max:255'],
+            // A store's title can run to a paragraph — Shein's regularly do.
+            // It is cut to fit below rather than refused: a long name is no
+            // reason to stop someone adding the item.
+            'title' => ['required', 'string'],
             'image_url' => ['nullable', 'string', 'max:1024'],
             'source_price' => ['required', 'numeric', 'min:0'],
             'source_currency' => ['nullable', 'string', 'size:3'],
@@ -197,7 +200,7 @@ class CaptureController extends Controller
                 'name' => $store->name,
             ] : null,
             'source_url' => $data['source_url'],
-            'title' => $data['title'],
+            'title' => mb_substr(trim($data['title']), 0, 255),
             'image_url' => $data['image_url'] ?? null,
             'source_price' => (float) $data['source_price'],
             'source_currency' => $currency,

@@ -31,7 +31,10 @@ class CartController extends Controller
             // The shop a hand-added item came from, for the admin who buys it.
             'store_name' => ['nullable', 'string', 'max:120'],
             'source_url' => ['required', 'string', 'max:1024'],
-            'title' => ['required', 'string', 'max:255'],
+            // Cut to fit when the line is written, not refused: a store title
+            // long enough to overflow the column is no reason to stop someone
+            // adding the item.
+            'title' => ['required', 'string'],
             'image_url' => ['nullable', 'string', 'max:1024'],
             'source_price' => ['required', 'numeric', 'min:0'],
             'source_currency' => ['required', 'string', 'size:3'],
@@ -97,7 +100,7 @@ class CartController extends Controller
             'store_id' => $data['store_id'] ?? null,
             'store_name' => $storeName,
             'source_url' => $data['source_url'],
-            'title' => $data['title'],
+            'title' => mb_substr(trim($data['title']), 0, 255),
             'image_url' => $data['image_url'] ?? null,
             'source_price' => $data['source_price'],
             'source_currency' => strtoupper($data['source_currency']),
