@@ -116,6 +116,16 @@ class _StoresScreenState extends State<StoresScreen> {
             else ...[
               _StoresSection(title: l.international, stores: intl),
               _StoresSection(title: l.turkiye, stores: turkiye),
+              // Who we are to these shops: a customer of theirs, buying on
+              // someone's behalf. Said where the shops are listed, which is
+              // where a shopper might otherwise assume more than that.
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 18, 18, 6),
+                child: Text(
+                  l.brandDisclaimer,
+                  style: AppFonts.body(fontSize: 11.5, color: AppColors.muted, height: 1.5),
+                ),
+              ),
             ],
           ],
         ),

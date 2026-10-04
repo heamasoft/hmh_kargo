@@ -414,6 +414,10 @@ class AppLocalizationsKu extends AppLocalizations {
       'لە فرۆشگایەک بدە بۆ کردنەوەی لەناو HMH KARGO. تیرەکە ماڵپەڕە ڕاستەقینەکە دەکاتەوە.';
 
   @override
+  String get brandDisclaimer =>
+      'HMH KARGO خزمەتگوزاریەکی سەربەخۆی کڕین و گەیاندنە. ناوی فرۆشگاکان تەنها شوێنی کڕینی بەرهەمەکە دیاری دەکەن. ئێمە سەر بە ئەم کۆمپانیایانە نین و هەموو نیشانە بازرگانییەکان موڵکی خاوەنەکانیانن.';
+
+  @override
   String get searchStores => 'لە فرۆشگاکان بگەڕێ…';
 
   @override

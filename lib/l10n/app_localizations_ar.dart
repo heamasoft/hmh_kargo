@@ -408,6 +408,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'اضغط على متجر لفتحه داخل HMH KARGO. السهم يفتح الموقع الحقيقي.';
 
   @override
+  String get brandDisclaimer =>
+      'HMH KARGO خدمة شراء وشحن مستقلة. تُذكر أسماء المتاجر للدلالة على مكان شراء المنتج فقط. لسنا تابعين لهذه الشركات، وجميع العلامات التجارية ملك لأصحابها.';
+
+  @override
   String get searchStores => 'ابحث في المتاجر…';
 
   @override

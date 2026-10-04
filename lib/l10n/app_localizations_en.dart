@@ -413,6 +413,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'Tap a store to open it inside HMH KARGO. The arrow opens the real website.';
 
   @override
+  String get brandDisclaimer =>
+      'HMH KARGO is an independent buying and shipping service. Store names identify where an item is bought from. We are not affiliated with these companies, and all trademarks belong to their owners.';
+
+  @override
   String get searchStores => 'Search stores…';
 
   @override

@@ -40,6 +40,11 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Text(l.aboutHowBody,
                 style: AppFonts.body(fontSize: 14, color: AppColors.ink, height: 1.55)),
+            const SizedBox(height: 20),
+            // What this service is to the shops it buys from, said plainly and
+            // kept where the app explains itself.
+            Text(l.brandDisclaimer,
+                style: AppFonts.body(fontSize: 12.5, color: AppColors.muted, height: 1.55)),
             const DeveloperFooter(),
           ],
         ),

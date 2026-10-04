@@ -856,6 +856,12 @@ abstract class AppLocalizations {
   /// **'Tap a store to open it inside HMH KARGO. The arrow opens the real website.'**
   String get storesSub;
 
+  /// No description provided for @brandDisclaimer.
+  ///
+  /// In en, this message translates to:
+  /// **'HMH KARGO is an independent buying and shipping service. Store names identify where an item is bought from. We are not affiliated with these companies, and all trademarks belong to their owners.'**
+  String get brandDisclaimer;
+
   /// No description provided for @searchStores.
   ///
   /// In en, this message translates to:

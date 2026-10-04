@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -6,7 +5,7 @@ import '../models/store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 
-/// A store: its logo on a rounded white tile, the name, and where it ships
+/// A store: its mark on a rounded tile, the name, and where it ships
 /// from. No card around it — the logo is the tile. Tapping opens the store.
 class StoreTile extends StatelessWidget {
   final Store store;
@@ -67,44 +66,20 @@ class StoreTile extends StatelessWidget {
   }
 }
 
-/// The logo, fastest source first: bundled in the app (instant) → loaded from
-/// the web (a plain white tile while it loads — no letter flashing first) →
-/// the coloured monogram glyph only if there is no logo at all.
+/// The store's mark: its initials on its own colour.
+///
+/// Deliberately not the shop's logo. A logo is the shop's trademark, and this
+/// app buys from these shops rather than acting for them, so it names them
+/// without wearing their badge — which is also what App Review asks for under
+/// guideline 4.1.
 class _StoreIcon extends StatelessWidget {
   const _StoreIcon({required this.store});
   final Store store;
 
   static const _size = StoreTile.iconSize;
 
-  Widget _onTile(Widget image) => Container(
-        width: _size,
-        height: _size,
-        padding: const EdgeInsets.all(10),
-        decoration: StoreTile.iconDecoration(),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: image,
-        ),
-      );
-
   @override
-  Widget build(BuildContext context) {
-    final bundled = store.bundledIcon;
-    if (bundled != null) {
-      return _onTile(Image.asset(bundled, fit: BoxFit.contain, filterQuality: FilterQuality.medium));
-    }
-
-    final url = store.iconUrl;
-    if (url == null) return _glyph();
-    return CachedNetworkImage(
-      imageUrl: url,
-      fadeInDuration: const Duration(milliseconds: 150),
-      placeholder: (_, __) => Container(width: _size, height: _size, decoration: StoreTile.iconDecoration()),
-      errorWidget: (_, __, ___) => _glyph(),
-      imageBuilder: (context, image) =>
-          _onTile(Image(image: image, fit: BoxFit.contain, filterQuality: FilterQuality.medium)),
-    );
-  }
+  Widget build(BuildContext context) => _glyph();
 
   Widget _glyph() {
     final tint = Color.lerp(store.glyphColor, Colors.white, 0.22)!;

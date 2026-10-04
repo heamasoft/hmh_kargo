@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../models/store.dart';
 import '../providers/auth_provider.dart';
 import '../providers/catalog_provider.dart';
 import '../providers/stock_provider.dart';
@@ -47,7 +46,7 @@ class _AuthGateState extends State<AuthGate> {
     final catalog = context.read<CatalogProvider>();
     final ads = AdsApi(context.read<ApiClient>());
     await Future.wait<void>([
-      catalog.loadStores().then((_) => _precacheStoreIcons(catalog.stores)),
+      catalog.loadStores(),
       catalog.loadTrending(),
       ads.list().then(_precacheAds).catchError((_) {}),
     ]);
@@ -62,19 +61,8 @@ class _AuthGateState extends State<AuthGate> {
   }
 
   /// Downloads and decodes the pictures Home shows first, so they appear with
-  /// the page rather than popping in after it.
-  void _precacheStoreIcons(List<Store> stores) {
-    for (final s in stores.take(8)) {
-      final asset = s.bundledIcon;
-      if (asset != null) {
-        if (mounted) precacheImage(AssetImage(asset), context).catchError((_) {});
-        continue;
-      }
-      final url = s.iconUrl;
-      if (url != null) _precache(url);
-    }
-  }
-
+  /// the page rather than popping in after it. The store tiles draw themselves
+  /// and need nothing fetched.
   void _precacheAds(List<Ad> ads) {
     for (final a in ads.take(3)) {
       _precache(a.imageUrl);
