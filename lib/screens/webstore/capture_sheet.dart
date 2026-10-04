@@ -337,6 +337,13 @@ class _CaptureSheetState extends State<CaptureSheet> {
     // without saying which colour or which size cannot be bought. The button
     // waits until it has been, and says what it is waiting for, rather than
     // being tappable and then refusing.
+    // The price and its currency are the store's own figures, not the
+    // shopper's: what they send is what the server prices the item from, so
+    // typing over them is typing over what the item costs. An admin may; a
+    // shopper is shown them. They stay open when nothing could be read, since
+    // then there is nothing to show and an item with no price cannot be added
+    // at all.
+    final priceLocked = !_isAdmin && _priceValue > 0;
     final needsColor = _colorRequired && _color.text.trim().isEmpty;
     final needsSize = _sizeRequired && _size.text.trim().isEmpty;
     final String? waitingFor = (needsColor && needsSize)
@@ -440,6 +447,7 @@ class _CaptureSheetState extends State<CaptureSheet> {
                         Expanded(
                           flex: 2,
                           child: _field(l.priceOnSite, _price,
+                              readOnly: priceLocked,
                               keyboard: const TextInputType.numberWithOptions(decimal: true),
                               // Typed and tapped away from, not only typed and
                               // submitted: either way the dinars or dollars
@@ -454,7 +462,9 @@ class _CaptureSheetState extends State<CaptureSheet> {
                         const SizedBox(width: 10),
                         Expanded(
                             child: _field('CUR', _currency,
-                                onDone: _reprice, onSubmitted: (_) => _reprice())),
+                                readOnly: priceLocked,
+                                onDone: _reprice,
+                                onSubmitted: (_) => _reprice())),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -802,7 +812,8 @@ class _CaptureSheetState extends State<CaptureSheet> {
       int maxLines = 1,
       String? errorText,
       String? hintText,
-      VoidCallback? onDone}) {
+      VoidCallback? onDone,
+      bool readOnly = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -814,6 +825,7 @@ class _CaptureSheetState extends State<CaptureSheet> {
         const SizedBox(height: 5),
         TextField(
           controller: c,
+          readOnly: readOnly,
           keyboardType: keyboard,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
@@ -828,7 +840,12 @@ class _CaptureSheetState extends State<CaptureSheet> {
                 },
           maxLines: maxLines,
           minLines: 1,
-          style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
+          // A locked field is the store's figure being shown, so it reads as
+          // something told to the shopper rather than asked of them.
+          style: AppFonts.body(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: readOnly ? AppColors.muted : AppColors.ink),
           decoration: InputDecoration(
             isDense: true,
             errorText: errorText,
