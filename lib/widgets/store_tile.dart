@@ -81,21 +81,92 @@ class _StoreIcon extends StatelessWidget {
   @override
   Widget build(BuildContext context) => _glyph();
 
+  /// The app's own colours for store marks.
+  ///
+  /// The shop's own colour is deliberately not among them: a tile in a shop's
+  /// exact colour, carrying its initials, is still wearing that shop's
+  /// identity. These are this app's palette, and they say nothing about anyone
+  /// else.
+  static const _marks = <List<Color>>[
+    [Color(0xFF3B3270), Color(0xFF211B3E)],
+    [Color(0xFFE05A4F), Color(0xFFB5362E)],
+    [Color(0xFFF2A33C), Color(0xFFD98521)],
+    [Color(0xFF2E9E6B), Color(0xFF1F7A51)],
+    [Color(0xFF4A6FD4), Color(0xFF32519F)],
+    [Color(0xFF8C6BD5), Color(0xFF6949AE)],
+    [Color(0xFF3F7C8C), Color(0xFF2C5A66)],
+    [Color(0xFFC2577B), Color(0xFF9B3F5F)],
+  ];
+
+  /// Worked out from the store's key, so a shop keeps the same mark on every
+  /// screen, between launches, and however the list is ordered.
+  List<Color> get _colors {
+    var h = 0;
+    for (final unit in store.id.codeUnits) {
+      h = (h * 31 + unit) & 0x7fffffff;
+    }
+    return _marks[h % _marks.length];
+  }
+
+  /// What the shop sells, as a symbol: it tells two shops apart at a glance
+  /// where their initials would not, and it is ours to draw.
+  IconData get _symbol {
+    switch (store.categoryKey) {
+      case 'catTech':
+      case 'catGadgets':
+        return Icons.devices_other_rounded;
+      case 'catHome':
+      case 'catKitchen':
+        return Icons.chair_rounded;
+      case 'catBeauty':
+        return Icons.spa_rounded;
+      case 'catKids':
+      case 'catToys':
+        return Icons.toys_rounded;
+      case 'catEverything':
+      case 'catAll':
+        return Icons.storefront_rounded;
+      default:
+        return Icons.checkroom_rounded;
+    }
+  }
+
+  /// The shop's initials — its name shortened, which is nobody's mark.
+  String get _initials {
+    final glyph = store.glyph.trim();
+    if (glyph.isNotEmpty) return glyph.toUpperCase();
+    final name = store.name.trim();
+    if (name.isEmpty) return '•';
+    return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
+  }
+
   Widget _glyph() {
-    final tint = Color.lerp(store.glyphColor, Colors.white, 0.22)!;
     return Container(
       width: _size,
       height: _size,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [tint, store.glyphColor],
+          colors: _colors,
         ),
         borderRadius: BorderRadius.circular(StoreTile.iconRadius),
       ),
-      alignment: Alignment.center,
-      child: Text(store.glyph, style: AppFonts.display(fontSize: 22, color: Colors.white)),
+      child: Stack(
+        children: [
+          // The symbol sits large and faint behind the initials, as the tile's
+          // texture rather than a second thing to read.
+          PositionedDirectional(
+            bottom: -8,
+            end: -6,
+            child: Icon(_symbol, size: 42, color: Colors.white.withValues(alpha: 0.18)),
+          ),
+          Center(
+            child: Text(_initials, style: AppFonts.display(fontSize: 21, color: Colors.white)),
+          ),
+        ],
+      ),
     );
   }
 }
