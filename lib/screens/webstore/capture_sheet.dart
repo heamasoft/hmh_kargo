@@ -441,6 +441,10 @@ class _CaptureSheetState extends State<CaptureSheet> {
                           flex: 2,
                           child: _field(l.priceOnSite, _price,
                               keyboard: const TextInputType.numberWithOptions(decimal: true),
+                              // Typed and tapped away from, not only typed and
+                              // submitted: either way the dinars or dollars
+                              // beside it are worked out again.
+                              onDone: _reprice,
                               onChanged: (_) => setState(() {
                                     _priced = null;
                                     _charge.text = '';
@@ -448,7 +452,9 @@ class _CaptureSheetState extends State<CaptureSheet> {
                               onSubmitted: (_) => _reprice()),
                         ),
                         const SizedBox(width: 10),
-                        Expanded(child: _field('CUR', _currency, onSubmitted: (_) => _reprice())),
+                        Expanded(
+                            child: _field('CUR', _currency,
+                                onDone: _reprice, onSubmitted: (_) => _reprice())),
                       ],
                     ),
                     const SizedBox(height: 12),
@@ -795,7 +801,8 @@ class _CaptureSheetState extends State<CaptureSheet> {
       ValueChanged<String>? onSubmitted,
       int maxLines = 1,
       String? errorText,
-      String? hintText}) {
+      String? hintText,
+      VoidCallback? onDone}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -810,6 +817,15 @@ class _CaptureSheetState extends State<CaptureSheet> {
           keyboardType: keyboard,
           onChanged: onChanged,
           onSubmitted: onSubmitted,
+          // Finishing with a field is tapping away from it as often as it is
+          // pressing done, and a price typed and then tapped away from was
+          // left unconverted.
+          onTapOutside: onDone == null
+              ? null
+              : (_) {
+                  FocusScope.of(context).unfocus();
+                  onDone();
+                },
           maxLines: maxLines,
           minLines: 1,
           style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600),
