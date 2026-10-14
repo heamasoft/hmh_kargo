@@ -121,7 +121,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Order from Shein, Temu, Zara and more — prices in dinars, shipped to your door in Erbil, Duhok and beyond.'**
+  /// **'Order from international and Turkish online stores — prices in dinars, shipped to your door in Erbil, Duhok and beyond.'**
   String get welcomeSubtitle;
 
   /// No description provided for @createAccount.
@@ -757,7 +757,7 @@ abstract class AppLocalizations {
   /// No description provided for @aboutBody.
   ///
   /// In en, this message translates to:
-  /// **'HMH KARGO lets you shop from international stores — Shein, Trendyol, Zara, H&M and more — and have your orders delivered to Iraq. Browse any store right inside the app, add products to your cart at one clear all-in price, pay from your wallet, and track every order from purchase to your door.'**
+  /// **'HMH KARGO lets you shop from international and Turkish online stores and have your orders delivered to Iraq. Browse any store right inside the app, add products to your cart at one clear all-in price, pay from your wallet, and track every order from purchase to your door.'**
   String get aboutBody;
 
   /// No description provided for @aboutHowTitle.
@@ -811,13 +811,13 @@ abstract class AppLocalizations {
   /// No description provided for @freeShippingTitle.
   ///
   /// In en, this message translates to:
-  /// **'Shein ships free with us'**
+  /// **'Some stores ship free with us'**
   String get freeShippingTitle;
 
   /// No description provided for @freeShippingSub.
   ///
   /// In en, this message translates to:
-  /// **'Order any Shein item through the app and we cover the shipping to Iraq.'**
+  /// **'Order from a free-shipping store through the app and we cover the shipping to Iraq.'**
   String get freeShippingSub;
 
   /// No description provided for @shopNow.
@@ -925,19 +925,19 @@ abstract class AppLocalizations {
   /// No description provided for @sheinInsideHeama.
   ///
   /// In en, this message translates to:
-  /// **'Shein, shown inside HMH KARGO'**
+  /// **'The store, shown inside HMH KARGO'**
   String get sheinInsideHeama;
 
   /// No description provided for @openRealSite.
   ///
   /// In en, this message translates to:
-  /// **'Open real shein.com'**
+  /// **'Open the real website'**
   String get openRealSite;
 
   /// No description provided for @searchShein.
   ///
   /// In en, this message translates to:
-  /// **'Search Shein…'**
+  /// **'Search the store…'**
   String get searchShein;
 
   /// No description provided for @catAll.
@@ -1555,7 +1555,7 @@ abstract class AppLocalizations {
   /// No description provided for @trackFromStores.
   ///
   /// In en, this message translates to:
-  /// **'{count} items · from Shein & Temu'**
+  /// **'{count} items · from your stores'**
   String trackFromStores(int count);
 
   /// No description provided for @arrives.
@@ -1609,7 +1609,7 @@ abstract class AppLocalizations {
   /// No description provided for @readyShein.
   ///
   /// In en, this message translates to:
-  /// **'Shein · in stock'**
+  /// **'In stock'**
   String get readyShein;
 
   /// No description provided for @readyOther.
@@ -2053,7 +2053,7 @@ abstract class AppLocalizations {
   /// No description provided for @rateForShein.
   ///
   /// In en, this message translates to:
-  /// **'For Shein orders'**
+  /// **'For international stores'**
   String get rateForShein;
 
   /// No description provided for @rateForTurkiye.
@@ -2209,7 +2209,7 @@ abstract class AppLocalizations {
   /// No description provided for @importSharedCartSub.
   ///
   /// In en, this message translates to:
-  /// **'A Shein cart or Trendyol collection link'**
+  /// **'A shared cart or collection link'**
   String get importSharedCartSub;
 
   /// No description provided for @icTitle.
@@ -2257,7 +2257,7 @@ abstract class AppLocalizations {
   /// No description provided for @icServerCantRead.
   ///
   /// In en, this message translates to:
-  /// **'We couldn\'t read that link. Check it is a Shein cart or Trendyol collection link.'**
+  /// **'We couldn\'t read that link. Check it is a shared cart or collection link.'**
   String get icServerCantRead;
 
   /// No description provided for @icEmptyCollection.
@@ -2269,7 +2269,7 @@ abstract class AppLocalizations {
   /// No description provided for @icSingleProduct.
   ///
   /// In en, this message translates to:
-  /// **'That link is a single product, not a cart. Share your cart (Shein) or a collection (Trendyol), or use \"Paste link\" on the store page for one item.'**
+  /// **'That link is a single product, not a cart. Share a cart or a collection from the store\'s own app, or use “Paste link” on the store page for one item.'**
   String get icSingleProduct;
 
   /// No description provided for @icCouldNotRead.
@@ -2281,7 +2281,7 @@ abstract class AppLocalizations {
   /// No description provided for @icNoItems.
   ///
   /// In en, this message translates to:
-  /// **'No items found on that cart. Check the link is a shared Shein cart and that it still has items, then tap Load again.'**
+  /// **'No items found on that cart. Check the link is a shared cart and that it still has items, then tap Load again.'**
   String get icNoItems;
 
   /// No description provided for @icPickSizeOne.
@@ -2329,7 +2329,7 @@ abstract class AppLocalizations {
   /// No description provided for @icBringOverSub.
   ///
   /// In en, this message translates to:
-  /// **'Share your cart from the Shein app, or a collection from the Trendyol app, paste the link above and tap Load.'**
+  /// **'Share your cart or a collection from the store\'s own app, paste the link above and tap Load.'**
   String get icBringOverSub;
 
   /// No description provided for @icShareCart.
@@ -2347,13 +2347,13 @@ abstract class AppLocalizations {
   /// No description provided for @icHumanCheck.
   ///
   /// In en, this message translates to:
-  /// **'Shein wants a quick check that you\'re human. Complete it below — loading carries on by itself afterwards.'**
+  /// **'The store wants a quick check that you\'re human. Complete it below — loading carries on by itself afterwards.'**
   String get icHumanCheck;
 
   /// No description provided for @icLinkLabel.
   ///
   /// In en, this message translates to:
-  /// **'Shein cart or Trendyol collection link'**
+  /// **'Shared cart or collection link'**
   String get icLinkLabel;
 
   /// No description provided for @icLinkHint.
@@ -2371,7 +2371,7 @@ abstract class AppLocalizations {
   /// No description provided for @icCurrencyAdvice.
   ///
   /// In en, this message translates to:
-  /// **'Shein is showing prices in {foreign}, but this store is priced in {store} — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.'**
+  /// **'The store is showing prices in {foreign}, but this store is priced in {store} — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.'**
   String icCurrencyAdvice(String foreign, String store);
 
   /// No description provided for @icChooseSize.

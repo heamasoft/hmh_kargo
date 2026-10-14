@@ -19,7 +19,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get welcomeSubtitle =>
-      'اطلب من شي إن وتيمو وزارا وغيرها — الأسعار بالدينار، ويصلك إلى بابك في أربيل ودهوك وما بعدها.';
+      'اطلب من المتاجر العالمية والتركية — بأسعار بالدينار، ويصلك إلى بابك في أربيل ودهوك وغيرها.';
 
   @override
   String get createAccount => 'إنشاء حساب';
@@ -352,7 +352,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get aboutBody =>
-      'يتيح لك HMH KARGO التسوّق من المتاجر العالمية — شي إن، ترينديول، زارا، H&M وغيرها — وتوصيل طلباتك إلى العراق. تصفّح أي متجر داخل التطبيق، أضف المنتجات إلى سلتك بسعر شامل واضح، وادفع من محفظتك، وتابع كل طلب من الشراء حتى باب منزلك.';
+      'يتيح لك HMH KARGO التسوّق من المتاجر العالمية والتركية وتوصيل طلباتك إلى العراق. تصفّح أي متجر داخل التطبيق، وأضف المنتجات إلى سلّتك بسعر واحد شامل، وادفع من محفظتك، وتابع كل طلب من الشراء حتى باب بيتك.';
 
   @override
   String get aboutHowTitle => 'كيف يعمل';
@@ -380,11 +380,11 @@ class AppLocalizationsAr extends AppLocalizations {
   String get seeAll => 'عرض الكل';
 
   @override
-  String get freeShippingTitle => 'شي إن يُشحن مجاناً معنا';
+  String get freeShippingTitle => 'بعض المتاجر تُشحن مجاناً معنا';
 
   @override
   String get freeShippingSub =>
-      'اطلب أي منتج من شي إن عبر التطبيق، ونحن نتكفّل بالشحن إلى العراق.';
+      'اطلب من متجر بشحن مجاني عبر التطبيق ونحن نتكفّل بالشحن إلى العراق.';
 
   @override
   String get shopNow => 'تسوّق الآن';
@@ -442,13 +442,13 @@ class AppLocalizationsAr extends AppLocalizations {
   String get twentyPlusStores => 'أكثر من 10 متاجر';
 
   @override
-  String get sheinInsideHeama => 'شي إن داخل HMH KARGO';
+  String get sheinInsideHeama => 'المتجر، داخل HMH KARGO';
 
   @override
-  String get openRealSite => 'افتح موقع shein.com الحقيقي';
+  String get openRealSite => 'افتح الموقع الحقيقي';
 
   @override
-  String get searchShein => 'ابحث في شي إن…';
+  String get searchShein => 'ابحث في المتجر…';
 
   @override
   String get catAll => 'الكل';
@@ -783,7 +783,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String trackFromStores(int count) {
-    return '$count عناصر · من شي إن وتيمو';
+    return '$count منتجات · من متاجرك';
   }
 
   @override
@@ -811,7 +811,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get readyNowSub => 'موجود في العراق — بدون انتظار الشحن';
 
   @override
-  String get readyShein => 'شي إن · متوفر';
+  String get readyShein => 'متوفر الآن';
 
   @override
   String get readyOther => 'متاجر أخرى · متوفر';
@@ -1050,7 +1050,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get dollarToDinar => 'دولار ← دينار';
 
   @override
-  String get rateForShein => 'لطلبات شي إن';
+  String get rateForShein => 'للمتاجر العالمية';
 
   @override
   String get rateForTurkiye => 'لمتاجر تركيا';
@@ -1136,7 +1136,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importSharedCart => 'استيراد سلة مشتركة';
 
   @override
-  String get importSharedCartSub => 'رابط سلة شي إن أو مجموعة ترينديول';
+  String get importSharedCartSub => 'رابط سلة مشتركة أو تشكيلة';
 
   @override
   String get icTitle => 'استيراد السلة';
@@ -1164,7 +1164,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icServerCantRead =>
-      'تعذّرت قراءة هذا الرابط. تأكّد أنه رابط سلة شي إن أو مجموعة ترينديول.';
+      'تعذّرت قراءة الرابط. تأكد أنه رابط سلة مشتركة أو تشكيلة.';
 
   @override
   String get icEmptyCollection =>
@@ -1172,14 +1172,14 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icSingleProduct =>
-      'هذا الرابط لمنتج واحد وليس لسلة. شارك سلتك (شي إن) أو مجموعة (ترينديول)، أو استخدم \"لصق الرابط\" في صفحة المتجر لمنتج واحد.';
+      'هذا الرابط لمنتج واحد وليس لسلة. شارك سلة أو تشكيلة من تطبيق المتجر، أو استخدم «لصق رابط» في صفحة المتجر لمنتج واحد.';
 
   @override
   String get icCouldNotRead => 'تعذّرت قراءة السلة. اضغط تحميل مرة أخرى.';
 
   @override
   String get icNoItems =>
-      'لم يُعثر على منتجات في هذه السلة. تأكّد أن الرابط لسلة شي إن مشتركة وأنها ما زالت تحتوي منتجات، ثم اضغط تحميل مرة أخرى.';
+      'لم نجد منتجات في تلك السلة. تأكد أن الرابط لسلة مشتركة وما زالت تحتوي منتجات، ثم اضغط تحميل مرة أخرى.';
 
   @override
   String icPickSizeOne(String title) {
@@ -1212,7 +1212,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icBringOverSub =>
-      'شارك سلتك من تطبيق شي إن، أو مجموعة من تطبيق ترينديول، والصق الرابط أعلاه ثم اضغط تحميل.';
+      'شارك سلتك أو تشكيلة من تطبيق المتجر، والصق الرابط أعلاه ثم اضغط تحميل.';
 
   @override
   String get icShareCart => 'السلة ← مشاركة';
@@ -1222,10 +1222,10 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get icHumanCheck =>
-      'يطلب شي إن تحققًا سريعًا بأنك لست روبوتًا. أكمله في الأسفل — وسيستمر التحميل تلقائيًا بعد ذلك.';
+      'يطلب المتجر تأكيداً سريعاً أنك لست روبوتاً. أكمله بالأسفل — ويستمر التحميل تلقائياً بعده.';
 
   @override
-  String get icLinkLabel => 'رابط سلة شي إن أو مجموعة ترينديول';
+  String get icLinkLabel => 'رابط سلة مشتركة أو تشكيلة';
 
   @override
   String get icLinkHint => 'الصق الرابط من التطبيق';
@@ -1235,7 +1235,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String icCurrencyAdvice(String foreign, String store) {
-    return 'يعرض شي إن الأسعار بعملة $foreign، لكن هذا المتجر مسعّر بعملة $store — إضافتها الآن ستحتسب مبلغًا خاطئًا. اضغط تحميل مرة أخرى؛ وإذا استمرت المشكلة أخبرنا.';
+    return 'يعرض المتجر الأسعار بـ $foreign، بينما يُسعّر هذا المتجر بـ $store — إضافتها الآن ستحتسب مبلغاً خاطئاً. اضغط تحميل مرة أخرى؛ وإن استمرت المشكلة أخبرنا.';
   }
 
   @override

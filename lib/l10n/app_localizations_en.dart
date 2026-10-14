@@ -19,7 +19,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get welcomeSubtitle =>
-      'Order from Shein, Temu, Zara and more — prices in dinars, shipped to your door in Erbil, Duhok and beyond.';
+      'Order from international and Turkish online stores — prices in dinars, shipped to your door in Erbil, Duhok and beyond.';
 
   @override
   String get createAccount => 'Create an account';
@@ -357,7 +357,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get aboutBody =>
-      'HMH KARGO lets you shop from international stores — Shein, Trendyol, Zara, H&M and more — and have your orders delivered to Iraq. Browse any store right inside the app, add products to your cart at one clear all-in price, pay from your wallet, and track every order from purchase to your door.';
+      'HMH KARGO lets you shop from international and Turkish online stores and have your orders delivered to Iraq. Browse any store right inside the app, add products to your cart at one clear all-in price, pay from your wallet, and track every order from purchase to your door.';
 
   @override
   String get aboutHowTitle => 'How it works';
@@ -385,11 +385,11 @@ class AppLocalizationsEn extends AppLocalizations {
   String get seeAll => 'See all';
 
   @override
-  String get freeShippingTitle => 'Shein ships free with us';
+  String get freeShippingTitle => 'Some stores ship free with us';
 
   @override
   String get freeShippingSub =>
-      'Order any Shein item through the app and we cover the shipping to Iraq.';
+      'Order from a free-shipping store through the app and we cover the shipping to Iraq.';
 
   @override
   String get shopNow => 'Shop now';
@@ -447,13 +447,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get twentyPlusStores => '10+ stores';
 
   @override
-  String get sheinInsideHeama => 'Shein, shown inside HMH KARGO';
+  String get sheinInsideHeama => 'The store, shown inside HMH KARGO';
 
   @override
-  String get openRealSite => 'Open real shein.com';
+  String get openRealSite => 'Open the real website';
 
   @override
-  String get searchShein => 'Search Shein…';
+  String get searchShein => 'Search the store…';
 
   @override
   String get catAll => 'All';
@@ -791,7 +791,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String trackFromStores(int count) {
-    return '$count items · from Shein & Temu';
+    return '$count items · from your stores';
   }
 
   @override
@@ -819,7 +819,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get readyNowSub => 'Already in Iraq — no shipping wait';
 
   @override
-  String get readyShein => 'Shein · in stock';
+  String get readyShein => 'In stock';
 
   @override
   String get readyOther => 'Other stores · in stock';
@@ -1060,7 +1060,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dollarToDinar => 'Dollar → Dinar';
 
   @override
-  String get rateForShein => 'For Shein orders';
+  String get rateForShein => 'For international stores';
 
   @override
   String get rateForTurkiye => 'For Türkiye stores';
@@ -1147,7 +1147,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get importSharedCart => 'Import a shared cart';
 
   @override
-  String get importSharedCartSub => 'A Shein cart or Trendyol collection link';
+  String get importSharedCartSub => 'A shared cart or collection link';
 
   @override
   String get icTitle => 'Import cart';
@@ -1175,7 +1175,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get icServerCantRead =>
-      'We couldn\'t read that link. Check it is a Shein cart or Trendyol collection link.';
+      'We couldn\'t read that link. Check it is a shared cart or collection link.';
 
   @override
   String get icEmptyCollection =>
@@ -1183,14 +1183,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get icSingleProduct =>
-      'That link is a single product, not a cart. Share your cart (Shein) or a collection (Trendyol), or use \"Paste link\" on the store page for one item.';
+      'That link is a single product, not a cart. Share a cart or a collection from the store\'s own app, or use “Paste link” on the store page for one item.';
 
   @override
   String get icCouldNotRead => 'Could not read the cart. Tap Load again.';
 
   @override
   String get icNoItems =>
-      'No items found on that cart. Check the link is a shared Shein cart and that it still has items, then tap Load again.';
+      'No items found on that cart. Check the link is a shared cart and that it still has items, then tap Load again.';
 
   @override
   String icPickSizeOne(String title) {
@@ -1224,7 +1224,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get icBringOverSub =>
-      'Share your cart from the Shein app, or a collection from the Trendyol app, paste the link above and tap Load.';
+      'Share your cart or a collection from the store\'s own app, paste the link above and tap Load.';
 
   @override
   String get icShareCart => 'Cart → Share';
@@ -1234,10 +1234,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get icHumanCheck =>
-      'Shein wants a quick check that you\'re human. Complete it below — loading carries on by itself afterwards.';
+      'The store wants a quick check that you\'re human. Complete it below — loading carries on by itself afterwards.';
 
   @override
-  String get icLinkLabel => 'Shein cart or Trendyol collection link';
+  String get icLinkLabel => 'Shared cart or collection link';
 
   @override
   String get icLinkHint => 'Paste the link from the app';
@@ -1247,7 +1247,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String icCurrencyAdvice(String foreign, String store) {
-    return 'Shein is showing prices in $foreign, but this store is priced in $store — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.';
+    return 'The store is showing prices in $foreign, but this store is priced in $store — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.';
   }
 
   @override

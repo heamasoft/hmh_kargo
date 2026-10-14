@@ -19,7 +19,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get welcomeSubtitle =>
-      'لە شیعین و تیمو و زارا و زیاتر داوا بکە — نرخەکان بە دیناری، دەگاتە بەردەم دەرگاکەت لە هەولێر و دهۆک و زیاتر.';
+      'لە فرۆشگا نێودەوڵەتی و تورکیەکان داوا بکە — نرخەکان بە دینار، دەگاتە بەردەم دەرگاکەت لە هەولێر و دهۆک و شوێنی تر.';
 
   @override
   String get createAccount => 'هەژمار دروست بکە';
@@ -358,7 +358,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get aboutBody =>
-      'HMH KARGO ڕێگەت پێدەدات لە فرۆشگا نێودەوڵەتییەکان بکڕیت — شیعین، ترێندیۆل، زارا، H&M و زیاتر — و داواکارییەکانت بگەیەنرێن بۆ عێراق. هەر فرۆشگایەک لەناو ئەپەکەدا بگەڕێ، بەرهەم زیاد بکە بۆ سەبەتەکەت بە نرخێکی گشتگیری ڕوون، لە جزدانەکەتەوە پارە بدە، و هەموو داواکارییەک بەدواداچوونی بۆ بکە لە کڕینەوە تا بەردەم دەرگات.';
+      'HMH KARGO ڕێگەت پێدەدات لە فرۆشگا نێودەوڵەتی و تورکیەکان بکڕیت و داواکاریەکانت بگەنە عێراق. هەر فرۆشگایەک لەناو ئەپەکەدا بگەڕێ، بەرهەم بۆ سەبەتەکەت زیاد بکە بە یەک نرخی تەواو، لە جزدانەکەتەوە بیدە، و هەموو داواکارییەک لە کڕینەوە تا بەردەم دەرگاکەت بەدوادا بچۆ.';
 
   @override
   String get aboutHowTitle => 'چۆن کار دەکات';
@@ -386,11 +386,11 @@ class AppLocalizationsKu extends AppLocalizations {
   String get seeAll => 'هەمووی ببینە';
 
   @override
-  String get freeShippingTitle => 'شیعین بەخۆڕایی دەگەیەنرێت لەگەڵ ئێمە';
+  String get freeShippingTitle => 'هەندێک فرۆشگا بەخۆڕایی دەگەیەنرێن';
 
   @override
   String get freeShippingSub =>
-      'هەر کاڵایەکی شیعین لە ڕێگەی ئەپەکەوە داوا بکە، ئێمە گەیاندن بۆ عێراق دەگرینە ئەستۆ.';
+      'لە فرۆشگایەکی گەیاندنی بەخۆڕایی بکڕە لە ئەپەکەوە و ئێمە گەیاندن بۆ عێراق دەگرینە ئەستۆ.';
 
   @override
   String get shopNow => 'ئێستا بکڕە';
@@ -448,13 +448,13 @@ class AppLocalizationsKu extends AppLocalizations {
   String get twentyPlusStores => 'زیاتر لە ١٠ فرۆشگا';
 
   @override
-  String get sheinInsideHeama => 'شیعین لەناو HMH KARGO';
+  String get sheinInsideHeama => 'فرۆشگاکە، لەناو HMH KARGO';
 
   @override
-  String get openRealSite => 'ماڵپەڕی ڕاستەقینەی shein.com بکەرەوە';
+  String get openRealSite => 'ماڵپەڕە ڕاستەقینەکە بکەرەوە';
 
   @override
-  String get searchShein => 'لە شیعین بگەڕێ…';
+  String get searchShein => 'لە فرۆشگاکە بگەڕێ…';
 
   @override
   String get catAll => 'هەموو';
@@ -793,7 +793,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String trackFromStores(int count) {
-    return '$count بەرهەم · لە شیعین و تیمو';
+    return '$count کاڵا · لە فرۆشگاکانت';
   }
 
   @override
@@ -821,7 +821,7 @@ class AppLocalizationsKu extends AppLocalizations {
   String get readyNowSub => 'لە عێراقدایە — بێ چاوەڕوانی گەیاندن';
 
   @override
-  String get readyShein => 'شەین · لە کۆگا';
+  String get readyShein => 'ئامادەیە';
 
   @override
   String get readyOther => 'فرۆشگاکانی تر · لە کۆگا';
@@ -1063,7 +1063,7 @@ class AppLocalizationsKu extends AppLocalizations {
   String get dollarToDinar => 'دۆلار ← دینار';
 
   @override
-  String get rateForShein => 'بۆ داواکاریەکانی شێین';
+  String get rateForShein => 'بۆ فرۆشگا نێودەوڵەتیەکان';
 
   @override
   String get rateForTurkiye => 'بۆ فرۆشگاکانی تورکیا';
@@ -1150,8 +1150,7 @@ class AppLocalizationsKu extends AppLocalizations {
   String get importSharedCart => 'هێنانی سەبەتەیەکی هاوبەشکراو';
 
   @override
-  String get importSharedCartSub =>
-      'بەستەری سەبەتەی شیعین یان کۆمەڵەی ترێندیۆل';
+  String get importSharedCartSub => 'بەستەری سەبەتەی هاوبەش یان کۆکراوە';
 
   @override
   String get icTitle => 'هێنانی سەبەتە';
@@ -1179,7 +1178,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get icServerCantRead =>
-      'نەمانتوانی ئەو بەستەرە بخوێنینەوە. دڵنیابە کە بەستەری سەبەتەی شیعین یان کۆمەڵەی ترێندیۆلە.';
+      'نەمانتوانی ئەو بەستەرە بخوێنینەوە. دڵنیابە بەستەری سەبەتەی هاوبەش یان کۆکراوەیە.';
 
   @override
   String get icEmptyCollection =>
@@ -1187,7 +1186,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get icSingleProduct =>
-      'ئەو بەستەرە بۆ یەک بەرهەمە، نەک سەبەتە. سەبەتەکەت (شیعین) یان کۆمەڵەیەک (ترێندیۆل) هاوبەش بکە، یان بۆ یەک بەرهەم \"لکاندنی بەستەر\" لە پەڕەی فرۆشگا بەکاربهێنە.';
+      'ئەو بەستەرە تەنها یەک بەرهەمە، نەک سەبەتە. سەبەتە یان کۆکراوەیەک لە ئەپی فرۆشگاکەوە هاوبەش بکە، یان «بەستەر بلکێنە» لە پەڕەی فرۆشگاکە بەکاربهێنە بۆ یەک کاڵا.';
 
   @override
   String get icCouldNotRead =>
@@ -1195,7 +1194,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get icNoItems =>
-      'هیچ بەرهەمێک لەو سەبەتەیەدا نەدۆزرایەوە. دڵنیابە بەستەرەکە سەبەتەیەکی هاوبەشکراوی شیعینە و هێشتا بەرهەمی تێدایە، پاشان دووبارە بارکردن بکە.';
+      'هیچ کاڵایەک لەو سەبەتەیەدا نەدۆزرایەوە. دڵنیابە بەستەرەکە سەبەتەیەکی هاوبەشە و هێشتا کاڵای تێدایە، ئینجا دیسان لە بارکردن بدە.';
 
   @override
   String icPickSizeOne(String title) {
@@ -1229,7 +1228,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get icBringOverSub =>
-      'سەبەتەکەت لە ئەپی شیعین، یان کۆمەڵەیەک لە ئەپی ترێندیۆل هاوبەش بکە، بەستەرەکە لە سەرەوە بلکێنە و دەست بنێ بە بارکردن.';
+      'سەبەتەکەت یان کۆکراوەیەک لە ئەپی فرۆشگاکەوە هاوبەش بکە، بەستەرەکە لە سەرەوە بلکێنە و لە بارکردن بدە.';
 
   @override
   String get icShareCart => 'سەبەتە ← هاوبەشکردن';
@@ -1239,10 +1238,10 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get icHumanCheck =>
-      'شیعین پشکنینێکی خێرا دەیەوێت کە تۆ مرۆڤیت. لە خوارەوە تەواوی بکە — دواتر بارکردن خۆی بەردەوام دەبێت.';
+      'فرۆشگاکە داوای پشکنینێکی خێرا دەکات کە تۆ مرۆڤیت. لە خوارەوە تەواوی بکە — بارکردن خۆی بەردەوام دەبێت.';
 
   @override
-  String get icLinkLabel => 'بەستەری سەبەتەی شیعین یان کۆمەڵەی ترێندیۆل';
+  String get icLinkLabel => 'بەستەری سەبەتەی هاوبەش یان کۆکراوە';
 
   @override
   String get icLinkHint => 'بەستەرەکە لە ئەپەکەوە بلکێنە';
@@ -1252,7 +1251,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String icCurrencyAdvice(String foreign, String store) {
-    return 'شیعین نرخەکان بە $foreign پیشان دەدات، بەڵام ئەم فرۆشگایە بە $store نرخ دانراوە — زیادکردنیان ئێستا بڕێکی هەڵە هەژمار دەکات. دووبارە بارکردن بکە؛ ئەگەر بەردەوام بوو پێمان بڵێ.';
+    return 'فرۆشگاکە نرخەکان بە $foreign پیشان دەدات، بەڵام ئەم فرۆشگایە بە $store نرخ دەکرێت — زیادکردنیان ئێستا بڕێکی هەڵە دەخاتە سەر. دیسان لە بارکردن بدە؛ ئەگەر بەردەوام بوو پێمان بڵێ.';
   }
 
   @override
