@@ -371,6 +371,9 @@ class AppLocalizationsKu extends AppLocalizations {
   String get developedBy => 'گەشەپێدراوە لەلایەن Heama Soft';
 
   @override
+  String get contactUs => 'لە ڕێگەی واتساپەوە پەیوەندیمان پێوە بکە';
+
+  @override
   String get footerVisit => 'کلیک لێرە بکە بۆ سەردان';
 
   @override

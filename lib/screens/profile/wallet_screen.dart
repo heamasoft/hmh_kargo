@@ -13,7 +13,7 @@ import '../../theme/app_typography.dart';
 import '../../utils/format.dart';
 import '../../providers/shell_controller.dart';
 import '../../widgets/sign_in_required.dart';
-import '../../widgets/developer_footer.dart';
+import '../../widgets/contact_footer.dart';
 import '../../widgets/language_sheet.dart';
 import 'rate_cards.dart';
 
@@ -176,7 +176,7 @@ class _WalletScreenState extends State<WalletScreen> {
           ],
           const SizedBox(height: 18),
           _MenuList(cityKey: cityKey),
-          const DeveloperFooter(),
+          const ContactFooter(),
         ],
       ),
     );

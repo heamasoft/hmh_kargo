@@ -365,6 +365,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get developedBy => 'تم التطوير بواسطة Heama Soft';
 
   @override
+  String get contactUs => 'تواصل معنا عبر واتساب';
+
+  @override
   String get footerVisit => 'اضغط هنا للزيارة';
 
   @override

@@ -133,6 +133,12 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   /// Page-load progress 0..1, driving the overlay's bar while Shein loads.
   double _progress = 0;
 
+  /// Whether the store's own page is the thing loading. The progress bar can
+  /// show a real figure then; before and after it there is nothing to measure.
+  /// A flag, rather than comparing the stage text to a sentence built from the
+  /// translations, which breaks the moment the wording changes.
+  bool _onStorePage = false;
+
   /// Shein put up its "verify you're human" page. The overlay lifts so the
   /// shopper can complete it; loading resumes by itself once they're through.
   bool _needsHuman = false;
@@ -184,10 +190,12 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
         },
         onUrlChange: (c) {
           dlog('cart', 'url → ${dcut(c.url ?? '')}');
+          _touchDeadline(); // reaching a new page is progress
           _checkChallenge(c.url ?? '');
         },
         onProgress: (p) {
           if (!_busy || !mounted) return;
+          _touchDeadline(); // still moving — give it longer
           setState(() => _progress = p / 100);
           // The rows can be on screen well before "finished", which waits for
           // every tracker and image — start reading early.
@@ -260,6 +268,7 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     }
     _readerStarted = true;
     dlog('cart', 'reader started at ${(_progress * 100).round()}%');
+    _touchDeadline(); // reading the rows is the slow part — let it run
     setState(() => _stage = _l.icReading);
     // Each store keeps its rows differently: Shein renders them, Trendyol
     // embeds them as data in the page.
@@ -268,6 +277,37 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
 
   /// Ends a load in failure: shows why, and leaves the Shein page visible so
   /// the shopper can see what it's showing.
+  /// Pushes the give-up moment out again.
+  ///
+  /// The import gets a window of SILENCE, not a budget for the whole job: a
+  /// cart of forty items takes longer to read than one of three, and a load
+  /// still reporting progress should be allowed to finish rather than thrown
+  /// away mid-way, which is what a fixed cap did. Only a load that has stopped
+  /// saying anything at all is abandoned. The store's human check doesn't
+  /// count — the shopper is answering it.
+  void _touchDeadline() {
+    if (!_busy) return;
+    _deadline?.cancel();
+    _deadline = Timer(const Duration(seconds: 25), () {
+      if (_busy && !_needsHuman) _fail(_l.icTooLong);
+    });
+  }
+
+  /// Leaves a load that is taking too long for the shopper's patience. Nobody
+  /// should have to wait out a timer behind a screen they cannot dismiss.
+  void _cancelLoad() {
+    _deadline?.cancel();
+    if (!mounted) return;
+    dlog('cart', 'load cancelled by the shopper');
+    setState(() {
+      _busy = false;
+      _needsHuman = false;
+      _showReview = false;
+      _onStorePage = false;
+      _stage = '';
+    });
+  }
+
   void _fail(String message) {
     _deadline?.cancel();
     if (!mounted) return;
@@ -320,18 +360,12 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       _needsHuman = false;
       _readerStarted = false;
       _cartRequested = false;
+      _onStorePage = false;
       _error = null;
       _items = null;
       _showReview = false;
     });
-    // Never leave the shopper locked out: a load that hasn't produced rows by
-    // now isn't going to. Time spent on Shein's human check doesn't count.
-    _deadline?.cancel();
-    _deadline = Timer(const Duration(seconds: 35), () {
-      if (_busy && !_needsHuman) {
-        _fail(_l.icTooLong);
-      }
-    });
+    _touchDeadline();
 
     final resolved = await _capture.resolve(uri.toString());
     dlog('cart', 'resolve → share=${resolved.isShare} cart=${resolved.isCart} '
@@ -356,7 +390,10 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       dlog('cart', 'store refused the server — reading ${dcut(resolved.url)} on the phone');
       await _pinTurkey();
       if (!mounted) return;
-      setState(() => _stage = _l.icOpening('Trendyol'));
+      setState(() {
+        _onStorePage = true;
+        _stage = _l.icOpening(_l.storeLabel);
+      });
       _cartRequested = true;
       _controller.loadRequest(Uri.parse(resolved.url));
       return;
@@ -393,7 +430,10 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     final start = sheinStartUrl(resolved.url);
     dlog('cart', 'opening $start');
     _cartRequested = true;
-    setState(() => _stage = _l.icOpening('Shein'));
+    setState(() {
+      _onStorePage = true;
+      _stage = _l.icOpening(_l.storeLabel);
+    });
     _controller.loadRequest(Uri.parse(start));
   }
 
@@ -918,7 +958,7 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   Widget _loadingOverlay() {
     // The bar follows page progress while Shein loads; before and after that
     // there's no real figure to show, so it runs indeterminate.
-    final determinate = (_stage == _l.icOpening('Shein') || _stage == _l.icOpening('Trendyol')) && _progress > 0;
+    final determinate = _onStorePage && _progress > 0;
     return Positioned.fill(
       child: Stack(
         children: [
@@ -955,6 +995,17 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
                   Text(_l.icPleaseWait,
                       textAlign: TextAlign.center,
                       style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
+                  // A way out. A big cart is slow to read, and waiting is
+                  // fine — being unable to stop waiting is not.
+                  const SizedBox(height: 6),
+                  TextButton(
+                    onPressed: _cancelLoad,
+                    child: Text(MaterialLocalizations.of(context).cancelButtonLabel,
+                        style: AppFonts.body(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.muted)),
+                  ),
                 ],
               ),
             ),

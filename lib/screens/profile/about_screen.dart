@@ -4,10 +4,10 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
 import '../../widgets/back_chip.dart';
-import '../../widgets/developer_footer.dart';
+import '../../widgets/contact_footer.dart';
 
-/// "About HMH KARGO" — what the app does and how it works, plus the developer
-/// credit footer.
+/// "About HMH KARGO" — what the app does, how it works, what it is to the
+/// shops it buys from, and how to reach a person.
 class AboutScreen extends StatelessWidget {
   const AboutScreen({super.key});
 
@@ -45,7 +45,7 @@ class AboutScreen extends StatelessWidget {
             // kept where the app explains itself.
             Text(l.brandDisclaimer,
                 style: AppFonts.body(fontSize: 12.5, color: AppColors.muted, height: 1.55)),
-            const DeveloperFooter(),
+            const ContactFooter(),
           ],
         ),
       ),

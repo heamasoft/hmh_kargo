@@ -370,6 +370,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get developedBy => 'Developed by Heama Soft';
 
   @override
+  String get contactUs => 'Contact us on WhatsApp';
+
+  @override
   String get footerVisit => 'Click here to visit';
 
   @override

@@ -778,6 +778,12 @@ abstract class AppLocalizations {
   /// **'Developed by Heama Soft'**
   String get developedBy;
 
+  /// No description provided for @contactUs.
+  ///
+  /// In en, this message translates to:
+  /// **'Contact us on WhatsApp'**
+  String get contactUs;
+
   /// No description provided for @footerVisit.
   ///
   /// In en, this message translates to:
