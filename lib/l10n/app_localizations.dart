@@ -880,6 +880,12 @@ abstract class AppLocalizations {
   /// **'Türkiye'**
   String get turkiye;
 
+  /// No description provided for @storeLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Store'**
+  String get storeLabel;
+
   /// No description provided for @catFashion.
   ///
   /// In en, this message translates to:

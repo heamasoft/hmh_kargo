@@ -360,7 +360,10 @@ class _CartRow extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(item.store.toUpperCase(),
+                      // Where it is coming from, said as a kind of shop and a
+                      // place rather than by name. The link beside it opens the
+                      // shop's own page, where the shop names itself.
+                      child: Text(_storeLabel(context, l, item).toUpperCase(),
                           style: AppFonts.body(
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -544,3 +547,16 @@ class _Summary extends StatelessWidget {
   }
 }
 
+
+/// A cart line's shop, named by what kind it is and where it ships from —
+/// "Store · Türkiye" — rather than by brand. The shop names itself on its own
+/// page, which the link beside this label opens; a line from a shop we don't
+/// carry has only the word.
+String _storeLabel(BuildContext context, AppLocalizations l, CartLine item) {
+  for (final s in context.read<CatalogProvider>().stores) {
+    if (s.id == item.storeKey || (item.storeId != null && s.storeId == item.storeId)) {
+      return '${l.storeLabel} · ${s.region == 'turkiye' ? l.turkiye : l.international}';
+    }
+  }
+  return l.storeLabel;
+}

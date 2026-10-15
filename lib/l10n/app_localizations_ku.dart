@@ -427,6 +427,9 @@ class AppLocalizationsKu extends AppLocalizations {
   String get turkiye => 'تورکیا';
 
   @override
+  String get storeLabel => 'فرۆشگا';
+
+  @override
   String get catFashion => 'مۆدە';
 
   @override

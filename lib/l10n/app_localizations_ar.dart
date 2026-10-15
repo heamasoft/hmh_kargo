@@ -421,6 +421,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get turkiye => 'تركيا';
 
   @override
+  String get storeLabel => 'متجر';
+
+  @override
   String get catFashion => 'أزياء';
 
   @override

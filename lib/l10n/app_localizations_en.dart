@@ -426,6 +426,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get turkiye => 'Türkiye';
 
   @override
+  String get storeLabel => 'Store';
+
+  @override
   String get catFashion => 'Fashion';
 
   @override

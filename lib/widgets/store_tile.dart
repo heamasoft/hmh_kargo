@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
+import '../l10n/l10n_keys.dart';
 import '../models/store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -44,8 +45,11 @@ class StoreTile extends StatelessWidget {
           children: [
             _StoreIcon(store: store),
             const SizedBox(height: 9),
+            // What the shop sells, not whose shop it is. The initials on the
+            // tile tell them apart; the shop names itself when its own site
+            // opens, which is the only place it belongs.
             Text(
-              store.name,
+              l.byKey(store.categoryKey),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,

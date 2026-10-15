@@ -42,25 +42,9 @@ class ProductCard extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 ProductImage(url: product.imageUrl, gradient: product.gradient),
-                Positioned(
-                  left: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: AppColors.midnight.withValues(alpha: 0.82),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      product.store.toUpperCase(),
-                      style: AppFonts.body(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
+                // The shop's name used to sit here, over the photo. Whose shop
+                // it is, is the shop's to say on its own page; the card carries
+                // the product and its price.
                 if (showFav)
                   Positioned(top: 8, right: 8, child: FavButton(product: product)),
               ],
