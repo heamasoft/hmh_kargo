@@ -14,6 +14,12 @@ import '../utils/launcher.dart';
 class ContactFooter extends StatelessWidget {
   const ContactFooter({super.key});
 
+  /// The shop this number handles, written out at the owner's instruction.
+  /// Not translated: it is a shop's name, the same in every language — and it
+  /// is the one brand name the app still prints, so it lives here alone and is
+  /// easy to find if App Review asks for it to go.
+  static const _sheinDesk = 'Shein';
+
   /// wa.me wants the number in full international form, no plus and no zero.
   static const _waInternational = 'https://wa.me/9647507075295';
   static const _waTurkiye = 'https://wa.me/9647503186064';
@@ -36,7 +42,9 @@ class ContactFooter extends StatelessWidget {
           _row(
             context,
             icon: Icons.chat_bubble_outline_rounded,
-            label: l.international,
+            // Named at the owner's instruction: customers ask for this number
+            // by the shop they are ordering from, not by "international".
+            label: _sheinDesk,
             value: '0750 707 5295',
             url: _waInternational,
           ),
