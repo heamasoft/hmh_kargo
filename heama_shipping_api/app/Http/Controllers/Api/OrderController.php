@@ -44,7 +44,14 @@ class OrderController extends Controller
         return response()->json(['data' => (new OrderResource($order))->resolve($request)]);
     }
 
-    /** POST /orders — place an order from the cart, paid from the wallet. */
+    /**
+     * POST /orders — empty the cart into orders, paid from the wallet.
+     *
+     * One order per UNIT, each with its own code: every unit is bought,
+     * re-priced, boxed, shipped and cancelled on its own, so a cart of three
+     * products leaves three orders and a product taken twice leaves two. The
+     * reply carries them all.
+     */
     public function store(Request $request): JsonResponse
     {
         $data = $request->validate([
@@ -75,135 +82,132 @@ class OrderController extends Controller
             return response()->json(['message' => 'Your cart is empty.'], 422);
         }
 
-        // A cart can mix currencies (IQD Shein + USD Trendyol). Each currency
-        // becomes its own single-currency order, paid from its matching wallet.
-        $groups = $cart->items->groupBy(fn ($i) => strtoupper($i->charge_currency ?: 'IQD'));
-
         try {
-            $orders = DB::transaction(function () use ($buyer, $onBehalf, $cart, $groups, $data) {
+            $orders = DB::transaction(function () use ($buyer, $onBehalf, $cart, $data) {
                 $made = [];
-                foreach ($groups as $currency => $items) {
-                    $itemsTotal = (float) $items->sum(fn ($i) => (float) $i->iqd_price * (int) $i->qty);
-                    $breakdown = $this->pricing->breakdown(
-                        $itemsTotal,
-                        $this->pricing->shippingForItems($items, $currency),
-                        $currency,
-                        $this->pricing->serviceFeeForItems($items, $itemsTotal, $currency),
-                    );
+                // Both methods draw the amount down from the matching balance
+                // now. COD may push it negative — that negative is what the
+                // customer settles in cash on arrival, so COD ignores the
+                // credit limit; an admin placing an order for someone takes on
+                // the payment, so that ignores it too.
+                $isCod = $data['payment_method'] === 'cod';
 
-                    $order = Order::create([
-                        'code' => 'PENDING',
-                        'user_id' => $buyer->id,
-                        // Placed by an admin for the customer, not by the customer.
-                        'source' => $onBehalf ? 'admin_app' : 'app',
-                        'status' => 'placed',
-                        'currency' => $currency,
-                        // *_iqd columns hold minor units of $currency.
-                        'items_total_iqd' => $breakdown['items_total'],
-                        'shipping_iqd' => $breakdown['shipping'],
-                        'service_fee_iqd' => $breakdown['service_fee'],
-                        'total_iqd' => $breakdown['total'],
-                        'payment_method' => $data['payment_method'],
-                        'address' => $data['address'],
-                        'placed_at' => now(),
-                    ]);
-                    $order->update(['code' => 'HM-'.(20000 + $order->id)]);
+                foreach ($cart->items as $item) {
+                    $currency = strtoupper($item->charge_currency ?: 'IQD');
 
-                    foreach ($items as $item) {
-                        // A stock item is a single unit already in the company:
-                        // its price is all-in (shipping included) and it must
-                        // still be available. Claim it (step 'stock' → 'sold') and
-                        // abort the whole order if someone bought it first.
-                        if ($item->stock_item_id) {
-                            $claimed = \App\Models\OrderItem::query()
-                                ->where('id', $item->stock_item_id)
-                                ->where('step', 'stock')
-                                ->update(['step' => 'sold', 'updated_at' => now()]);
-                            if ($claimed === 0) {
-                                throw \Illuminate\Validation\ValidationException::withMessages([
-                                    'cart' => ['"'.$item->title.'" was just sold and is no longer available. Please remove it from your cart.'],
-                                ]);
-                            }
-                        }
-
-                        // Every unit is its own order line. Each one is bought,
-                        // boxed and shipped on its own — two of the same shirt
-                        // can be bought on different days and travel in
-                        // different parcels, and each carries its own step,
-                        // shipping price and cancellation — so a cart line of
-                        // two becomes two lines of one rather than a single row
-                        // with a quantity written on it.
-                        //
-                        // The money is untouched by this: the order's totals
-                        // were worked out from the cart above, and unit price
-                        // times one, summed over the units, is the same figure.
-                        // A stock item is one physical piece already in the
-                        // company — the one claimed above — so it is never more
-                        // than a single line however the cart is edited.
-                        $units = $item->stock_item_id ? 1 : max(1, (int) $item->qty);
-                        // Shipping is per unit now that each line is one unit.
-                        // Stock items ship free — their price already includes
-                        // it. Normal items carry $2/unit; the admin re-prices.
-                        $shipping = $item->stock_item_id
-                            ? 0.0
-                            : $this->pricing->shippingForItem($item->store, $currency, 1);
-
-                        for ($unit = 0; $unit < $units; $unit++) {
-                            $order->items()->create([
-                                'store_id' => $item->store_id,
-                                // A hand-added item has no store row, so the name
-                                // kept on the cart line comes across with it.
-                                'store_name' => $item->store?->name ?? $item->store_name,
-                                'source_url' => $item->source_url,
-                                'title' => $item->title,
-                                'image_url' => $item->image_url,
-                                'source_price' => $item->source_price,
-                                'source_currency' => $item->source_currency,
-                                'charge_currency' => $currency,
-                                'iqd_price' => $item->iqd_price,
-                                'shipping' => $shipping,
-                                'color' => $item->color,
-                                'size' => $item->size,
-                                'sku' => $item->sku,
-                                'note' => $item->note,
-                                'qty' => 1,
-                                'stock_item_id' => $item->stock_item_id,
+                    // A stock item is a single unit already in the company: its
+                    // price is all-in (shipping included) and it must still be
+                    // available. Claim it (step 'stock' → 'sold') and abort the
+                    // whole checkout if someone bought it first.
+                    if ($item->stock_item_id) {
+                        $claimed = \App\Models\OrderItem::query()
+                            ->where('id', $item->stock_item_id)
+                            ->where('step', 'stock')
+                            ->update(['step' => 'sold', 'updated_at' => now()]);
+                        if ($claimed === 0) {
+                            throw \Illuminate\Validation\ValidationException::withMessages([
+                                'cart' => ['"'.$item->title.'" was just sold and is no longer available. Please remove it from your cart.'],
                             ]);
                         }
                     }
 
-                    // Both wallet and cash-on-delivery draw the amount down from
-                    // the matching balance now. COD may push it negative — that
-                    // negative is what the customer settles in cash on arrival, so
-                    // COD ignores the credit limit. A WALLET order, however, is
-                    // blocked if it would take the balance past the customer's
-                    // credit limit for this currency (limit 0 = no negative).
-                    $isCod = $data['payment_method'] === 'cod';
-                    // An admin placing it takes responsibility for the payment, so the
-                    // customer's credit limit doesn't block it (like COD).
-                    $creditFloor = ($isCod || $onBehalf)
-                        ? null
-                        : (float) ($currency === 'USD'
-                            ? $buyer->credit_limit_usd
-                            : $buyer->credit_limit_iqd);
+                    // ONE ORDER PER UNIT, each with its own code.
+                    //
+                    // Every unit is bought, re-priced, boxed, shipped and
+                    // cancelled on its own — two of the same shirt can be
+                    // bought on different days and travel in different parcels
+                    // — so they are two orders rather than one order of two,
+                    // and a cart of several products is several orders rather
+                    // than one holding all of them. A stock item is one
+                    // physical piece, so it is always a single order.
+                    $units = $item->stock_item_id ? 1 : max(1, (int) $item->qty);
+                    $unitPrice = (float) $item->iqd_price;
+                    // Stock items ship free — their price already includes it.
+                    // Everything else carries the per-unit fee; the admin
+                    // re-prices it once the real cost is known.
+                    $shipping = $item->stock_item_id
+                        ? 0.0
+                        : $this->pricing->shippingForItem($item->store, $currency, 1);
+                    // The fee is worked out against this one line, so a line
+                    // from a free store carries none.
+                    $line = collect([$item]);
 
-                    $this->wallet->debit(
-                        $buyer,
-                        (float) $order->total_iqd,
-                        $currency,
-                        type: $isCod ? 'cod' : 'debit',
-                        note: "Order {$order->code}",
-                        orderId: $order->id,
-                        creditFloor: $creditFloor,
-                    );
+                    for ($unit = 0; $unit < $units; $unit++) {
+                        $breakdown = $this->pricing->breakdown(
+                            $unitPrice,
+                            $shipping,
+                            $currency,
+                            $this->pricing->serviceFeeForItems($line, $unitPrice, $currency),
+                        );
 
-                    $order->events()->create([
-                        'status' => 'placed',
-                        'note' => 'Order placed',
-                        'happened_at' => now(),
-                    ]);
+                        $order = Order::create([
+                            'code' => 'PENDING',
+                            'user_id' => $buyer->id,
+                            // Placed by an admin for the customer, not by them.
+                            'source' => $onBehalf ? 'admin_app' : 'app',
+                            'status' => 'placed',
+                            'currency' => $currency,
+                            // *_iqd columns hold minor units of $currency.
+                            'items_total_iqd' => $breakdown['items_total'],
+                            'shipping_iqd' => $breakdown['shipping'],
+                            'service_fee_iqd' => $breakdown['service_fee'],
+                            'total_iqd' => $breakdown['total'],
+                            'payment_method' => $data['payment_method'],
+                            'address' => $data['address'],
+                            'placed_at' => now(),
+                        ]);
+                        $order->update(['code' => 'HM-'.(20000 + $order->id)]);
 
-                    $made[] = $order;
+                        $order->items()->create([
+                            'store_id' => $item->store_id,
+                            // A hand-added item has no store row, so the name
+                            // kept on the cart line comes across with it.
+                            'store_name' => $item->store?->name ?? $item->store_name,
+                            'source_url' => $item->source_url,
+                            'title' => $item->title,
+                            'image_url' => $item->image_url,
+                            'source_price' => $item->source_price,
+                            'source_currency' => $item->source_currency,
+                            'charge_currency' => $currency,
+                            'iqd_price' => $item->iqd_price,
+                            'shipping' => $shipping,
+                            'color' => $item->color,
+                            'size' => $item->size,
+                            'sku' => $item->sku,
+                            'note' => $item->note,
+                            'qty' => 1,
+                            'stock_item_id' => $item->stock_item_id,
+                        ]);
+
+                        // A wallet order is blocked if it would take the
+                        // balance past the customer's credit limit for this
+                        // currency (limit 0 = no negative). Charged per order,
+                        // so the ledger holds one row per order code and a
+                        // refund matches exactly what that order took.
+                        $creditFloor = ($isCod || $onBehalf)
+                            ? null
+                            : (float) ($currency === 'USD'
+                                ? $buyer->credit_limit_usd
+                                : $buyer->credit_limit_iqd);
+
+                        $this->wallet->debit(
+                            $buyer,
+                            (float) $order->total_iqd,
+                            $currency,
+                            type: $isCod ? 'cod' : 'debit',
+                            note: "Order {$order->code}",
+                            orderId: $order->id,
+                            creditFloor: $creditFloor,
+                        );
+
+                        $order->events()->create([
+                            'status' => 'placed',
+                            'note' => 'Order placed',
+                            'happened_at' => now(),
+                        ]);
+
+                        $made[] = $order;
+                    }
                 }
 
                 $cart->items()->delete();
