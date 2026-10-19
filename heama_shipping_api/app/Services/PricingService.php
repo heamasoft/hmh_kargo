@@ -56,6 +56,18 @@ class PricingService
     }
 
     /** Converts an amount between currencies via IQD as the bridge (major units). */
+    /**
+     * Dinars per dollar for the international side, as the admin sets it in
+     * settings.fx_usd_iqd_shein. The fx_rates row stands in for it where the
+     * setting was never filled, so an untouched system keeps working.
+     */
+    public function usdToIqd(): float
+    {
+        $set = (float) Setting::get('fx_usd_iqd_shein', 0);
+
+        return $set > 0 ? $set : (float) FxRate::rateFor('USD');
+    }
+
     public function convert(float $amount, string $from, string $to): float
     {
         $from = strtoupper($from);
@@ -63,6 +75,24 @@ class PricingService
         if ($from === $to) {
             return $amount;
         }
+        // Dollars into dinars, and back, are the admin's own figure — the one
+        // they change when the street rate moves (settings.fx_usd_iqd_shein) —
+        // not the fx_rates row. Until now the cart charged from the row while
+        // the Me page quoted the setting, so editing the setting changed what
+        // was quoted and not what was charged.
+        //
+        // Only this pair. Lira into dollars stays on the table, because the
+        // lira rate is set against it to make the admin's "48 TL = $1" come out
+        // exactly, and moving the dollar leg would quietly move that too.
+        if ($from === 'USD' && $to === 'IQD') {
+            return $amount * $this->usdToIqd();
+        }
+        if ($from === 'IQD' && $to === 'USD') {
+            $rate = $this->usdToIqd();
+
+            return $rate > 0 ? $amount / $rate : 0.0;
+        }
+
         $rFrom = $from === 'IQD' ? 1.0 : FxRate::rateFor($from);
         $rTo = $to === 'IQD' ? 1.0 : FxRate::rateFor($to);
         if ($rFrom <= 0 || $rTo <= 0) {
@@ -119,7 +149,9 @@ class PricingService
     public function publicRates(): array
     {
         return [
-            'usd_rate' => FxRate::rateFor('USD'),
+            // The same figure the cart charges at, so the Me page's card and
+            // its calculator quote what an order will actually cost.
+            'usd_rate' => $this->usdToIqd(),
             'try_rate' => FxRate::rateFor('TRY'),
             // Lira per dollar as the admin sets it (settings.fx_usd_tl_turkish) —
             // what the Me page's lira card converts with. 0 when unset.

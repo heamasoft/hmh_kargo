@@ -86,7 +86,12 @@ class ContactFooter extends StatelessWidget {
                   style: AppFonts.body(
                       fontSize: 12.5, fontWeight: FontWeight.w600, color: AppColors.muted)),
             ],
+            // A phone number and a handle read left to right in every
+            // language. Left to the page's own direction, Arabic and Kurdish
+            // reorder the groups — "0750 707 5295" comes out backwards, and
+            // the "@" jumps to the far end of the handle.
             Text(value,
+                textDirection: TextDirection.ltr,
                 style: AppFonts.body(
                     fontSize: 13, fontWeight: FontWeight.w700, color: AppColors.ink)),
           ],
