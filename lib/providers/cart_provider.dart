@@ -65,13 +65,6 @@ class CartProvider extends ChangeNotifier {
     return _mutate(() => _api.updatePrice(itemId, amount));
   }
 
-  /// What one unit of a line costs to bring, set by an admin. Null restores
-  /// the standard rate.
-  Future<bool> updateShipping(int itemId, num? amount) async {
-    if (amount != null && amount < 0) return true;
-    return _mutate(() => _api.updateShipping(itemId, amount));
-  }
-
   Future<bool> remove(int itemId) async {
     return _mutate(() => _api.remove(itemId));
   }

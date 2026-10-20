@@ -428,10 +428,20 @@ class _CartRow extends StatelessWidget {
                     style: AppFonts.body(fontSize: 11, color: AppColors.muted),
                   ),
                 ],
-                const SizedBox(height: 3),
-                // What this line adds for carriage. An admin sets it here too:
-                // the flat rate is a guess made before the parcel is weighed.
-                AdminShippingField(item: item),
+                // This line's carriage — $2 per unit × qty for Türkiye, nothing
+                // for the international side or for stock already here. Read
+                // only: the real cost is known after the parcel is weighed, so
+                // it is set on the order itself, in the CMS, not in the cart.
+                if (item.shipping > 0) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    '+ ${l.itemShipping}: ${formatMoney(item.shipping, item.chargeCurrency, iqdLabel: l.iqd)}',
+                    style: AppFonts.body(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.transitText),
+                  ),
+                ],
                 const SizedBox(height: 3),
                 // Goods plus carriage — everything this product costs.
                 Text(

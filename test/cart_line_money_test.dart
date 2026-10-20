@@ -10,8 +10,6 @@ Map<String, dynamic> _line({
   num sourcePrice = 96,
   String sourceCurrency = 'TRY',
   num shipping = 2,
-  num? shippingUnit = 2,
-  bool shippingSet = false,
   int qty = 1,
 }) =>
     {
@@ -23,8 +21,6 @@ Map<String, dynamic> _line({
       'source_price': sourcePrice,
       'source_currency': sourceCurrency,
       'shipping': shipping,
-      if (shippingUnit != null) 'shipping_unit': shippingUnit,
-      'shipping_set': shippingSet,
       'qty': qty,
       'line_total_iqd': price * qty,
     };
@@ -37,12 +33,15 @@ void main() {
     });
 
     test('counts the carriage for every unit, as the order will', () {
-      // Two of the coat ship as two orders of one, so two lots of carriage —
-      // the server sends the line's whole shipping, and the editor the unit's.
+      // Two of the coat ship as two orders of one, so two lots of carriage.
       final line = CartLine.fromJson(_line(price: 61, shipping: 4, qty: 2));
-      expect(line.shipping, 4);
-      expect(line.shippingUnit, 2);
       expect(line.allIn, 126); // 61 × 2 + 4
+    });
+
+    test('is just the goods where nothing is charged to bring them', () {
+      // The international side ships free, and a stock item's price is all-in.
+      final line = CartLine.fromJson(_line(price: 114000, chargeCurrency: 'IQD', shipping: 0));
+      expect(line.allIn, 114000);
     });
   });
 
@@ -58,8 +57,7 @@ void main() {
     });
 
     test('is left out when the shop price never came through', () {
-      final line = _line(sourcePrice: 0);
-      expect(CartLine.fromJson(line).showsSourcePrice, isFalse);
+      expect(CartLine.fromJson(_line(sourcePrice: 0)).showsSourcePrice, isFalse);
     });
 
     test('still shows for the international side, in dollars against dinars', () {
@@ -69,17 +67,8 @@ void main() {
         sourcePrice: 67.62,
         sourceCurrency: 'USD',
         shipping: 0,
-        shippingUnit: 0,
       );
       expect(CartLine.fromJson(line).showsSourcePrice, isTrue);
-    });
-  });
-
-  group('a server that does not send the unit figure yet', () {
-    test('falls back to the line figure rather than showing nothing', () {
-      final line = CartLine.fromJson(_line(shippingUnit: null));
-      expect(line.shippingUnit, 2);
-      expect(line.shippingSet, isFalse);
     });
   });
 }

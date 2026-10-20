@@ -48,12 +48,6 @@ class CartLine {
   /// This line's shipping fee ($2/unit × qty for non-Shein, 0 for Shein), in
   /// [chargeCurrency].
   final num shipping;
-
-  /// The same, for ONE unit: what an admin edits, since each unit ships as its
-  /// own order. [shippingSet] is true once an admin has put a figure on this
-  /// line, as against the standard rate.
-  final num shippingUnit;
-  final bool shippingSet;
   final int qty;
   final num lineTotalIqd;
   final String? color;
@@ -76,8 +70,6 @@ class CartLine {
     this.sourcePrice = 0,
     this.sourceCurrency = '',
     this.shipping = 0,
-    this.shippingUnit = 0,
-    this.shippingSet = false,
     required this.qty,
     required this.lineTotalIqd,
     this.color,
@@ -111,8 +103,6 @@ class CartLine {
         sourcePrice: (json['source_price'] ?? 0) as num,
         sourceCurrency: (json['source_currency'] ?? '') as String? ?? '',
         shipping: (json['shipping'] ?? 0) as num,
-        shippingUnit: (json['shipping_unit'] ?? json['shipping'] ?? 0) as num,
-        shippingSet: (json['shipping_set'] ?? false) as bool? ?? false,
         qty: (json['qty'] ?? 1) as int,
         lineTotalIqd: (json['line_total_iqd'] ?? 0) as num,
         color: json['color'] as String?,

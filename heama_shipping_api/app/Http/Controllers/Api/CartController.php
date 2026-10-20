@@ -126,31 +126,18 @@ class CartController extends Controller
             'color' => ['nullable', 'string', 'max:60'],
             'size' => ['nullable', 'string', 'max:60'],
             'note' => ['nullable', 'string', 'max:500'],
-            // The all-in unit price, and what this line costs to bring, both
-            // set by hand. Admins only — see below.
-            'shipping_amount' => ['nullable', 'numeric', 'min:0'],
+            // The all-in unit price, set by hand. Admins only — see below.
             'charge_amount' => ['nullable', 'numeric', 'min:0'],
         ]);
 
         // What a line costs is ours to decide, not the buyer's: an admin may
         // set it by hand, here as in the capture sheet, and for anyone else the
         // field is ignored however the request was made.
-        unset($data['shipping_amount']);
         $price = $data['charge_amount'] ?? null;
         unset($data['charge_amount']);
         if ($price !== null && $request->user()->is_admin) {
             $data['iqd_price'] = (float) $price;
         }
-
-        // Carriage is settled the same way. The admin's figure is PER UNIT,
-        // because every unit ships as its own order, and sending the field
-        // empty puts the line back on the standard rate. It is set on the
-        // model here and written by the update below, along with the rest.
-        if ($request->user()->is_admin && $request->exists('shipping_amount')) {
-            $ship = $request->input('shipping_amount');
-            $item->shipping_override = ($ship === null || $ship === '') ? null : (float) $ship;
-        }
-
         // A stock line is one physical piece already sitting in the company,
         // and there is only ever the one of it — asking for more would charge
         // for a second that cannot be delivered.
@@ -215,9 +202,7 @@ class CartController extends Controller
             $itemsTotal = (float) $items->sum(fn ($i) => (float) $i->iqd_price * (int) $i->qty);
             $totals[] = $this->pricing->breakdown(
                 $itemsTotal,
-                // Each line's own carriage, so an admin's figure on one line
-                // moves the cart's Shipping total with it.
-                (float) $items->sum(fn ($i) => $i->shippingTotal($this->pricing)),
+                $this->pricing->shippingForItems($items, $currency),
                 $currency,
                 $this->pricing->serviceFeeForItems($items, $itemsTotal, $currency),
             );
