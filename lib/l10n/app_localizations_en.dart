@@ -343,6 +343,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get itemShipping => 'Shipping';
 
   @override
+  String get shopPrice => 'Shop price';
+
+  @override
+  String get lineTotal => 'Item total';
+
+  @override
   String get cancelItemAction => 'Cancel item';
 
   @override

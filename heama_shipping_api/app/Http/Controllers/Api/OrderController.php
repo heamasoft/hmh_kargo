@@ -122,12 +122,10 @@ class OrderController extends Controller
                     // physical piece, so it is always a single order.
                     $units = $item->stock_item_id ? 1 : max(1, (int) $item->qty);
                     $unitPrice = (float) $item->iqd_price;
-                    // Stock items ship free — their price already includes it.
-                    // Everything else carries the per-unit fee; the admin
-                    // re-prices it once the real cost is known.
-                    $shipping = $item->stock_item_id
-                        ? 0.0
-                        : $this->pricing->shippingForItem($item->store, $currency, 1);
+                    // What one unit costs to bring: the admin's own figure for
+                    // this line where they set one, otherwise the flat rate —
+                    // and nothing at all for stock, whose price is all-in.
+                    $shipping = $item->shippingUnit($this->pricing);
                     // The fee is worked out against this one line, so a line
                     // from a free store carries none.
                     $line = collect([$item]);

@@ -730,6 +730,18 @@ abstract class AppLocalizations {
   /// **'Shipping'**
   String get itemShipping;
 
+  /// No description provided for @shopPrice.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop price'**
+  String get shopPrice;
+
+  /// No description provided for @lineTotal.
+  ///
+  /// In en, this message translates to:
+  /// **'Item total'**
+  String get lineTotal;
+
   /// No description provided for @cancelItemAction.
   ///
   /// In en, this message translates to:

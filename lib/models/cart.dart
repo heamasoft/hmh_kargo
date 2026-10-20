@@ -39,9 +39,21 @@ class CartLine {
   final String chargeCurrency;
   final num iqdPrice;
 
+  /// What the shop itself asks, in the shop's own money — lira for Türkiye,
+  /// dollars for the international side. Shown beside what we charge so the
+  /// figure can be checked against where it came from.
+  final num sourcePrice;
+  final String sourceCurrency;
+
   /// This line's shipping fee ($2/unit × qty for non-Shein, 0 for Shein), in
   /// [chargeCurrency].
   final num shipping;
+
+  /// The same, for ONE unit: what an admin edits, since each unit ships as its
+  /// own order. [shippingSet] is true once an admin has put a figure on this
+  /// line, as against the standard rate.
+  final num shippingUnit;
+  final bool shippingSet;
   final int qty;
   final num lineTotalIqd;
   final String? color;
@@ -61,7 +73,11 @@ class CartLine {
     required this.imageUrl,
     this.chargeCurrency = 'IQD',
     required this.iqdPrice,
+    this.sourcePrice = 0,
+    this.sourceCurrency = '',
     this.shipping = 0,
+    this.shippingUnit = 0,
+    this.shippingSet = false,
     required this.qty,
     required this.lineTotalIqd,
     this.color,
@@ -71,6 +87,16 @@ class CartLine {
   });
 
   static const defaultGradient = [Color(0xFFC9B6E8), Color(0xFFE9C7D6)];
+
+  /// Everything this line costs: the goods, plus bringing them.
+  num get allIn => lineTotalIqd + shipping;
+
+  /// True when the shop's own price is in a different currency from the one we
+  /// charge in — the only case where showing both tells the reader anything.
+  bool get showsSourcePrice =>
+      sourcePrice > 0 &&
+      sourceCurrency.trim().isNotEmpty &&
+      sourceCurrency.toUpperCase() != chargeCurrency.toUpperCase();
 
   factory CartLine.fromJson(Map<String, dynamic> json) => CartLine(
         id: json['id'] as int,
@@ -82,7 +108,11 @@ class CartLine {
         imageUrl: (json['image_url'] ?? '') as String? ?? '',
         chargeCurrency: (json['charge_currency'] ?? 'IQD') as String,
         iqdPrice: (json['iqd_price'] ?? 0) as num,
+        sourcePrice: (json['source_price'] ?? 0) as num,
+        sourceCurrency: (json['source_currency'] ?? '') as String? ?? '',
         shipping: (json['shipping'] ?? 0) as num,
+        shippingUnit: (json['shipping_unit'] ?? json['shipping'] ?? 0) as num,
+        shippingSet: (json['shipping_set'] ?? false) as bool? ?? false,
         qty: (json['qty'] ?? 1) as int,
         lineTotalIqd: (json['line_total_iqd'] ?? 0) as num,
         color: json['color'] as String?,

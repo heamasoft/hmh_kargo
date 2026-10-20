@@ -114,6 +114,8 @@
   "approvalRejectedMsg": "تم الرفض — أُزيل المنتج من طلبك وأُعيد المبلغ إلى محفظتك.",
   "approvalsEmpty": "لا توجد موافقات شحن معلّقة.",
   "itemShipping": "الشحن",
+  "shopPrice": "سعر المتجر",
+  "lineTotal": "إجمالي المنتج",
   "cancelItemAction": "إلغاء المنتج",
   "cancelItemConfirm": "إلغاء هذا المنتج؟ سيُعاد سعره وشحنه إلى محفظتك.",
   "itemCancelledMsg": "تم إلغاء المنتج — أُعيد المبلغ إلى محفظتك.",

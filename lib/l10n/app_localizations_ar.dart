@@ -338,6 +338,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get itemShipping => 'الشحن';
 
   @override
+  String get shopPrice => 'سعر المتجر';
+
+  @override
+  String get lineTotal => 'إجمالي المنتج';
+
+  @override
   String get cancelItemAction => 'إلغاء المنتج';
 
   @override

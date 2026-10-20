@@ -418,18 +418,26 @@ class _CartRow extends StatelessWidget {
                 // Plain text for a shopper; an admin sets it here, where the
                 // whole cart is in front of them, and the totals below follow.
                 AdminPriceField(item: item),
-                // This line's shipping — $2 per unit × qty (0 for Shein), so the
-                // shopper sees exactly what each product adds to the total.
-                if (item.shipping > 0) ...[
-                  const SizedBox(height: 2),
+                // The shop's own price, in the shop's own money, under what we
+                // charge: a Türkiye line reads 96.00 TL → $3.00, so the dollar
+                // figure can be read against where it came from.
+                if (item.showsSourcePrice) ...[
+                  const SizedBox(height: 1),
                   Text(
-                    '+ ${l.itemShipping}: ${formatMoney(item.shipping, item.chargeCurrency, iqdLabel: l.iqd)}',
-                    style: AppFonts.body(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.transitText),
+                    '${l.shopPrice}: ${formatMoney(item.sourcePrice, item.sourceCurrency, iqdLabel: l.iqd)}',
+                    style: AppFonts.body(fontSize: 11, color: AppColors.muted),
                   ),
                 ],
+                const SizedBox(height: 3),
+                // What this line adds for carriage. An admin sets it here too:
+                // the flat rate is a guess made before the parcel is weighed.
+                AdminShippingField(item: item),
+                const SizedBox(height: 3),
+                // Goods plus carriage — everything this product costs.
+                Text(
+                  '${l.lineTotal}: ${formatMoney(item.allIn, item.chargeCurrency, iqdLabel: l.iqd)}',
+                  style: AppFonts.body(fontSize: 12, fontWeight: FontWeight.w700),
+                ),
                 const SizedBox(height: 6),
                 _QtyStepper(item: item),
               ],

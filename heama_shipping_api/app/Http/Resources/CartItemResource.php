@@ -11,17 +11,13 @@ class CartItemResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
-        // This line's shipping: $2/unit × qty for non-Shein, 0 for Shein — shown
-        // inside each cart card and summed into the cart's Shipping total.
-        // Stock items ship free (their stored price already includes it).
+        // What this line adds for carriage: the admin's own figure where they
+        // set one, otherwise the flat per-unit rate ($2 for Türkiye, 0 for the
+        // international side, 0 for stock already here). Shown inside the cart
+        // card and summed into the cart's Shipping total.
         $pricing = app(PricingService::class);
-        $shipping = $this->stock_item_id
-            ? 0.0
-            : $pricing->shippingForItem(
-                $this->store,
-                strtoupper($this->charge_currency ?: 'IQD'),
-                (int) $this->qty,
-            );
+        $shippingUnit = $this->shippingUnit($pricing);
+        $shipping = $this->shippingTotal($pricing);
 
         return [
             'id' => $this->id,
@@ -34,18 +30,28 @@ class CartItemResource extends JsonResource
             'source_url' => $this->source_url,
             'title' => $this->title,
             'image_url' => $this->image_url,
+            // What the shop itself asks, in the shop's own currency — the cart
+            // shows it beside what we charge, so a shopper can see where the
+            // dollar figure came from and an admin can check it at a glance.
             'source_price' => (float) $this->source_price,
             'source_currency' => $this->source_currency,
             'charge_currency' => $this->charge_currency ?: 'IQD',
             // Real amount in charge_currency (IQD dinars / USD dollars).
             'iqd_price' => (float) $this->iqd_price,
+            // Per unit, and for the line. The app edits the per-unit figure.
+            'shipping_unit' => (float) $shippingUnit,
             'shipping' => (float) $shipping,
+            // True once an admin has set this line's shipping by hand, so the
+            // app can show it as theirs rather than as the standard rate.
+            'shipping_set' => $this->shipping_override !== null,
             'color' => $this->color,
             'size' => $this->size,
             'sku' => $this->sku,
             'note' => $this->note,
             'qty' => (int) $this->qty,
             'line_total_iqd' => (float) $this->lineTotalIqd(),
+            // Everything this line costs: the goods plus their carriage.
+            'line_all_in' => round((float) $this->lineTotalIqd() + $shipping, 2),
             // In-stock item (already in the company; ships free, ready to deliver).
             'is_stock' => $this->stock_item_id !== null,
         ];

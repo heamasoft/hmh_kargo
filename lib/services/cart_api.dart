@@ -70,6 +70,14 @@ class CartApi {
         await _client.patch('/cart/items/$itemId', data: {'charge_amount': amount}));
   }
 
+  /// Sets what one unit of a line costs to bring. Admins only, and per unit —
+  /// each unit ships as its own order. A null amount puts the line back on the
+  /// standard rate.
+  Future<Cart> updateShipping(int itemId, num? amount) async {
+    return Cart.fromJson(
+        await _client.patch('/cart/items/$itemId', data: {'shipping_amount': amount}));
+  }
+
   Future<Cart> updateQty(int itemId, int qty) async {
     return Cart.fromJson(await _client.patch('/cart/items/$itemId', data: {'qty': qty}));
   }

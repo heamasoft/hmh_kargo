@@ -118,6 +118,8 @@
   "approvalRejectedMsg": "Rejected — the item was removed from your order and refunded to your wallet.",
   "approvalsEmpty": "No pending shipping approvals.",
   "itemShipping": "Shipping",
+  "shopPrice": "Shop price",
+  "lineTotal": "Item total",
   "cancelItemAction": "Cancel item",
   "cancelItemConfirm": "Cancel this item? Its price and shipping will be refunded to your wallet.",
   "itemCancelledMsg": "Item cancelled — refunded to your wallet.",
