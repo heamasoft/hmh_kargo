@@ -415,41 +415,55 @@ class _CartRow extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 6),
-                // Plain text for a shopper; an admin sets it here, where the
-                // whole cart is in front of them, and the totals below follow.
-                AdminPriceField(item: item),
-                // The shop's own price, in the shop's own money, under what we
-                // charge: a Türkiye line reads 96.00 TL → $3.00, so the dollar
-                // figure can be read against where it came from.
-                if (item.showsSourcePrice) ...[
-                  const SizedBox(height: 1),
-                  Text(
-                    '${l.shopPrice}: ${formatMoney(item.sourcePrice, item.sourceCurrency, iqdLabel: l.iqd)}',
-                    style: AppFonts.body(fontSize: 11, color: AppColors.muted),
-                  ),
-                ],
-                // This line's carriage — $2 per unit × qty for Türkiye, nothing
-                // for the international side or for stock already here. Read
-                // only: the real cost is known after the parcel is weighed, so
-                // it is set on the order itself, in the CMS, not in the cart.
-                if (item.shipping > 0) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    '+ ${l.itemShipping}: ${formatMoney(item.shipping, item.chargeCurrency, iqdLabel: l.iqd)}',
-                    style: AppFonts.body(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.transitText),
-                  ),
-                ],
-                const SizedBox(height: 3),
-                // Goods plus carriage — everything this product costs.
-                Text(
-                  '${l.lineTotal}: ${formatMoney(item.allIn, item.chargeCurrency, iqdLabel: l.iqd)}',
-                  style: AppFonts.body(fontSize: 12, fontWeight: FontWeight.w700),
+                // What we charge, with what the shop itself asks beside it: a
+                // Türkiye line reads $5.00 · 138.99 TL, the international side
+                // 114,000 IQD · $67.62. An admin sets ours in place.
+                Row(
+                  children: [
+                    AdminPriceField(item: item),
+                    if (item.showsSourcePrice) ...[
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Tooltip(
+                          message: l.shopPrice,
+                          child: Text(
+                            '· ${formatMoney(item.sourcePrice, item.sourceCurrency, iqdLabel: l.iqd)}',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppFonts.body(fontSize: 11, color: AppColors.muted),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
                 const SizedBox(height: 6),
-                _QtyStepper(item: item),
+                // How many, what the carriage adds, and what the line comes to,
+                // on one row — stacked, these three made every card taller than
+                // the picture beside it and pushed the next item off the screen.
+                Row(
+                  children: [
+                    _QtyStepper(item: item),
+                    const Spacer(),
+                    if (item.shipping > 0) ...[
+                      Text(
+                        '+ ${formatMoney(item.shipping, item.chargeCurrency, iqdLabel: l.iqd)}',
+                        style: AppFonts.body(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.transitText),
+                      ),
+                      const SizedBox(width: 8),
+                    ],
+                    Tooltip(
+                      message: l.lineTotal,
+                      child: Text(
+                        formatMoney(item.allIn, item.chargeCurrency, iqdLabel: l.iqd),
+                        style: AppFonts.body(fontSize: 13.5, fontWeight: FontWeight.w800),
+                      ),
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
