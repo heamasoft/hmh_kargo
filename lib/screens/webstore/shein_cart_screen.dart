@@ -236,8 +236,51 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   @override
   void dispose() {
     _deadline?.cancel();
+    _hardStop?.cancel();
+    _humanWatch?.cancel();
     _link.dispose();
     super.dispose();
+  }
+
+  /// The longest a single load may run, however busy the page looks.
+  ///
+  /// The quiet-window timer alone is not enough: a store page goes on loading
+  /// images and trackers for as long as it is open, and every one of those
+  /// pushes the window out again — so a load that will never finish can keep
+  /// the screen locked indefinitely. This one cannot be pushed out.
+  static const _hardLimit = Duration(minutes: 3);
+
+  Timer? _hardStop;
+  Timer? _humanWatch;
+
+  /// Watches the store's human check for the moment it is passed.
+  ///
+  /// Nothing in the WebView reliably announces that: the page can clear the
+  /// check in place, with no new address and no progress event, and the import
+  /// would then wait for something that never comes — with the overlay gone,
+  /// no timer running and Load doing nothing, which is a freeze with no way
+  /// out but to leave the screen. So the page is asked where it is every few
+  /// seconds, and reading starts the moment it is no longer on the check.
+  void _watchHumanCheck() {
+    _humanWatch?.cancel();
+    _humanWatch = Timer.periodic(const Duration(seconds: 3), (t) async {
+      if (!mounted || !_busy || !_needsHuman) {
+        t.cancel();
+        return;
+      }
+      final url = await _controller.currentUrl();
+      if (!mounted || !_needsHuman) {
+        t.cancel();
+        return;
+      }
+      _checkChallenge(url ?? '');
+      if (!_needsHuman) {
+        t.cancel();
+        dlog('cart', 'check passed — picked up by the watcher, not by an event');
+        _touchDeadline();
+        _startReading();
+      }
+    });
   }
 
   /// Lifts the overlay while Shein's human check is up — the shopper has to
@@ -258,6 +301,15 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
         _stage = _l.icReading;
       }
     });
+    // Handing the page over suspends the quiet-window timer, since the wait is
+    // now the shopper's. Something still has to notice when they are through,
+    // and the page does not always say — hence the watcher.
+    if (challenge) {
+      _watchHumanCheck();
+    } else {
+      _humanWatch?.cancel();
+      _touchDeadline();
+    }
   }
 
   /// Starts the in-page reader once per page. It waits inside the page for the
@@ -297,6 +349,8 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   /// should have to wait out a timer behind a screen they cannot dismiss.
   void _cancelLoad() {
     _deadline?.cancel();
+    _hardStop?.cancel();
+    _humanWatch?.cancel();
     if (!mounted) return;
     dlog('cart', 'load cancelled by the shopper');
     setState(() {
@@ -310,6 +364,8 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
 
   void _fail(String message) {
     _deadline?.cancel();
+    _hardStop?.cancel();
+    _humanWatch?.cancel();
     if (!mounted) return;
     dlog('cart', 'load failed: $message');
     setState(() {
@@ -339,7 +395,16 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   /// Resolve the pasted share link, then load the cart page it points at.
   Future<void> _open() async {
     final raw = _link.text.trim();
-    if (raw.isEmpty || _busy) return;
+    if (raw.isEmpty) return;
+    // Pressing Load while one is already running starts again rather than
+    // doing nothing. A load can end up waiting on something that never
+    // arrives — a check cleared in place, an event the WebView did not send —
+    // and a button that silently refuses is the difference between a shopper
+    // waiting half an hour and a shopper trying again.
+    if (_busy) {
+      dlog('cart', 'load restarted while one was running');
+      _cancelLoad();
+    }
     FocusScope.of(context).unfocus(); // drop the keyboard off the overlay
     // Shein's cart share copies a whole recommendation message with the link
     // stuck to the end of it — take the URL out of whatever was pasted.
@@ -366,6 +431,11 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       _showReview = false;
     });
     _touchDeadline();
+    // And a limit nothing can push out, for a page that never stops loading.
+    _hardStop?.cancel();
+    _hardStop = Timer(_hardLimit, () {
+      if (_busy) _fail(_l.icTooLong);
+    });
 
     final resolved = await _capture.resolve(uri.toString());
     dlog('cart', 'resolve → share=${resolved.isShare} cart=${resolved.isCart} '
@@ -529,6 +599,8 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       return;
     }
     _deadline?.cancel();
+    _hardStop?.cancel();
+    _humanWatch?.cancel();
     setState(() {
       _items = rows;
       _busy = false;
