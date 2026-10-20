@@ -80,6 +80,11 @@ class CartLine {
 
   static const defaultGradient = [Color(0xFFC9B6E8), Color(0xFFE9C7D6)];
 
+  /// What bringing ONE of these costs, in [chargeCurrency]: the line's figure
+  /// shared out over its units, which is what an order carries — each unit is
+  /// placed as its own order.
+  num get shippingUnit => qty > 0 ? shipping / qty : shipping;
+
   /// Everything this line costs: the goods, plus bringing them.
   num get allIn => lineTotalIqd + shipping;
 

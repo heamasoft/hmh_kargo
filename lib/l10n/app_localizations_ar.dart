@@ -341,6 +341,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shopPrice => 'سعر المتجر';
 
   @override
+  String get shippingPerItem => 'الشحن لكل منتج';
+
+  @override
   String get lineTotal => 'إجمالي المنتج';
 
   @override

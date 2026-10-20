@@ -346,6 +346,9 @@ class AppLocalizationsKu extends AppLocalizations {
   String get shopPrice => 'نرخی فرۆشگا';
 
   @override
+  String get shippingPerItem => 'گەیاندن بۆ هەر کاڵایەک';
+
+  @override
   String get lineTotal => 'کۆی کاڵا';
 
   @override

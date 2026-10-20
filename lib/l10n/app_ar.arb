@@ -115,6 +115,7 @@
   "approvalsEmpty": "لا توجد موافقات شحن معلّقة.",
   "itemShipping": "الشحن",
   "shopPrice": "سعر المتجر",
+  "shippingPerItem": "الشحن لكل منتج",
   "lineTotal": "إجمالي المنتج",
   "cancelItemAction": "إلغاء المنتج",
   "cancelItemConfirm": "إلغاء هذا المنتج؟ سيُعاد سعره وشحنه إلى محفظتك.",

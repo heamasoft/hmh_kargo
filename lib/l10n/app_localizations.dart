@@ -736,6 +736,12 @@ abstract class AppLocalizations {
   /// **'Shop price'**
   String get shopPrice;
 
+  /// No description provided for @shippingPerItem.
+  ///
+  /// In en, this message translates to:
+  /// **'Shipping per item'**
+  String get shippingPerItem;
+
   /// No description provided for @lineTotal.
   ///
   /// In en, this message translates to:

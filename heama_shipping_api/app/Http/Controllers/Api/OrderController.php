@@ -62,6 +62,11 @@ class OrderController extends Controller
             'address.city' => ['required', 'string', 'max:120'],
             'address.street' => ['required', 'string', 'max:255'],
             'address.phone' => ['required', 'string', 'max:40'],
+            // Admin only: what each line costs to bring, per unit, keyed by
+            // cart item id. Set at checkout, where the admin knows the real
+            // cost, and carried onto the order instead of the flat rate.
+            'shipping' => ['nullable', 'array'],
+            'shipping.*' => ['numeric', 'min:0', 'max:1000000'],
             // Admin only: place the order FOR this customer, as if they had.
             'customer_id' => ['nullable', 'integer', 'exists:users,id'],
         ]);
@@ -78,12 +83,22 @@ class OrderController extends Controller
         }
         $onBehalf = $buyer->id !== $user->id;
 
+        // Carriage is ours to decide, not the buyer's: an admin's figures are
+        // taken as sent, and everyone else's are dropped however the request
+        // was made. JSON object keys arrive as strings, so they are made ids.
+        $setShipping = [];
+        if ($user->is_admin) {
+            foreach ((array) ($data['shipping'] ?? []) as $id => $amount) {
+                $setShipping[(int) $id] = (float) $amount;
+            }
+        }
+
         if (! $cart || $cart->items->isEmpty()) {
             return response()->json(['message' => 'Your cart is empty.'], 422);
         }
 
         try {
-            $orders = DB::transaction(function () use ($buyer, $onBehalf, $cart, $data) {
+            $orders = DB::transaction(function () use ($buyer, $onBehalf, $cart, $data, $setShipping) {
                 $made = [];
                 // Both methods draw the amount down from the matching balance
                 // now. COD may push it negative — that negative is what the
@@ -122,12 +137,15 @@ class OrderController extends Controller
                     // physical piece, so it is always a single order.
                     $units = $item->stock_item_id ? 1 : max(1, (int) $item->qty);
                     $unitPrice = (float) $item->iqd_price;
-                    // Stock items ship free — their price already includes it.
-                    // Everything else carries the per-unit fee; the admin
-                    // re-prices it once the real cost is known.
-                    $shipping = $item->stock_item_id
-                        ? 0.0
-                        : $this->pricing->shippingForItem($item->store, $currency, 1);
+                    // What one of these costs to bring. The admin's own figure
+                    // from checkout where they gave one — they know what the
+                    // parcel really costs — otherwise the flat per-unit rate,
+                    // and nothing for stock, whose price already includes it.
+                    $shipping = array_key_exists($item->id, $setShipping)
+                        ? $setShipping[$item->id]
+                        : ($item->stock_item_id
+                            ? 0.0
+                            : $this->pricing->shippingForItem($item->store, $currency, 1));
                     // The fee is worked out against this one line, so a line
                     // from a free store carries none.
                     $line = collect([$item]);

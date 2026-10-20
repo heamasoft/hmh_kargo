@@ -12,10 +12,16 @@ class OrderApi {
     required Map<String, dynamic> address,
     String paymentMethod = 'wallet',
     int? customerId,
+    Map<int, num>? shipping,
   }) async {
     final json = await _client.post('/orders', data: {
       'payment_method': paymentMethod,
       'address': address,
+      // Admin only: what each line costs to bring, per unit, keyed by cart
+      // item id — the figure the admin set at checkout. The server stores it
+      // on the order item; anyone else's is ignored.
+      if (shipping != null && shipping.isNotEmpty)
+        'shipping': shipping.map((id, amount) => MapEntry(id.toString(), amount)),
       // Admin only: the order is placed for (and charged to) this customer.
       if (customerId != null) 'customer_id': customerId,
     });

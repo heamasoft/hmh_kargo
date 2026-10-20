@@ -38,6 +38,17 @@ void main() {
       expect(line.allIn, 126); // 61 × 2 + 4
     });
 
+    test('shares the line carriage out over its units, as the order will', () {
+      // Two of the coat ship as two orders of one, so the order each carries
+      // is half the line's figure — that is what the admin edits at checkout.
+      final line = CartLine.fromJson(_line(price: 61, shipping: 4, qty: 2));
+      expect(line.shippingUnit, 2);
+    });
+
+    test('is nothing per unit when nothing is charged to bring the line', () {
+      expect(CartLine.fromJson(_line(shipping: 0)).shippingUnit, 0);
+    });
+
     test('is just the goods where nothing is charged to bring them', () {
       // The international side ships free, and a stock item's price is all-in.
       final line = CartLine.fromJson(_line(price: 114000, chargeCurrency: 'IQD', shipping: 0));

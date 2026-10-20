@@ -57,14 +57,15 @@ class OrdersProvider extends ChangeNotifier {
   /// Places order(s) from the cart (one per currency).
   /// Returns (orders, wallet balances by currency). Throws ApiException.
   Future<(List<Order>, Map<String, num>)> placeOrder(Map<String, dynamic> address,
-      {String paymentMethod = 'wallet', int? customerId}) async {
+      {String paymentMethod = 'wallet', int? customerId, Map<int, num>? shipping}) async {
     placing = true;
     notifyListeners();
     try {
       final result = await _api.placeOrder(
           address: address,
           paymentMethod: paymentMethod,
-          customerId: customerId);
+          customerId: customerId,
+          shipping: shipping);
       // An order placed for a customer is theirs, not in this user's list.
       if (customerId == null) orders.insertAll(0, result.$1);
       error = null;

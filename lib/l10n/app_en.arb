@@ -119,6 +119,7 @@
   "approvalsEmpty": "No pending shipping approvals.",
   "itemShipping": "Shipping",
   "shopPrice": "Shop price",
+  "shippingPerItem": "Shipping per item",
   "lineTotal": "Item total",
   "cancelItemAction": "Cancel item",
   "cancelItemConfirm": "Cancel this item? Its price and shipping will be refunded to your wallet.",
