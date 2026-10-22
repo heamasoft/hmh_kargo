@@ -36,6 +36,13 @@ workflows:
         - $HOME/.cocoapods/repos
         - $CM_BUILD_DIR/ios/Pods
         - $HOME/.pub-cache
+        # Swift Package Manager's clone of the Firebase packages and the
+        # prebuilt binaries that come with them, so a later build does not
+        # pull a hundred megabytes from dl.google.com again, the download
+        # that dropped and failed a build. A resolve that fails clears this
+        # itself, so a half-written cache cannot be handed on.
+        - $HOME/Library/Caches/org.swift.swiftpm
+        - $HOME/Library/org.swift.swiftpm
     environment:
       # Holds CERTIFICATE_PRIVATE_KEY_B64 — the private key of the iOS
       # distribution certificate, base64-encoded. Add it in Codemagic → app
@@ -58,7 +65,27 @@ workflows:
       # written into it — otherwise the build rewrites the project and throws the
       # certificate and profile away ("No valid code signing certificates found").
       - name: Prepare the Xcode project (Flutter migrations)
-        script: flutter build ios --release --config-only --no-codesign
+        script: |
+          # Swift Package Manager downloads Firebase's prebuilt binaries on the
+          # way through — grpc.zip alone is around a hundred megabytes, straight
+          # from dl.google.com — and when one of those downloads drops the whole
+          # step dies with "The network connection was lost." That is the
+          # network having a bad minute, not anything wrong with the project, so
+          # it is worth trying again before failing the build.
+          #
+          # A failed resolve can also leave a half-written package cache behind,
+          # which then fails the same way every time; each retry clears it.
+          for attempt in 1 2 3; do
+            if flutter build ios --release --config-only --no-codesign; then
+              exit 0
+            fi
+            echo "Attempt $attempt failed. Clearing the package cache and retrying…"
+            rm -rf ~/Library/Caches/org.swift.swiftpm ~/Library/org.swift.swiftpm
+            rm -rf ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/swiftpm
+            sleep 15
+          done
+          echo "Swift Package Manager could not fetch its dependencies in three tries."
+          exit 1
       - name: Install CocoaPods dependencies
         script: |
           # Flutter wires the plugins through Swift Package Manager now, so the
