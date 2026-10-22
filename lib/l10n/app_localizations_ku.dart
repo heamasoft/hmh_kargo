@@ -346,6 +346,25 @@ class AppLocalizationsKu extends AppLocalizations {
   String get shopPrice => 'نرخی فرۆشگا';
 
   @override
+  String get traceTitle => 'تۆماری چالاکی';
+
+  @override
+  String get traceSub =>
+      'ئەوەی ئەپەکە کردی، نوێترین لە خوارەوە. کۆپی بکە و بۆ پشتگیری بینێرە.';
+
+  @override
+  String get traceCopy => 'کۆپی';
+
+  @override
+  String get traceCopied => 'تۆمارەکە کۆپی کرا';
+
+  @override
+  String get traceEmpty => 'هێشتا هیچ تۆمار نەکراوە.';
+
+  @override
+  String get traceDetails => 'وردەکاری';
+
+  @override
   String get shippingPerItem => 'گەیاندن بۆ هەر کاڵایەک';
 
   @override

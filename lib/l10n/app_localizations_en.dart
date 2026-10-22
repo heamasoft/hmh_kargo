@@ -346,6 +346,25 @@ class AppLocalizationsEn extends AppLocalizations {
   String get shopPrice => 'Shop price';
 
   @override
+  String get traceTitle => 'Activity log';
+
+  @override
+  String get traceSub =>
+      'What the app did, newest at the bottom. Copy it and send it to support.';
+
+  @override
+  String get traceCopy => 'Copy';
+
+  @override
+  String get traceCopied => 'Log copied';
+
+  @override
+  String get traceEmpty => 'Nothing recorded yet.';
+
+  @override
+  String get traceDetails => 'Details';
+
+  @override
   String get shippingPerItem => 'Shipping per item';
 
   @override

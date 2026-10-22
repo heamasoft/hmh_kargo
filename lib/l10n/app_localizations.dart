@@ -736,6 +736,42 @@ abstract class AppLocalizations {
   /// **'Shop price'**
   String get shopPrice;
 
+  /// No description provided for @traceTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Activity log'**
+  String get traceTitle;
+
+  /// No description provided for @traceSub.
+  ///
+  /// In en, this message translates to:
+  /// **'What the app did, newest at the bottom. Copy it and send it to support.'**
+  String get traceSub;
+
+  /// No description provided for @traceCopy.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy'**
+  String get traceCopy;
+
+  /// No description provided for @traceCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Log copied'**
+  String get traceCopied;
+
+  /// No description provided for @traceEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing recorded yet.'**
+  String get traceEmpty;
+
+  /// No description provided for @traceDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get traceDetails;
+
   /// No description provided for @shippingPerItem.
   ///
   /// In en, this message translates to:

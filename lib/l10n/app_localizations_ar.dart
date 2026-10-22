@@ -341,6 +341,25 @@ class AppLocalizationsAr extends AppLocalizations {
   String get shopPrice => 'سعر المتجر';
 
   @override
+  String get traceTitle => 'سجل النشاط';
+
+  @override
+  String get traceSub =>
+      'ما فعله التطبيق، الأحدث في الأسفل. انسخه وأرسله للدعم.';
+
+  @override
+  String get traceCopy => 'نسخ';
+
+  @override
+  String get traceCopied => 'تم نسخ السجل';
+
+  @override
+  String get traceEmpty => 'لا يوجد شيء مسجل بعد.';
+
+  @override
+  String get traceDetails => 'التفاصيل';
+
+  @override
   String get shippingPerItem => 'الشحن لكل منتج';
 
   @override

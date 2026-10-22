@@ -30,15 +30,55 @@ const _secretKeys = {
 /// Longest single value printed before it's cut — keeps page dumps readable.
 const _maxLen = 600;
 
-/// Prints one tagged line in debug builds only.
+
+/// The last few hundred traced lines, kept in memory so they can be read on
+/// the phone itself.
+///
+/// [dlog] prints to the console, which only exists while the app is run from a
+/// computer — so a problem that happens on a tester's iPhone, over TestFlight,
+/// leaves no trace anywhere. The same lines are kept here in every build,
+/// where a screen can show them and the tester can copy them to us.
+///
+/// Nothing is written to disk and nothing is sent anywhere by itself: the
+/// trail lives as long as the app is open, and the values in it have already
+/// been through the same masking as the printed lines.
+class DebugTrail {
+  DebugTrail._();
+
+  /// Oldest first. Capped, so a long session cannot grow without bound.
+  static final List<String> _lines = <String>[];
+  static const _max = 300;
+
+  static void add(String area, String message) {
+    final now = DateTime.now();
+    String two(int n) => n.toString().padLeft(2, '0');
+    final stamp = '${two(now.hour)}:${two(now.minute)}:${two(now.second)}'
+        '.${now.millisecond.toString().padLeft(3, '0')}';
+    _lines.add('$stamp  [$area] $message');
+    if (_lines.length > _max) _lines.removeRange(0, _lines.length - _max);
+  }
+
+  /// A copy, newest last — safe to hold while more lines arrive.
+  static List<String> get lines => List.unmodifiable(_lines);
+
+  static bool get isEmpty => _lines.isEmpty;
+
+  /// The whole trail as one block, for copying into a message.
+  static String get text => _lines.join('\n');
+
+  static void clear() => _lines.clear();
+}
+
+/// Traces one tagged line: kept in [DebugTrail] in every build, and printed
+/// to the console in debug ones.
 void dlog(String area, String message) {
+  DebugTrail.add(area, message);
   if (!kDebugMode) return;
   debugPrint('[HEAMA][$area] $message');
 }
 
 /// Prints [value] as compact JSON with secrets masked and long strings cut.
 void dlogJson(String area, String label, Object? value) {
-  if (!kDebugMode) return;
   String text;
   try {
     text = jsonEncode(_redact(value));

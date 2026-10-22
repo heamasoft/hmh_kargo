@@ -20,6 +20,7 @@ import '../../utils/link_text.dart';
 import '../../utils/store_region.dart';
 import '../../utils/webview_ua.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/trace_sheet.dart';
 import '../../widgets/product_image.dart';
 
 /// Imports a whole cart shared from a store's own app.
@@ -341,7 +342,9 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     if (!_busy) return;
     _deadline?.cancel();
     _deadline = Timer(const Duration(seconds: 25), () {
-      if (_busy && !_needsHuman) _fail(_l.icTooLong);
+      if (!_busy || _needsHuman) return;
+      dlog('cart', 'nothing from the page for 25s — giving up');
+      _fail(_l.icTooLong);
     });
   }
 
@@ -434,7 +437,9 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     // And a limit nothing can push out, for a page that never stops loading.
     _hardStop?.cancel();
     _hardStop = Timer(_hardLimit, () {
-      if (_busy) _fail(_l.icTooLong);
+      if (!_busy) return;
+      dlog('cart', 'hard limit of ${_hardLimit.inMinutes} min reached');
+      _fail(_l.icTooLong);
     });
 
     final resolved = await _capture.resolve(uri.toString());
@@ -992,7 +997,25 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
               Column(
                 children: [
                   _linkBar(),
-                  if (_error != null) _errorBar(_error!),
+                  if (_error != null) ...[
+                    _errorBar(_error!),
+                    // Where a failure that happens on one phone and not on
+                    // ours can be read and sent on.
+                    Align(
+                      alignment: AlignmentDirectional.centerEnd,
+                      child: Padding(
+                        padding: const EdgeInsetsDirectional.only(end: 18, bottom: 8),
+                        child: GestureDetector(
+                          onTap: () => showTraceSheet(context),
+                          child: Text(_l.traceDetails,
+                              style: AppFonts.body(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.muted)),
+                        ),
+                      ),
+                    ),
+                  ],
                   if (_needsHuman) _humanCheckBar(),
                   Expanded(
                     child: Stack(
@@ -1067,16 +1090,28 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
                   Text(_l.icPleaseWait,
                       textAlign: TextAlign.center,
                       style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
-                  // A way out. A big cart is slow to read, and waiting is
-                  // fine — being unable to stop waiting is not.
-                  const SizedBox(height: 6),
-                  TextButton(
-                    onPressed: _cancelLoad,
-                    child: Text(MaterialLocalizations.of(context).cancelButtonLabel,
-                        style: AppFonts.body(
-                            fontSize: 12.5,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.muted)),
+                  // Where a stuck import can be looked at from the phone
+                  // itself — there is no console on a tester's iPhone.
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      TextButton(
+                        onPressed: _cancelLoad,
+                        child: Text(MaterialLocalizations.of(context).cancelButtonLabel,
+                            style: AppFonts.body(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.muted)),
+                      ),
+                      TextButton(
+                        onPressed: () => showTraceSheet(context),
+                        child: Text(_l.traceDetails,
+                            style: AppFonts.body(
+                                fontSize: 12.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.muted)),
+                      ),
+                    ],
                   ),
                 ],
               ),
