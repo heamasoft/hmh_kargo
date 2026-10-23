@@ -173,10 +173,13 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
           onMessageReceived: (m) => dlog('cart', 'page state ${dcut(m.message)}'))
       ..setNavigationDelegate(NavigationDelegate(
         // The landing page tries to hand off to the store's own app; following
-        // that scheme kills the WebView, so stay put.
+        // that scheme kills the WebView, so stay put. `about:`, `data:` and
+        // `blob:` are the page's own blank or generated frames, not hand-offs —
+        // blocking them breaks scripts the cart page relies on.
         onNavigationRequest: (req) {
           final scheme = (Uri.tryParse(req.url)?.scheme ?? '').toLowerCase();
-          final allowed = scheme == 'http' || scheme == 'https';
+          const inPage = {'http', 'https', 'about', 'data', 'blob'};
+          final allowed = inPage.contains(scheme);
           if (!allowed) dlog('cart', 'blocked app hand-off ${dcut(req.url)}');
           return allowed ? NavigationDecision.navigate : NavigationDecision.prevent;
         },
@@ -325,7 +328,11 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     setState(() => _stage = _l.icReading);
     // Each store keeps its rows differently: Shein renders them, Trendyol
     // embeds them as data in the page.
-    _controller.runJavaScript(_storeKey == 'trendyol' ? _trendyolReader : _scraper);
+    _controller
+        .runJavaScript(_storeKey == 'trendyol' ? _trendyolReader : _scraper)
+        // A reader that never got into the page would otherwise leave nothing
+        // in the log but a wait for the timeout.
+        .catchError((Object e) => dlog('cart', 'reader could not run: $e'));
   }
 
   /// Ends a load in failure: shows why, and leaves the Shein page visible so
@@ -724,6 +731,8 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   static const _scraper = r'''
 (function(){
   function txt(el){ return el ? (el.textContent||'').replace(/\s+/g,' ').trim() : ''; }
+  // To the app's activity log, where a tester can read it off the phone.
+  function debug(m){ try{ if(typeof HeamaDebug!=='undefined') HeamaDebug.postMessage(m); }catch(e){} }
   // Parses a price in any locale: "1.290,00" and "1,290.00" both -> 1290.
   function num(s){
     s=(''+s).replace(/[^0-9.,]/g,''); if(!s) return NaN;
@@ -804,6 +813,8 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   function rows(){
     var list=document.querySelectorAll('.bsc-cart-be-shared-goods-item_v1'), out=[];
     for(var i=0;i<list.length;i++){
+      // One odd row must not cost the shopper the rest of the cart.
+      try{
       var r=list[i];
       var a=r.querySelector('.bsc-cart-item-goods-title__content');
       var img=r.querySelector('.bsc-cart-item-goods-img__content img');
@@ -824,6 +835,7 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
         url:(a&&a.getAttribute('href'))?a.href:'',
         sku:rowSku(r)||hookedSku((a&&a.getAttribute('title'))||txt(a))
       });
+      }catch(e){ debug('row '+i+' unreadable: '+e); }
     }
     return out;
   }
@@ -887,9 +899,16 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   if(window.__heamaReading) return;   // one reader per page
   window.__heamaReading=true;
   var tries=0;
+  // An error here used to end the loop silently: nothing was posted, the
+  // import sat on its spinner until the timeout, and __heamaReading stayed set
+  // so "read again" did nothing. Now a failed attempt is logged and retried,
+  // and the reader always posts in the end.
   (function wait(){
-    var found=rows().filter(function(r){ return r.title && r.price>0; });
-    if(!found.length && tries>=45) found=generic();
+    var found=[];
+    try{
+      found=rows().filter(function(r){ return r.title && r.price>0; });
+      if(!found.length && tries>=45) found=generic();
+    }catch(e){ debug('reader error: '+e); found=[]; }
     if(found.length || tries>=50){
       window.__heamaReading=false;      // allow a later re-read
       pricesToLog();
@@ -962,8 +981,12 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
 
   var tries=0;
   (function wait(){
-    var list=products();
-    var rows=list?list.map(row).filter(function(r){ return r.title && r.price>0; }):[];
+    // Same rule as the Shein reader: an error is retried, never a silent stop.
+    var rows=[];
+    try{
+      var list=products();
+      rows=list?list.map(row).filter(function(r){ return r.title && r.price>0; }):[];
+    }catch(e){ rows=[]; }
     if(rows.length || tries>=40){
       window.__heamaReading=false;   // allow a later re-read
       HeamaSharedCart.postMessage(JSON.stringify(rows));
