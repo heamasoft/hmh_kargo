@@ -810,6 +810,73 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     return '';
   }
 
+  // Rows straight from Shein's cart reply, kept by the hook. The rendered rows
+  // come first — they are what the shopper sees — but some carts render in a
+  // layout the selectors below don't know, while the reply still names every
+  // item with its price. Only normalProducts: sold-out items are listed apart.
+  function shareProducts(){
+    var all=window.__heamaShare||[];
+    for(var a=all.length-1;a>=0;a--){
+      var info=all[a]&&all[a].info;
+      if(info&&info.normalProducts&&info.normalProducts.length) return info.normalProducts;
+    }
+    return [];
+  }
+  // A price as Shein sends it: a number, a "$22.38" string, or an object with
+  // amount / amountWithSymbol, sometimes one level down under `price`.
+  function priceOf(o, depth){
+    if(o==null||depth>3) return null;
+    if(typeof o==='number') return o>0?{n:o,text:''}:null;
+    if(typeof o==='string'){ var n=num(o); return n>0?{n:n,text:o}:null; }
+    if(typeof o!=='object') return null;
+    var t=o.amountWithSymbol||'';
+    var v=num(o.amount!=null?o.amount:t);
+    if(v>0) return {n:v,text:t};
+    return priceOf(o.price,depth+1);
+  }
+  function replyPrice(p){
+    var keys=['salePrice','sale_price','unitPrice','unit_price','unit_discount_price','price'];
+    var agg=p.aggregateProductBusiness||{};
+    var scopes=[p, p.product||{}, p.priceData||{}, agg.priceData||{}];
+    for(var s=0;s<scopes.length;s++) for(var k=0;k<keys.length;k++){
+      var r=priceOf(scopes[s][keys[k]],0); if(r) return r;
+    }
+    return {n:NaN,text:''};
+  }
+  function replyAttr(p){
+    var color='', size='', pr=p.product||{};
+    var sa=p.sku_sale_attr||p.skuSaleAttr||pr.sku_sale_attr||[];
+    for(var i=0;i<sa.length;i++){
+      var name=String(sa[i].attr_name||sa[i].attrName||'');
+      var val=String(sa[i].attr_value_name||sa[i].attrValueName||sa[i].attr_value||'').trim();
+      if(/size|مقاس/i.test(name)) size=val; else if(/colou?r|لون/i.test(name)) color=val;
+    }
+    var at=p.attr||pr.attr;
+    if(!size && at && typeof at==='object') size=String(at.attr_value_en||at.attr_value||'').trim();
+    if(!color) color=String(p.color_name||p.goods_color_name||'').trim();
+    var s=p.goods_attr||p.attr_value_text||'';
+    if((!color||!size) && typeof s==='string' && s){ var v=splitAttr(s); color=color||v.color; size=size||v.size; }
+    return {color:color, size:size};
+  }
+  function fromReply(){
+    var list=shareProducts(), out=[];
+    for(var i=0;i<list.length;i++){
+      try{
+        var p=list[i]||{}, pr=p.product||{}, price=replyPrice(p), v=replyAttr(p);
+        out.push({
+          title:String(p.goods_name||p.goodsName||pr.goods_name||'').trim(),
+          image:abs(p.goods_img||p.goodsImg||pr.goods_img||''),
+          price:price.n, currency:currencyOf(price.text),
+          color:v.color, size:v.size,
+          qty:parseInt(p.quantity||p.qty||1,10)||1,
+          url:'',
+          sku:String(snOf(p)||snOf(pr)||'')
+        });
+      }catch(e){ debug('reply item '+i+' unreadable: '+e); }
+    }
+    return out;
+  }
+
   function rows(){
     var list=document.querySelectorAll('.bsc-cart-be-shared-goods-item_v1'), out=[];
     for(var i=0;i<list.length;i++){
@@ -849,6 +916,25 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       // Where the SKUs came from — the hook caught Shein's cart reply or not.
       HeamaDebug.postMessage('share replies caught: '+((window.__heamaShare||[]).length)+' sample: '+JSON.stringify(window.__heamaShare||[]).slice(0,600));
       var list=document.querySelectorAll('.bsc-cart-be-shared-goods-item_v1');
+      if(!list.length){
+        // No rows in the layout we know — record what the page and the reply
+        // look like instead, so the next fix is read off the log, not guessed.
+        var cls={};
+        [].forEach.call(document.querySelectorAll('[class*="goods-item"],[class*="goods-list"],[class*="cart-item"]'),function(e){
+          var c=String(e.className&&e.className.baseVal!==undefined?e.className.baseVal:e.className||'').split(' ')[0];
+          cls[c]=(cls[c]||0)+1;
+        });
+        HeamaDebug.postMessage('no known rows on page; goods-like classes: '+JSON.stringify(cls));
+        var p=shareProducts()[0];
+        if(p){
+          HeamaDebug.postMessage('reply item keys: '+Object.keys(p).join(','));
+          HeamaDebug.postMessage('reply item fields: '+JSON.stringify({
+            name:p.goods_name, salePrice:p.salePrice, unitPrice:p.unitPrice, price:p.price,
+            priceData:p.priceData, attr:p.attr, sku_sale_attr:p.sku_sale_attr,
+            goods_attr:p.goods_attr, quantity:p.quantity
+          }));
+        }
+      }
       for(var i=0;i<list.length;i++){
         var bits=[], els=list[i].querySelectorAll('*');
         for(var j=0;j<els.length;j++){
@@ -906,7 +992,14 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   (function wait(){
     var found=[];
     try{
-      found=rows().filter(function(r){ return r.title && r.price>0; });
+      var ok=function(r){ return r.title && r.price>0; };
+      found=rows().filter(ok);
+      // The reply is in hand well before the end; give the page a few seconds
+      // to draw its rows, then take the items from the reply instead.
+      if(!found.length && tries>=10){
+        found=fromReply().filter(ok);
+        if(found.length) debug('rows read from Shein\'s cart reply — the page showed none');
+      }
       if(!found.length && tries>=45) found=generic();
     }catch(e){ debug('reader error: '+e); found=[]; }
     if(found.length || tries>=50){
