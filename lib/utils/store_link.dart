@@ -59,3 +59,21 @@ Store? storeForLink(String url, List<Store> stores) {
   }
   return null;
 }
+
+/// A link that is plainly a shared cart by its own address: Shein's
+/// shared-cart page, a Trendyol collection, or a basket shared from the
+/// Trendyol app. Such a link is many items, so it belongs on the cart import,
+/// not in a store page waiting to capture one. Short app links (onelink,
+/// ty.gl) can't be told apart from a product's until they are followed.
+bool isSharedCartLink(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final host = uri.host.toLowerCase();
+  final path = uri.path.toLowerCase();
+  if (host.endsWith('shein.com')) return path.contains('/cart/share');
+  if (host.endsWith('trendyol.com')) {
+    return path.contains('/koleksiyonlar/') ||
+        (path.startsWith('/sepetim') && (uri.queryParameters['d'] ?? '').contains(':'));
+  }
+  return false;
+}

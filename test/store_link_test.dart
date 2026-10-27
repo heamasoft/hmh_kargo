@@ -74,4 +74,20 @@ void main() {
       expect(storeForLink('https://www.zara.com/tr/tr/coat-p05644320.html', _stores)?.id, 'zara');
     });
   });
+
+  group('isSharedCartLink', () {
+    test('a cart, collection or basket page goes to the import', () {
+      expect(isSharedCartLink('https://m.shein.com/ar-en/cart/share/landing?shc=2_RN&group_id=9'), isTrue);
+      expect(isSharedCartLink('https://www.trendyol.com/koleksiyonlar/yaz-abc'), isTrue);
+      expect(isSharedCartLink('https://www.trendyol.com/sepetim?d=61:958951908:531c:612:3'), isTrue);
+    });
+
+    test('a product, a plain basket or a short app link does not', () {
+      expect(isSharedCartLink('https://m.shein.com/ar-en/Dress-p-12345.html'), isFalse);
+      expect(isSharedCartLink('https://www.trendyol.com/x/x-p-958951908'), isFalse);
+      expect(isSharedCartLink('https://www.trendyol.com/sepetim'), isFalse);
+      expect(isSharedCartLink('https://ty.gl/ptv7h8933sh8f'), isFalse);
+      expect(isSharedCartLink('https://onelink.shein.com/57/65rqad'), isFalse);
+    });
+  });
 }

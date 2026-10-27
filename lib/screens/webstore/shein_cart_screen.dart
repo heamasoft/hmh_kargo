@@ -17,6 +17,7 @@ import '../../theme/app_typography.dart';
 import '../../utils/debug_log.dart';
 import '../../utils/format.dart';
 import '../../utils/link_text.dart';
+import '../../utils/store_link.dart';
 import '../../utils/store_region.dart';
 import '../../utils/trendyol_basket.dart';
 import '../../utils/webview_ua.dart';
@@ -459,7 +460,13 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       _fail(_l.icTooLong);
     });
 
-    final resolved = await _capture.resolve(uri.toString());
+    // A Shein shared-cart page pasted as it is, not as the app's onelink: it is
+    // already the page to read, and the server only follows onelinks.
+    final directShein =
+        uri.host.toLowerCase().endsWith('shein.com') && isSharedCartLink(uri.toString());
+    final resolved = directShein
+        ? ResolvedLink(url: uri.toString(), isShare: true, isCart: true, storeKey: 'shein')
+        : await _capture.resolve(uri.toString());
     dlog('cart', 'resolve → share=${resolved.isShare} cart=${resolved.isCart} '
         'url=${dcut(resolved.url)}');
     if (!mounted) return;

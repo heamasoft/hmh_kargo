@@ -69,6 +69,13 @@ void openPastedLink(BuildContext context, String pasted) {
     showCaptureSheet(context, initialUrl: url, storeKey: store.id, autoServerFetch: true);
     return;
   }
+  // A cart is many items — straight to the import, which reads every one.
+  // Short app links go to the store page, which follows them and hands a
+  // cart over to the import when that is what they turn out to be.
+  if (isSharedCartLink(url)) {
+    Navigator.pushNamed(context, Routes.sheinCart, arguments: url);
+    return;
+  }
   Navigator.pushNamed(
     context,
     Routes.webStore,

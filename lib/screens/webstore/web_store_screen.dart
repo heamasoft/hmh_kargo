@@ -23,6 +23,7 @@ import '../../utils/debug_log.dart';
 import '../../utils/launcher.dart';
 import '../../utils/link_text.dart';
 import '../../utils/store_region.dart';
+import '../../utils/trendyol_basket.dart';
 import '../../utils/webview_ua.dart';
 import '../../widgets/back_chip.dart';
 import '../../widgets/heama_toast.dart';
@@ -147,6 +148,17 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     if (!_shareHost.hasMatch(host)) return ResolvedLink(url: url, isShare: false);
     final r = await _captureApi.resolve(url);
     if (r.isShare && r.sku != null) _shareSku = r.sku;
+    // A basket shared from the Trendyol app is a cart the server can't follow
+    // (Trendyol refuses it) — the phone can, and the import reads it.
+    if (!r.isShare && host.toLowerCase() == 'ty.gl') {
+      try {
+        if (await trendyolBasketData(url) != null) {
+          return ResolvedLink(url: url, isShare: true, isCart: true, storeKey: 'trendyol');
+        }
+      } catch (_) {
+        // Not followable from here either — the store page shows what it can.
+      }
+    }
     return r;
   }
 
