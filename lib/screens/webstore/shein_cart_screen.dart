@@ -1064,6 +1064,11 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   // same array, same fields, same TL→TRY and size rules.
   static const _trendyolReader = r'''
 (function(){
+  // Only on trendyol.com. Started on the page still finishing before it (the
+  // Shein warm-up), it found nothing — a basket's fetches were refused as
+  // cross-site — and ended the import before Trendyol had even loaded. The
+  // app starts it again once the Trendyol page is in.
+  if(!/(^|\.)trendyol\.com$/i.test(location.hostname)) return;
   if(window.__heamaReading) return;   // one reader per page
   window.__heamaReading=true;
 
