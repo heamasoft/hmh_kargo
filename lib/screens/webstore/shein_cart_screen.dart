@@ -18,6 +18,7 @@ import '../../utils/debug_log.dart';
 import '../../utils/format.dart';
 import '../../utils/link_text.dart';
 import '../../utils/store_region.dart';
+import '../../utils/trendyol_basket.dart';
 import '../../utils/webview_ua.dart';
 import '../../widgets/heama_toast.dart';
 import '../../widgets/trace_sheet.dart';
@@ -328,8 +329,12 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     setState(() => _stage = _l.icReading);
     // Each store keeps its rows differently: Shein renders them, Trendyol
     // embeds them as data in the page.
+    final reader = _storeKey == 'trendyol'
+        // Told which basket to read, if any — null means read the page.
+        ? 'window.__heamaBasket=${jsonEncode(_basket)};$_trendyolReader'
+        : _scraper;
     _controller
-        .runJavaScript(_storeKey == 'trendyol' ? _trendyolReader : _scraper)
+        .runJavaScript(reader)
         // A reader that never got into the page would otherwise leave nothing
         // in the log but a wait for the timeout.
         .catchError((Object e) => dlog('cart', 'reader could not run: $e'));
@@ -394,6 +399,10 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
   /// in the WebView — so "read again" has to fetch them again.
   bool _fromCollection = false;
 
+  /// The item list of a basket shared from the Trendyol app (its link's `d`),
+  /// or null for any other import. See trendyol_basket.dart.
+  String? _basket;
+
   Store? get _store {
     final stores = context.read<CatalogProvider>().stores;
     for (final s in stores) {
@@ -440,6 +449,7 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       _items = null;
       _showReview = false;
     });
+    _basket = null;
     _touchDeadline();
     // And a limit nothing can push out, for a page that never stops loading.
     _hardStop?.cancel();
@@ -458,6 +468,19 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
     // very different problem from a link that turned out to be one product, and
     // blaming the shopper for the former sends them hunting for a better link.
     if (!resolved.isShare) {
+      // A basket shared from the Trendyol app: the server can't follow it
+      // (Trendyol refuses the server), so the phone does.
+      String? basket;
+      try {
+        basket = await trendyolBasketData(uri.toString());
+      } catch (e) {
+        dlog('cart', 'could not follow the Trendyol link: $e');
+      }
+      if (!mounted) return;
+      if (basket != null) {
+        await _openTrendyolBasket(basket);
+        return;
+      }
       _fail(_l.icServerCantRead);
       return;
     }
@@ -517,6 +540,26 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       _stage = _l.icOpening(_l.storeLabel);
     });
     _controller.loadRequest(Uri.parse(start));
+  }
+
+  /// Reads a basket shared from the Trendyol app. Its link names each product
+  /// and quantity, not a page listing them, so the WebView only has to be on
+  /// trendyol.com: the reader fetches each product's own page from there.
+  Future<void> _openTrendyolBasket(String basket) async {
+    _storeKey = 'trendyol';
+    _fromCollection = false;
+    _basket = basket;
+    dlog('cart', 'Trendyol basket of ${basket.split('|').length} item(s) — reading on the phone');
+    await _pinTurkey();
+    if (!mounted) return;
+    setState(() {
+      _onStorePage = true;
+      _stage = _l.icOpening(_l.storeLabel);
+    });
+    _cartRequested = true;
+    // The plain basket page, not the shared one: opened with the items, it
+    // tries to hand them to the Trendyol app.
+    _controller.loadRequest(Uri.parse('https://www.trendyol.com/sepetim'));
   }
 
   /// Puts the WebView on Trendyol's Turkish storefront, priced in TL — the same
@@ -1071,6 +1114,62 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
       sizes:sizes(p)
     };
   }
+
+  function debug(m){ try{ if(typeof HeamaDebug!=='undefined') HeamaDebug.postMessage(m); }catch(e){} }
+  function meta(doc,p){ var e=doc.querySelector('meta[property="'+p+'"]'); return e?(e.getAttribute('content')||''):''; }
+
+  // The price of the exact listing the basket names (a product can be sold by
+  // several sellers), else the page's own winner. discountedPrice first, the
+  // same figure the single-product capture takes.
+  function priceNear(h, listing){
+    var at=listing?h.indexOf('"listingId":"'+listing+'"'):-1;
+    if(at<0) at=h.indexOf('"winnerVariant"');
+    if(at<0) return 0;
+    var seg=h.substr(at,1500);
+    var m=seg.match(/"discountedPrice":\{"value":([0-9.]+)/)||seg.match(/"sellingPrice":\{"value":([0-9.]+)/);
+    return m?parseFloat(m[1]):0;
+  }
+  // One basket item, read from its product page. The link names the product
+  // and the listing but not the size, so a product sold in sizes comes back
+  // with its sizes and none picked — the shopper picks, as for a collection.
+  function basketRow(h, line, url){
+    var doc=new DOMParser().parseFromString(h,'text/html');
+    var sizes=[], at=h.indexOf('"variants":[');
+    if(at>=0){
+      try{ (JSON.parse(balanced(h, at+'"variants":'.length))||[]).forEach(function(v){
+        var s=String(v.value||'').trim(); if(s && sizes.indexOf(s)<0) sizes.push(s);
+      }); }catch(e){}
+    }
+    if(h.indexOf('"listingId":"'+line.listing+'"')<0) debug('basket item '+line.id+': its seller is not on the page — the page price is used');
+    return {
+      title:meta(doc,'og:title').replace(/\s*-\s*Fiyat[ıi].*$/,'').trim(),
+      image:meta(doc,'og:image'),
+      price:priceNear(h, line.listing),
+      currency:'TRY',
+      color:'', size:sizes.length===1?sizes[0]:'',
+      qty:line.qty, url:url, sku:line.id, sizes:sizes
+    };
+  }
+  // A basket shared from the app: `d` is "61:<product>:<listing>:<seller>:<qty>"
+  // per item, joined by "|". Each product page is fetched from this same site,
+  // so Trendyol serves it to the phone as it would to the shopper.
+  function readBasket(d){
+    var lines=d.split('|').map(function(s){
+      var f=s.split(':'); return {id:f[1]||'', listing:f[2]||'', qty:parseInt(f[4],10)||1};
+    }).filter(function(l){ return /^\d+$/.test(l.id); });
+    debug('basket of '+lines.length+' item(s)');
+    Promise.all(lines.map(function(l){
+      var url='https://www.trendyol.com/x/x-p-'+l.id;
+      return fetch(url,{credentials:'include'}).then(function(r){
+        if(!r.ok) throw new Error('HTTP '+r.status);
+        return r.text().then(function(h){ return basketRow(h, l, r.url||url); });
+      }).catch(function(e){ debug('basket item '+l.id+' unreadable: '+e); return null; });
+    })).then(function(rows){
+      window.__heamaReading=false;
+      HeamaSharedCart.postMessage(JSON.stringify(rows.filter(function(r){ return r && r.title && r.price>0; })));
+    });
+  }
+  if(window.__heamaBasket){ readBasket(String(window.__heamaBasket)); return; }
 
   var tries=0;
   (function wait(){
