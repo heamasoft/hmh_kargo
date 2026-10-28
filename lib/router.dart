@@ -24,7 +24,6 @@ import 'screens/checkout/checkout_screen.dart';
 import 'screens/product/product_detail_screen.dart';
 import 'screens/saved/saved_screen.dart';
 import 'screens/shell/main_shell.dart';
-import 'screens/storefront/storefront_screen.dart';
 import 'screens/admin/ads_screen.dart';
 import 'screens/tracking/tracking_screen.dart';
 import 'screens/webstore/web_store_screen.dart';
@@ -46,7 +45,6 @@ class Routes {
   static const forgotNewPassword = '/forgot/new-password';
 
   static const home = '/home'; // main shell (tabbed)
-  static const storefront = '/storefront';
   static const webStore = '/web-store';
   static const product = '/product';
   static const saved = '/saved';
@@ -99,9 +97,6 @@ class Routes {
         break;
       case home:
         page = MainShell(initialTab: (settings.arguments as int?) ?? 0);
-        break;
-      case storefront:
-        page = const StorefrontScreen();
         break;
       case webStore:
         final wsArgs = settings.arguments;

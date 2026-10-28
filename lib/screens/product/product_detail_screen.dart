@@ -85,7 +85,8 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
         bottom: false,
         child: Column(
           children: [
-            // browser bar
+            // Our own bar, not a copy of the shop's: the shop is only ever seen
+            // on its own site, never drawn by us (App Review guideline 4.1).
             Container(
               padding: const EdgeInsets.fromLTRB(14, 8, 14, 10),
               decoration: const BoxDecoration(
@@ -96,30 +97,16 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                   BackChip(onTap: () => Navigator.pop(context), size: 30),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: GestureDetector(
-                      onTap: () => openUrl('https://www.shein.com'),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: AppColors.cloud,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.lock, size: 12, color: AppColors.green),
-                            const SizedBox(width: 7),
-                            Expanded(
-                              child: Text('shein.com/…-p-30421185.html',
-                                  overflow: TextOverflow.ellipsis,
-                                  style: AppFonts.body(fontSize: 12, fontWeight: FontWeight.w500)),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
+                    child: Text(p.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppFonts.body(fontSize: 13, fontWeight: FontWeight.w600)),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(Icons.refresh, size: 18, color: AppColors.ink),
+                  if ((p.sourceUrl ?? '').trim().isNotEmpty)
+                    IconButton(
+                      onPressed: () => openUrl(p.sourceUrl!.trim()),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18, color: AppColors.ink),
+                    ),
                 ],
               ),
             ),
@@ -134,20 +121,6 @@ class _ProductDetailScreenState extends State<ProductDetailScreen> {
                       fit: StackFit.expand,
                       children: [
                         ProductImage(url: p.imageUrl, gradient: p.gradient),
-                        PositionedDirectional(
-                          start: 14,
-                          top: 14,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: Colors.black,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Text(p.store.toUpperCase(),
-                                style: AppFonts.display(
-                                    fontSize: 13, color: Colors.white, letterSpacing: 0.5)),
-                          ),
-                        ),
                         PositionedDirectional(
                           end: 14,
                           top: 14,
