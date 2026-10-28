@@ -70,12 +70,12 @@ class StoreTile extends StatelessWidget {
   }
 }
 
-/// The store's mark: its initials on its own colour.
+/// The store's mark: what it sells, drawn in our own colours.
 ///
-/// Deliberately not the shop's logo. A logo is the shop's trademark, and this
-/// app buys from these shops rather than acting for them, so it names them
-/// without wearing their badge — which is also what App Review asks for under
-/// guideline 4.1.
+/// Deliberately nothing of the shop's own — no logo, no colour, not even its
+/// initials, which App Review read as the shop's badge under guideline 4.1
+/// ("HM" is H&M's logo). This app buys from these shops rather than acting
+/// for them; the shop shows itself only on its own site.
 class _StoreIcon extends StatelessWidget {
   const _StoreIcon({required this.store});
   final Store store;
@@ -112,16 +112,15 @@ class _StoreIcon extends StatelessWidget {
     return _marks[h % _marks.length];
   }
 
-  /// What the shop sells, as a symbol: it tells two shops apart at a glance
-  /// where their initials would not, and it is ours to draw.
+  /// What the shop sells, as a symbol of our own.
   IconData get _symbol {
     switch (store.categoryKey) {
       case 'catTech':
       case 'catGadgets':
-        return Icons.devices_other_rounded;
+        return Icons.laptop_rounded;
       case 'catHome':
       case 'catKitchen':
-        return Icons.chair_rounded;
+        return Icons.weekend_outlined;
       case 'catBeauty':
         return Icons.spa_rounded;
       case 'catKids':
@@ -129,19 +128,10 @@ class _StoreIcon extends StatelessWidget {
         return Icons.toys_rounded;
       case 'catEverything':
       case 'catAll':
-        return Icons.storefront_rounded;
+        return Icons.shopping_bag_outlined;
       default:
         return Icons.checkroom_rounded;
     }
-  }
-
-  /// The shop's initials — its name shortened, which is nobody's mark.
-  String get _initials {
-    final glyph = store.glyph.trim();
-    if (glyph.isNotEmpty) return glyph.toUpperCase();
-    final name = store.name.trim();
-    if (name.isEmpty) return '•';
-    return name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase();
   }
 
   Widget _glyph() {
@@ -157,20 +147,7 @@ class _StoreIcon extends StatelessWidget {
         ),
         borderRadius: BorderRadius.circular(StoreTile.iconRadius),
       ),
-      child: Stack(
-        children: [
-          // The symbol sits large and faint behind the initials, as the tile's
-          // texture rather than a second thing to read.
-          PositionedDirectional(
-            bottom: -8,
-            end: -6,
-            child: Icon(_symbol, size: 42, color: Colors.white.withValues(alpha: 0.18)),
-          ),
-          Center(
-            child: Text(_initials, style: AppFonts.display(fontSize: 21, color: Colors.white)),
-          ),
-        ],
-      ),
+      child: Icon(_symbol, size: 30, color: Colors.white),
     );
   }
 }

@@ -405,7 +405,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get searchProductsHint => 'ابحث عن منتجات أو الصق رابطًا…';
 
   @override
-  String get shopFavStores => 'تسوّق من متاجرك المفضّلة';
+  String get shopFavStores => 'تسوّق حسب الفئة';
 
   @override
   String get seeAll => 'عرض الكل';
@@ -436,7 +436,7 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get storesSub =>
-      'اضغط على متجر لفتحه داخل HMH KARGO. السهم يفتح الموقع الحقيقي.';
+      'اضغط على متجر لعرض موقعه الخاص. HMH KARGO غير تابع لهذه المتاجر.';
 
   @override
   String get brandDisclaimer =>

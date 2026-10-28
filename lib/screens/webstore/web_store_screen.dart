@@ -1743,17 +1743,17 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
                 ),
                 child: Row(
                   children: [
-                    // store glyph
+                    // A plain globe: the page below is the shop's own site, and
+                    // the bar wears nothing of the shop's (guideline 4.1).
                     Container(
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        color: widget.store.glyphColor,
+                        color: Colors.white,
                         borderRadius: BorderRadius.circular(9),
                       ),
                       alignment: Alignment.center,
-                      child: Text(widget.store.glyph,
-                          style: AppFonts.display(fontSize: 11, color: Colors.white)),
+                      child: const Icon(Icons.language_rounded, size: 17, color: AppColors.ink),
                     ),
                     const SizedBox(width: 8),
                     const Icon(Icons.lock, size: 11, color: AppColors.green),

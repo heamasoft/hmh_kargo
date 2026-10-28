@@ -410,7 +410,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get searchProductsHint => 'Search products or paste a link…';
 
   @override
-  String get shopFavStores => 'Shop your favourite stores';
+  String get shopFavStores => 'Shop by category';
 
   @override
   String get seeAll => 'See all';
@@ -441,7 +441,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get storesSub =>
-      'Tap a store to open it inside HMH KARGO. The arrow opens the real website.';
+      'Tap a store to view its own website. HMH KARGO is not affiliated with these stores.';
 
   @override
   String get brandDisclaimer =>

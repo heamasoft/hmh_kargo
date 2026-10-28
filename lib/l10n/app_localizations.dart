@@ -859,7 +859,7 @@ abstract class AppLocalizations {
   /// No description provided for @shopFavStores.
   ///
   /// In en, this message translates to:
-  /// **'Shop your favourite stores'**
+  /// **'Shop by category'**
   String get shopFavStores;
 
   /// No description provided for @seeAll.
@@ -913,7 +913,7 @@ abstract class AppLocalizations {
   /// No description provided for @storesSub.
   ///
   /// In en, this message translates to:
-  /// **'Tap a store to open it inside HMH KARGO. The arrow opens the real website.'**
+  /// **'Tap a store to view its own website. HMH KARGO is not affiliated with these stores.'**
   String get storesSub;
 
   /// No description provided for @brandDisclaimer.

@@ -139,7 +139,7 @@
   "footerVisit": "Click here to visit",
   "footerContact": "Contact us",
   "searchProductsHint": "Search products or paste a link…",
-  "shopFavStores": "Shop your favourite stores",
+  "shopFavStores": "Shop by category",
   "seeAll": "See all",
   "freeShippingTitle": "Some stores ship free with us",
   "freeShippingSub": "Order from a free-shipping store through the app and we cover the shipping to Iraq.",
@@ -150,7 +150,7 @@
   "savedHeart": "Saved",
 
   "stores": "Stores",
-  "storesSub": "Tap a store to open it inside HMH KARGO. The arrow opens the real website.",
+  "storesSub": "Tap a store to view its own website. HMH KARGO is not affiliated with these stores.",
   "brandDisclaimer": "HMH KARGO is an independent buying and shipping service. Store names identify where an item is bought from. We are not affiliated with these companies, and all trademarks belong to their owners.",
   "searchStores": "Search stores…",
   "international": "International",

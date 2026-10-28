@@ -411,7 +411,7 @@ class AppLocalizationsKu extends AppLocalizations {
   String get searchProductsHint => 'بەدوای بەرهەم بگەڕێ یان بەستەرێک بلکێنە…';
 
   @override
-  String get shopFavStores => 'لە دڵخوازترین فرۆشگاکانت بکڕە';
+  String get shopFavStores => 'بەپێی پۆل بکڕە';
 
   @override
   String get seeAll => 'هەمووی ببینە';
@@ -442,7 +442,7 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get storesSub =>
-      'لە فرۆشگایەک بدە بۆ کردنەوەی لەناو HMH KARGO. تیرەکە ماڵپەڕە ڕاستەقینەکە دەکاتەوە.';
+      'لە فرۆشگایەک بدە بۆ بینینی ماڵپەڕی خۆی. HMH KARGO پەیوەندی بەم فرۆشگایانەوە نییە.';
 
   @override
   String get brandDisclaimer =>
