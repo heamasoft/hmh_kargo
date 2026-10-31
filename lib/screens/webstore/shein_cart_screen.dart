@@ -83,6 +83,10 @@ class SharedCartItem {
 
   bool selected = true;
 
+  /// The shopper's note for whoever orders this item — added on this screen,
+  /// carried into the cart with it.
+  String note = '';
+
   /// A real choice of sizes exists and none is picked yet — the admin couldn't
   /// place this order.
   bool get needsSize => sizes.length >= 2 && size.isEmpty;
@@ -719,6 +723,7 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
           priced,
           color: item.color.isEmpty ? null : item.color,
           size: item.size.isEmpty ? null : item.size,
+          note: item.note.isEmpty ? null : item.note,
           sku: item.sku,
           qty: item.qty < 1 ? 1 : item.qty,
         );
@@ -1568,12 +1573,113 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
                 // The store's own price, as the shopper saw it in the app.
                 Text(formatMoney(item.price, item.currency),
                     style: AppFonts.display(fontSize: 14)),
+                if (item.note.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  _noteChip(item),
+                ],
               ],
+            ),
+          ),
+          IconButton(
+            tooltip: _l.icAddNote,
+            onPressed: () => _editNote(item),
+            icon: Icon(
+              item.note.isEmpty ? Icons.edit_note_rounded : Icons.sticky_note_2_rounded,
+              size: 22,
+              color: item.note.isEmpty ? AppColors.muted : AppColors.pomegranate,
             ),
           ),
         ],
       ),
     );
+  }
+
+  /// The note as written, under the price; tapping it edits it.
+  Widget _noteChip(SharedCartItem item) => GestureDetector(
+        onTap: () => _editNote(item),
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          decoration: BoxDecoration(
+            color: AppColors.hintBg,
+            borderRadius: BorderRadius.circular(9),
+            border: Border.all(color: AppColors.hintBorder),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.sticky_note_2_outlined, size: 14, color: AppColors.hintText),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(item.note,
+                    style: AppFonts.body(fontSize: 12, color: AppColors.hintText, height: 1.35)),
+              ),
+            ],
+          ),
+        ),
+      );
+
+  /// Lets the shopper write — or change, or clear — the note for one item.
+  Future<void> _editNote(SharedCartItem item) async {
+    final text = TextEditingController(text: item.note);
+    final saved = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(18, 16, 18, 18 + MediaQuery.of(ctx).viewInsets.bottom),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(_l.itemNote, style: AppFonts.display(fontSize: 16)),
+              const SizedBox(height: 4),
+              Text(item.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppFonts.body(fontSize: 11.5, color: AppColors.muted)),
+              const SizedBox(height: 12),
+              TextField(
+                controller: text,
+                autofocus: true,
+                maxLines: 3,
+                maxLength: 300,
+                textCapitalization: TextCapitalization.sentences,
+                style: AppFonts.body(fontSize: 13.5),
+                decoration: InputDecoration(
+                  hintText: _l.itemNoteHint,
+                  filled: true,
+                  fillColor: AppColors.cloud,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 6),
+              GestureDetector(
+                onTap: () => Navigator.pop(ctx, text.text.trim()),
+                child: Container(
+                  height: 48,
+                  decoration: BoxDecoration(
+                      color: AppColors.pomegranate, borderRadius: BorderRadius.circular(14)),
+                  alignment: Alignment.center,
+                  child: Text(_l.saveChanges,
+                      style: AppFonts.body(
+                          fontSize: 14.5, fontWeight: FontWeight.w700, color: Colors.white)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    text.dispose();
+    if (saved == null || !mounted) return;
+    setState(() => item.note = saved);
   }
 
   /// The size picker's trigger: "Choose size" until one is picked, then the

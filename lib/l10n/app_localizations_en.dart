@@ -1285,6 +1285,9 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get icAddNote => 'Add a note';
+
+  @override
   String get icChooseSize => 'Choose size';
 
   @override

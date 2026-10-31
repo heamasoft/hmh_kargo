@@ -2440,6 +2440,12 @@ abstract class AppLocalizations {
   /// **'The store is showing prices in {foreign}, but this store is priced in {store} — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.'**
   String icCurrencyAdvice(String foreign, String store);
 
+  /// No description provided for @icAddNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Add a note'**
+  String get icAddNote;
+
   /// No description provided for @icChooseSize.
   ///
   /// In en, this message translates to:

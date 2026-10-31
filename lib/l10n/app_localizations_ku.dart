@@ -1289,6 +1289,9 @@ class AppLocalizationsKu extends AppLocalizations {
   }
 
   @override
+  String get icAddNote => 'تێبینی زیاد بکە';
+
+  @override
   String get icChooseSize => 'قەبارە هەڵبژێرە';
 
   @override

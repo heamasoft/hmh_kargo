@@ -1273,6 +1273,9 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get icAddNote => 'أضف ملاحظة';
+
+  @override
   String get icChooseSize => 'اختر المقاس';
 
   @override

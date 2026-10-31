@@ -447,6 +447,7 @@
   "icLoad": "Load",
   "icCurrencyAdvice": "The store is showing prices in {foreign}, but this store is priced in {store} — adding them now would charge the wrong amount. Tap Load again; if it persists, tell us.",
   "@icCurrencyAdvice": { "placeholders": { "foreign": { "type": "String" }, "store": { "type": "String" } } },
+  "icAddNote": "Add a note",
   "icChooseSize": "Choose size",
   "icSizeValue": "Size {size}",
   "@icSizeValue": { "placeholders": { "size": { "type": "String" } } },
