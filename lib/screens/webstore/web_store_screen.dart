@@ -1620,7 +1620,11 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
           : widget.store.currency,
       initialColor: r.color,
       initialSize: r.size,
-      initialSku: (r.sku != null && r.sku!.isNotEmpty) ? r.sku : _shareSku,
+      // Trendyol's page carries no reliable SKU (mostly none at all), so its
+      // items are added without one rather than with a guess.
+      initialSku: widget.store.id == 'trendyol'
+          ? null
+          : (r.sku != null && r.sku!.isNotEmpty) ? r.sku : _shareSku,
       offersColor: r.hasColor,
       offersSize: r.hasSize,
       colorOptions: r.colorOptions,

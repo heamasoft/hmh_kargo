@@ -724,7 +724,9 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
           color: item.color.isEmpty ? null : item.color,
           size: item.size.isEmpty ? null : item.size,
           note: item.note.isEmpty ? null : item.note,
-          sku: item.sku,
+          // Trendyol has no SKU worth keeping — what we read is its bare product
+          // id, mostly blank — so its items go to the cart without one.
+          sku: _storeKey == 'trendyol' ? null : item.sku,
           qty: item.qty < 1 ? 1 : item.qty,
         );
         if (ok) {
