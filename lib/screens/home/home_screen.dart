@@ -493,13 +493,6 @@ class _MoreStoresTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
             ),
-            const SizedBox(height: 1),
-            Text(
-              l.twentyPlusStores,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppFonts.body(fontSize: 10.5, color: AppColors.muted),
-            ),
           ],
         ),
       ),

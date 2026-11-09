@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../l10n/app_localizations.dart';
 import '../models/store.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
@@ -61,7 +60,6 @@ class StoreTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
@@ -108,14 +106,6 @@ class StoreTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
               style: AppFonts.body(fontSize: 11.5, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              store.region == 'turkiye' ? l.turkiye : l.international,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppFonts.body(fontSize: 10.5, color: AppColors.muted),
             ),
           ],
         ),
