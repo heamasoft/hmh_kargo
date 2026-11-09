@@ -6,8 +6,8 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../utils/store_link.dart';
 
-/// A website the shopper can open, drawn like a browser's saved link: a plain
-/// white tile with a neutral symbol, and the site's web address in plain text.
+/// A website the shopper can open: a photo of what it sells, and the site's
+/// web address in plain text, the way a browser names it.
 ///
 /// Deliberately nothing of the shop's own — no logo, no brand colour, no
 /// initials, no styled name (App Review, guideline 4.1(b)). The address is how
@@ -34,6 +34,39 @@ class StoreTile extends StatelessWidget {
   static String address(Store s) {
     final host = Uri.tryParse(s.url)?.host ?? '';
     return host.isEmpty ? s.name.toLowerCase() : registrableDomain(host);
+  }
+
+  /// Sites with a photo picked for them in assets/stores/.
+  static const _photoKeys = {
+    'shein', 'trendyol', 'zara', 'mango', 'hm', 'bershka',
+    'stradivarius', 'polo', 'karaca', 'hepsiburada',
+  };
+
+  /// A photo of what the site sells — clothes on a rail, cookware, a
+  /// keyboard. Free stock photos (Unsplash License), each checked to show no
+  /// logo, brand name or readable label: they say what the shop sells, never
+  /// whose shop it is. A site without its own photo takes its category's.
+  static String photoFor(Store s) {
+    final key = s.id.toLowerCase();
+    if (_photoKeys.contains(key)) return 'assets/stores/$key.jpg';
+    switch (s.categoryKey) {
+      case 'catTech':
+      case 'catGadgets':
+        return 'assets/stores/cat_tech.jpg';
+      case 'catHome':
+      case 'catKitchen':
+        return 'assets/stores/cat_home.jpg';
+      case 'catBeauty':
+        return 'assets/stores/cat_beauty.jpg';
+      case 'catKids':
+      case 'catToys':
+        return 'assets/stores/cat_kids.jpg';
+      case 'catEverything':
+      case 'catAll':
+        return 'assets/stores/cat_everything.jpg';
+      default:
+        return 'assets/stores/cat_fashion.jpg';
+    }
   }
 
   /// What the site sells, as a neutral symbol of our own.
@@ -86,18 +119,16 @@ class StoreTile extends StatelessWidget {
                             Icon(symbolFor(store), size: 26, color: AppColors.ink),
                       ),
                     )
-                  : Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(symbolFor(store), size: 26, color: AppColors.ink),
-                  // A small globe: this opens a website, as in a browser.
-                  const PositionedDirectional(
-                    end: 6,
-                    bottom: 6,
-                    child: Icon(Icons.language_rounded, size: 12, color: AppColors.muted),
-                  ),
-                ],
-              ),
+                  // Otherwise a photo of the kind of thing the site sells.
+                  : Image.asset(
+                      photoFor(store),
+                      fit: BoxFit.cover,
+                      width: iconSize,
+                      height: iconSize,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(symbolFor(store), size: 26, color: AppColors.ink),
+                      ),
+                    ),
             ),
             const SizedBox(height: 8),
             Text(
