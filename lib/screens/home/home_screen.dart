@@ -24,7 +24,7 @@ import '../../widgets/paste_link_button.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
-import '../../widgets/store_tile.dart';
+import '../../widgets/order_anywhere_card.dart';
 import '../../providers/shell_controller.dart';
 import '../webstore/open_store.dart';
 
@@ -126,8 +126,6 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final catalog = context.watch<CatalogProvider>();
-    // Show 8 stores + the "More" tile = 9 cards (a clean 3×3 grid).
-    final homeStores = catalog.stores.take(8).toList();
     final langCode = context.watch<LocaleProvider>().locale.languageCode;
 
     return Scaffold(
@@ -214,12 +212,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            SectionHeader(
-              title: l.shopFavStores,
-              action: l.seeAll,
-              onAction: () => context.read<ShellController>().goToTab(1),
+            // Where a grid of shops used to be: no shop is named or shown here
+            // (guideline 4.1). The shopper says where they want to buy.
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 18),
+              child: OrderAnywhereCard(),
             ),
-            _StoresGrid(stores: homeStores, loading: catalog.loadingStores),
             ..._buildReadyNow(l),
             ..._buildTrending(l, catalog),
           ],
@@ -386,19 +384,21 @@ class _HomeScreenState extends State<HomeScreen> {
     // Nothing trending for Shein/Trendyol yet — show no trending section.
     if (sections.isEmpty) return const [];
 
-    final widgets = <Widget>[];
-    for (final entry in sections) {
-      widgets.add(const SizedBox(height: 22));
-      widgets.add(
-        SectionHeader(
-          title: l.trendingOn(entry.key.name),
-          action: l.seeAll,
-          onAction: () => openStore(context, entry.key),
-        ),
-      );
-      widgets.add(_trendingRow(entry.value));
+    // One row, named for what it is rather than for whose shop it came from:
+    // the app names no other company (guideline 4.1). The items alternate
+    // between the stores so no one shop leads.
+    final merged = <Product>[];
+    final longest = sections.map((e) => e.value.length).fold(0, (a, b) => a > b ? a : b);
+    for (var i = 0; i < longest; i++) {
+      for (final entry in sections) {
+        if (i < entry.value.length) merged.add(entry.value[i]);
+      }
     }
-    return widgets;
+    return [
+      const SizedBox(height: 22),
+      SectionHeader(title: l.trendingInIraq),
+      _trendingRow(merged),
+    ];
   }
 
   Widget _trendingRow(List<Product> items) {
@@ -416,86 +416,6 @@ class _HomeScreenState extends State<HomeScreen> {
           showFav: false,
           showPrice: false,
           onTap: () => _openTrending(items[i]),
-        ),
-      ),
-    );
-  }
-}
-
-class _StoresGrid extends StatelessWidget {
-  final List stores;
-  final bool loading;
-  const _StoresGrid({required this.stores, required this.loading});
-
-  @override
-  Widget build(BuildContext context) {
-    if (loading && stores.isEmpty) {
-      return const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
-    }
-    // Wrap (not a fixed-aspect grid) so each card sizes to its own content —
-    // it can never overflow, whatever the device width or text scale.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: LayoutBuilder(
-        builder: (context, c) {
-          const gap = 8.0;
-          final w = (c.maxWidth - gap * 2) / 3;
-          return Wrap(
-            spacing: gap,
-            runSpacing: gap,
-            children: [
-              ...stores.map(
-                (s) => SizedBox(
-                  width: w,
-                  child: StoreTile(store: s, onTap: () => openStore(context, s)),
-                ),
-              ),
-              SizedBox(width: w, child: const _MoreStoresTile()),
-            ],
-          );
-        },
-      ),
-    );
-  }
-}
-
-/// The "+ More" tile, shaped like [StoreTile] (icon + name, no card).
-class _MoreStoresTile extends StatelessWidget {
-  const _MoreStoresTile();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    return GestureDetector(
-      onTap: () => context.read<ShellController>().goToTab(1),
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: StoreTile.iconSize,
-              height: StoreTile.iconSize,
-              decoration: StoreTile.iconDecoration(color: AppColors.midnight),
-              alignment: Alignment.center,
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
-            ),
-            const SizedBox(height: 9),
-            Text(
-              l.moreStores,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 1),
-            Text(
-              l.twentyPlusStores,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppFonts.body(fontSize: 10.5, color: AppColors.muted),
-            ),
-          ],
         ),
       ),
     );

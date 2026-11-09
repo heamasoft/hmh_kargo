@@ -19,6 +19,7 @@ import '../../services/api_client.dart';
 import '../../services/capture_api.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../../utils/cookie_consent.dart';
 import '../../utils/debug_log.dart';
 import '../../utils/launcher.dart';
 import '../../utils/link_text.dart';
@@ -1419,7 +1420,11 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     if (_onChallengePage) return;
     for (final ms in [0, 800, 1800, 3500]) {
       Future.delayed(Duration(milliseconds: ms), () {
-        if (mounted && !_onChallengePage) _controller.runJavaScript(_declutter);
+        if (mounted && !_onChallengePage) {
+          _controller.runJavaScript(_declutter);
+          // No to the site's advertising cookies — we track no one (5.1.1).
+          _controller.runJavaScript(cookieDeclineJs);
+        }
       });
     }
   }

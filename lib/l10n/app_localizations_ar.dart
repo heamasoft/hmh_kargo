@@ -1027,7 +1027,58 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navHome => 'الرئيسية';
 
   @override
-  String get navStores => 'المتاجر';
+  String get navStores => 'تسوّق';
+
+  @override
+  String get anyWebsiteTitle => 'اطلب من أي موقع';
+
+  @override
+  String get anyWebsiteSub =>
+      'اكتب عنوان موقع أو الصق رابط منتج. نشتريه نيابةً عنك ونشحنه إلى بابك في العراق.';
+
+  @override
+  String get anyWebsiteHint => 'موقع أو رابط منتج';
+
+  @override
+  String get anyWebsitePaste => 'لصق';
+
+  @override
+  String get anyWebsiteImportCart => 'استيراد سلة مشتركة';
+
+  @override
+  String get anyWebsiteByHand => 'أضف منتجاً يدوياً';
+
+  @override
+  String get shopTitle => 'تسوّق';
+
+  @override
+  String get shopSub =>
+      'اشترِ من المتاجر الإلكترونية في تركيا وحول العالم — نتولّى الشراء والشحن والجمارك.';
+
+  @override
+  String get howItWorks => 'كيف تعمل الخدمة';
+
+  @override
+  String get howStep1Title => 'أرسل لنا الرابط';
+
+  @override
+  String get howStep1Sub =>
+      'افتح موقعاً، أو الصق رابط منتج، أو استورد سلة مشتركة.';
+
+  @override
+  String get howStep2Title => 'نشتريه نيابةً عنك';
+
+  @override
+  String get howStep2Sub => 'ترى السعر الكامل شاملاً الشحن قبل الدفع.';
+
+  @override
+  String get howStep3Title => 'نشحنه إليك';
+
+  @override
+  String get howStep3Sub => 'تابع كل خطوة حتى يصل إلى بابك.';
+
+  @override
+  String get stockOther => 'أخرى';
 
   @override
   String get navCart => 'السلة';

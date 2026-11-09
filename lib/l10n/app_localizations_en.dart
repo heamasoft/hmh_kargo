@@ -1037,7 +1037,59 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navHome => 'Home';
 
   @override
-  String get navStores => 'Stores';
+  String get navStores => 'Shop';
+
+  @override
+  String get anyWebsiteTitle => 'Order from any website';
+
+  @override
+  String get anyWebsiteSub =>
+      'Type a website address or paste a product link. We buy it for you and ship it to your door in Iraq.';
+
+  @override
+  String get anyWebsiteHint => 'Website or product link';
+
+  @override
+  String get anyWebsitePaste => 'Paste';
+
+  @override
+  String get anyWebsiteImportCart => 'Import a shared cart';
+
+  @override
+  String get anyWebsiteByHand => 'Add an item by hand';
+
+  @override
+  String get shopTitle => 'Shop';
+
+  @override
+  String get shopSub =>
+      'Buy from online shops in Türkiye and around the world — we handle the purchase, shipping and customs.';
+
+  @override
+  String get howItWorks => 'How it works';
+
+  @override
+  String get howStep1Title => 'Send us the link';
+
+  @override
+  String get howStep1Sub =>
+      'Open a website, paste a product link or import a shared cart.';
+
+  @override
+  String get howStep2Title => 'We buy it for you';
+
+  @override
+  String get howStep2Sub =>
+      'You see the full price, shipping included, before you pay.';
+
+  @override
+  String get howStep3Title => 'We ship it to you';
+
+  @override
+  String get howStep3Sub => 'Track every step until it reaches your door.';
+
+  @override
+  String get stockOther => 'Other';
 
   @override
   String get navCart => 'Cart';

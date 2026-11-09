@@ -27,7 +27,7 @@ class StockScreen extends StatefulWidget {
 class _StockScreenState extends State<StockScreen> {
   int? _busyId;
   String _query = '';
-  String _storeFilter = 'all'; // 'all' | 'shein' | '<store name>'
+  String _storeFilter = 'all'; // 'all' | 'shein' (international) | 'other'
   _Sort _sort = _Sort.newest;
   final _searchCtrl = TextEditingController();
 
@@ -61,29 +61,15 @@ class _StockScreenState extends State<StockScreen> {
     }
   }
 
-  /// Distinct non-Shein store names present in stock (for the filter chips).
-  List<String> _stores(StockProvider s) {
-    final set = <String>{};
-    for (final i in s.other) {
-      final name = i.store.trim();
-      if (name.isNotEmpty) set.add(_pretty(name));
-    }
-    final list = set.toList()..sort();
-    return list;
-  }
-
-  String _pretty(String s) =>
-      s.isEmpty ? s : s[0].toUpperCase() + s.substring(1).toLowerCase();
-
   List<StockItem> _filtered(StockProvider s) {
     var items = [...s.shein, ...s.other];
 
+    // Filtered by where the stock came from, never by a shop's name — the app
+    // shows no other company's brand (guideline 4.1).
     if (_storeFilter == 'shein') {
       items = items.where((i) => i.isShein).toList();
-    } else if (_storeFilter != 'all') {
-      items = items
-          .where((i) => i.store.toLowerCase() == _storeFilter.toLowerCase())
-          .toList();
+    } else if (_storeFilter == 'other') {
+      items = items.where((i) => !i.isShein).toList();
     }
 
     final q = _query.trim().toLowerCase();
@@ -199,8 +185,8 @@ class _StockScreenState extends State<StockScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 18),
                       children: [
                         _filterChip(l.filterAll, 'all'),
-                        if (stock.shein.isNotEmpty) _filterChip('Shein', 'shein'),
-                        for (final s in _stores(stock)) _filterChip(s, s),
+                        if (stock.shein.isNotEmpty) _filterChip(l.international, 'shein'),
+                        if (stock.other.isNotEmpty) _filterChip(l.stockOther, 'other'),
                       ],
                     ),
                   ),

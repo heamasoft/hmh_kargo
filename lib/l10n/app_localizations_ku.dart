@@ -1040,7 +1040,58 @@ class AppLocalizationsKu extends AppLocalizations {
   String get navHome => 'سەرەکی';
 
   @override
-  String get navStores => 'فرۆشگاکان';
+  String get navStores => 'بازاڕ';
+
+  @override
+  String get anyWebsiteTitle => 'لە هەر ماڵپەڕێک داوا بکە';
+
+  @override
+  String get anyWebsiteSub =>
+      'ناونیشانی ماڵپەڕێک بنووسە یان بەستەری بەرهەمێک بلکێنە. ئێمە بۆت دەیکڕین و دەیگەیەنینە بەردەرگاکەت لە عێراق.';
+
+  @override
+  String get anyWebsiteHint => 'ماڵپەڕ یان بەستەری بەرهەم';
+
+  @override
+  String get anyWebsitePaste => 'لکاندن';
+
+  @override
+  String get anyWebsiteImportCart => 'هێنانی سەبەتەی هاوبەشکراو';
+
+  @override
+  String get anyWebsiteByHand => 'بەرهەمێک بە دەست زیاد بکە';
+
+  @override
+  String get shopTitle => 'بازاڕکردن';
+
+  @override
+  String get shopSub =>
+      'لە فرۆشگا ئۆنلاینەکانی تورکیا و جیهان بکڕە — کڕین و گواستنەوە و گومرگ لەسەر ئێمەیە.';
+
+  @override
+  String get howItWorks => 'چۆن کار دەکات';
+
+  @override
+  String get howStep1Title => 'بەستەرەکەمان بۆ بنێرە';
+
+  @override
+  String get howStep1Sub =>
+      'ماڵپەڕێک بکەرەوە، بەستەری بەرهەمێک بلکێنە یان سەبەتەیەکی هاوبەشکراو بهێنە.';
+
+  @override
+  String get howStep2Title => 'ئێمە بۆت دەیکڕین';
+
+  @override
+  String get howStep2Sub => 'پێش پارەدان نرخی تەواو، لەگەڵ گواستنەوە، دەبینیت.';
+
+  @override
+  String get howStep3Title => 'بۆت دەینێرین';
+
+  @override
+  String get howStep3Sub => 'هەموو هەنگاوێک بەدوادا بچۆ تا دەگاتە بەردەرگاکەت.';
+
+  @override
+  String get stockOther => 'هیتر';
 
   @override
   String get navCart => 'سەبەتە';

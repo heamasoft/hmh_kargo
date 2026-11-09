@@ -126,7 +126,6 @@ const pageDiagnosticsJs = r'''
     var chip=body.match(/\b(United Arab Emirates|Azerbaijan|Iraq|Saudi Arabia|Kuwait|Qatar|Bahrain|Oman|Jordan|Algeria|Turkey|United States)\b/);
     out.countryShown=chip?chip[1]:null;
     out.challenge=/risk\/challenge|captcha/i.test(location.href);
-    out.cookieNames=document.cookie.split(';').map(function(c){return c.split('=')[0].trim();}).filter(Boolean);
     if(window.HeamaDebug) HeamaDebug.postMessage(JSON.stringify(out));
   }catch(e){ if(window.HeamaDebug) HeamaDebug.postMessage(JSON.stringify({error:String(e)})); }
 })();

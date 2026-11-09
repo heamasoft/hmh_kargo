@@ -83,6 +83,47 @@ void openPastedLink(BuildContext context, String pasted) {
   );
 }
 
+/// Opens a website the shopper typed or pasted themselves — "trendyol.com",
+/// a full product link, anything.
+///
+/// The app lists no shops of its own (guideline 4.1): the shopper names the
+/// site, and only then is it shown, in the in-app browser, where they add what
+/// they like. A product or cart link goes the way a pasted link always does; a
+/// site we can't buy from goes to the add-by-hand sheet with its link filled
+/// in, so nothing they find is a dead end.
+void openWebsite(BuildContext context, String typed) {
+  var url = linkFromPaste(typed.trim());
+  if (url.isEmpty) url = typed.trim();
+  if (url.isEmpty) return;
+  // "trendyol" alone means the .com site.
+  if (!url.contains('.') && !url.contains('/') && RegExp(r'^[a-zA-Z0-9-]+$').hasMatch(url)) {
+    url = '$url.com';
+  }
+  if (!url.startsWith('http')) url = 'https://$url';
+  final uri = Uri.tryParse(url);
+  if (uri == null || !uri.hasAuthority || !uri.host.contains('.')) {
+    showHeamaToast(context, AppLocalizations.of(context).icNotALink);
+    return;
+  }
+  // A link to a product or cart — read it, exactly as a pasted link is.
+  final isDeep = uri.path.length > 1 || uri.query.isNotEmpty;
+  if (isDeep) {
+    openPastedLink(context, url);
+    return;
+  }
+  final store = storeForLink(url, context.read<CatalogProvider>().stores);
+  if (store == null) {
+    showManualItemSheet(context, initialUrl: url);
+    return;
+  }
+  if (kIsWeb) {
+    openUrl(url);
+    showCaptureSheet(context, storeKey: store.id, autoServerFetch: true);
+    return;
+  }
+  Navigator.pushNamed(context, Routes.webStore, arguments: WebStoreArgs(store, url: url));
+}
+
 /// Shows the capture sheet. On mobile the initial fields come straight from the
 /// rendered page; on web only a link is provided and the server scrapes it.
 Future<void> showCaptureSheet(

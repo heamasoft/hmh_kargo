@@ -2005,8 +2005,104 @@ abstract class AppLocalizations {
   /// No description provided for @navStores.
   ///
   /// In en, this message translates to:
-  /// **'Stores'**
+  /// **'Shop'**
   String get navStores;
+
+  /// No description provided for @anyWebsiteTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Order from any website'**
+  String get anyWebsiteTitle;
+
+  /// No description provided for @anyWebsiteSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Type a website address or paste a product link. We buy it for you and ship it to your door in Iraq.'**
+  String get anyWebsiteSub;
+
+  /// No description provided for @anyWebsiteHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Website or product link'**
+  String get anyWebsiteHint;
+
+  /// No description provided for @anyWebsitePaste.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get anyWebsitePaste;
+
+  /// No description provided for @anyWebsiteImportCart.
+  ///
+  /// In en, this message translates to:
+  /// **'Import a shared cart'**
+  String get anyWebsiteImportCart;
+
+  /// No description provided for @anyWebsiteByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Add an item by hand'**
+  String get anyWebsiteByHand;
+
+  /// No description provided for @shopTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop'**
+  String get shopTitle;
+
+  /// No description provided for @shopSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Buy from online shops in Türkiye and around the world — we handle the purchase, shipping and customs.'**
+  String get shopSub;
+
+  /// No description provided for @howItWorks.
+  ///
+  /// In en, this message translates to:
+  /// **'How it works'**
+  String get howItWorks;
+
+  /// No description provided for @howStep1Title.
+  ///
+  /// In en, this message translates to:
+  /// **'Send us the link'**
+  String get howStep1Title;
+
+  /// No description provided for @howStep1Sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a website, paste a product link or import a shared cart.'**
+  String get howStep1Sub;
+
+  /// No description provided for @howStep2Title.
+  ///
+  /// In en, this message translates to:
+  /// **'We buy it for you'**
+  String get howStep2Title;
+
+  /// No description provided for @howStep2Sub.
+  ///
+  /// In en, this message translates to:
+  /// **'You see the full price, shipping included, before you pay.'**
+  String get howStep2Sub;
+
+  /// No description provided for @howStep3Title.
+  ///
+  /// In en, this message translates to:
+  /// **'We ship it to you'**
+  String get howStep3Title;
+
+  /// No description provided for @howStep3Sub.
+  ///
+  /// In en, this message translates to:
+  /// **'Track every step until it reaches your door.'**
+  String get howStep3Sub;
+
+  /// No description provided for @stockOther.
+  ///
+  /// In en, this message translates to:
+  /// **'Other'**
+  String get stockOther;
 
   /// No description provided for @navCart.
   ///

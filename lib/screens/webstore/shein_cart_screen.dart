@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:webview_flutter/webview_flutter.dart';
@@ -14,6 +15,7 @@ import '../../services/api_client.dart';
 import '../../services/capture_api.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../../utils/cookie_consent.dart';
 import '../../utils/debug_log.dart';
 import '../../utils/format.dart';
 import '../../utils/link_text.dart';
@@ -216,7 +218,15 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
             'web error ${e.errorCode} ${e.description} (main frame: ${e.isForMainFrame})'),
         onPageFinished: (url) {
           dlog('cart', 'page done ${dcut(url)}');
-          _controller.runJavaScript(pageDiagnosticsJs);
+          // Developer diagnostics only — release builds read nothing of the
+          // page's own state, cookies included (guideline 5.1.1).
+          if (kDebugMode) _controller.runJavaScript(pageDiagnosticsJs);
+          // No to the site's advertising cookies — we track no one.
+          for (final ms in cookieDeclineDelays) {
+            Future.delayed(Duration(milliseconds: ms), () {
+              if (mounted) _controller.runJavaScript(cookieDeclineJs);
+            });
+          }
           // Ship to the UAE, not the Gulf country Shein guessed (reloads once).
           _controller.runJavaScript(sheinUaeAddressJs);
           _checkChallenge(url);
@@ -1389,15 +1399,15 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
               runSpacing: 8,
               alignment: WrapAlignment.center,
               children: [
-                _hintChip('Shein', _l.icShareCart),
-                _hintChip('Trendyol', _l.icShareCollection),
+                _hintChip(Icons.shopping_cart_outlined, _l.icShareCart),
+                _hintChip(Icons.collections_bookmark_outlined, _l.icShareCollection),
               ],
             ),
           ],
         ),
       );
 
-  Widget _hintChip(String store, String how) => Container(
+  Widget _hintChip(IconData icon, String how) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: AppColors.cloud,
@@ -1406,7 +1416,7 @@ class _SheinCartScreenState extends State<SheinCartScreen> {
         ),
         child: Column(
           children: [
-            Text(store, style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w800)),
+            Icon(icon, size: 18, color: AppColors.ink),
             const SizedBox(height: 2),
             Text(how, style: AppFonts.body(fontSize: 11, color: AppColors.muted)),
           ],

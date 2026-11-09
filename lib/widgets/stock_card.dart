@@ -87,16 +87,6 @@ class StockCard extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (item.storeLabel.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 4),
-                    child: Text(item.storeLabel.toUpperCase(),
-                        style: AppFonts.body(
-                            fontSize: 9.5,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: 0.4,
-                            color: AppColors.pomegranate)),
-                  ),
                 Text(item.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
