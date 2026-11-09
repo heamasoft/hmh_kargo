@@ -443,7 +443,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'HMH KARGO خدمة شراء وشحن مستقلة. تُذكر أسماء المتاجر للدلالة على مكان شراء المنتج فقط. لسنا تابعين لهذه الشركات، وجميع العلامات التجارية ملك لأصحابها.';
 
   @override
-  String get searchStores => 'ابحث في المتاجر…';
+  String get searchStores => 'ابحث في المواقع…';
 
   @override
   String get international => 'عالمية';
@@ -1082,6 +1082,11 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get websitesTitle => 'مواقع التسوق';
+
+  @override
+  String websitesCount(int count) {
+    return '$count موقعاً';
+  }
 
   @override
   String get websitesNote =>

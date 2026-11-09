@@ -26,7 +26,7 @@ class PasteLinkButton extends StatelessWidget {
       button: true,
       label: l.productLink,
       child: InkResponse(
-        onTap: () => _ask(context),
+        onTap: () => askForProductLink(context),
         radius: 24,
         child: Padding(
           padding: const EdgeInsets.all(6),
@@ -40,7 +40,8 @@ class PasteLinkButton extends StatelessWidget {
     );
   }
 
-  Future<void> _ask(BuildContext context) async {
+  /// Asks for a product link, the clipboard already in the box.
+  static Future<void> askForProductLink(BuildContext context) async {
     final l = AppLocalizations.of(context);
     // Whatever they copied in the store's app — usually the link itself.
     final clip = (await Clipboard.getData(Clipboard.kTextPlain))?.text ?? '';

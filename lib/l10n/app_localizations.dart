@@ -925,7 +925,7 @@ abstract class AppLocalizations {
   /// No description provided for @searchStores.
   ///
   /// In en, this message translates to:
-  /// **'Search stores…'**
+  /// **'Search websites…'**
   String get searchStores;
 
   /// No description provided for @international.
@@ -2109,6 +2109,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Shopping websites'**
   String get websitesTitle;
+
+  /// No description provided for @websitesCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} websites'**
+  String websitesCount(int count);
 
   /// No description provided for @websitesNote.
   ///

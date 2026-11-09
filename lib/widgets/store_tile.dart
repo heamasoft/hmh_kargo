@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
@@ -73,7 +74,21 @@ class StoreTile extends StatelessWidget {
               width: iconSize,
               height: iconSize,
               decoration: iconDecoration(),
-              child: Stack(
+              clipBehavior: Clip.antiAlias,
+              child: store.logoUrl != null
+                  // A mark set for this store in the dashboard (stores.logo_url)
+                  // — one we made ourselves for the tile. Falls back to the
+                  // neutral symbol if it can't load.
+                  ? Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: CachedNetworkImage(
+                        imageUrl: store.logoUrl!,
+                        fit: BoxFit.contain,
+                        errorWidget: (_, __, ___) =>
+                            Icon(symbolFor(store), size: 26, color: AppColors.ink),
+                      ),
+                    )
+                  : Stack(
                 alignment: Alignment.center,
                 children: [
                   Icon(symbolFor(store), size: 26, color: AppColors.ink),

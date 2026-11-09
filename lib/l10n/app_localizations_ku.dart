@@ -449,7 +449,7 @@ class AppLocalizationsKu extends AppLocalizations {
       'HMH KARGO خزمەتگوزاریەکی سەربەخۆی کڕین و گەیاندنە. ناوی فرۆشگاکان تەنها شوێنی کڕینی بەرهەمەکە دیاری دەکەن. ئێمە سەر بە ئەم کۆمپانیایانە نین و هەموو نیشانە بازرگانییەکان موڵکی خاوەنەکانیانن.';
 
   @override
-  String get searchStores => 'لە فرۆشگاکان بگەڕێ…';
+  String get searchStores => 'لە ماڵپەڕەکان بگەڕێ…';
 
   @override
   String get international => 'نێودەوڵەتی';
@@ -1095,6 +1095,11 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get websitesTitle => 'ماڵپەڕەکانی بازاڕکردن';
+
+  @override
+  String websitesCount(int count) {
+    return '$count ماڵپەڕ';
+  }
 
   @override
   String get websitesNote =>
