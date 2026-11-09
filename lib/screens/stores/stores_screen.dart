@@ -6,17 +6,16 @@ import '../../models/store.dart';
 import '../../providers/catalog_provider.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
-import '../../widgets/order_anywhere_card.dart';
+import '../../widgets/how_it_works.dart';
 import '../../widgets/store_tile.dart';
 import '../webstore/open_store.dart';
 
-/// The Shop tab: order from any website, or open one of the usual ones.
+/// The Shop tab: the websites a shopper can open and order from.
 ///
 /// The usual ones are drawn the way a browser shows saved links — the web
 /// address in plain text on a plain tile — never with a shop's logo, colour or
-/// styled name (guideline 4.1(b)). Above them, the shopper can type any other
-/// site or paste a link, which is what the service is: we buy wherever they
-/// shop.
+/// styled name (guideline 4.1(b)). A link from anywhere else still works from
+/// the paste button on Home: we buy wherever they shop.
 class StoresScreen extends StatefulWidget {
   const StoresScreen({super.key});
 
@@ -56,9 +55,7 @@ class _StoresScreenState extends State<StoresScreen> {
                     const SizedBox(height: 4),
                     Text(l.shopSub,
                         style: AppFonts.body(fontSize: 12.5, color: AppColors.muted, height: 1.4)),
-                    const SizedBox(height: 16),
-                    const OrderAnywhereCard(),
-                    const SizedBox(height: 22),
+                    const SizedBox(height: 18),
                     Text(l.websitesTitle,
                         style: AppFonts.display(fontSize: 17, fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),

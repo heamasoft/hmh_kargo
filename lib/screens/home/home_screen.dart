@@ -24,7 +24,6 @@ import '../../widgets/paste_link_button.dart';
 import '../../widgets/product_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
-import '../../widgets/order_anywhere_card.dart';
 import '../../widgets/store_tile.dart';
 import '../../providers/shell_controller.dart';
 import '../webstore/open_store.dart';
@@ -213,13 +212,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            // First, the shopper's own way in: any website, any link, a shared
-            // cart. HMH KARGO is a buying service, not anyone's shop window.
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 18),
-              child: OrderAnywhereCard(),
-            ),
-            const SizedBox(height: 22),
             // Websites to open, shown as a browser shows saved links: the
             // address in plain text on a plain tile — no logo, no brand colour.
             SectionHeader(
