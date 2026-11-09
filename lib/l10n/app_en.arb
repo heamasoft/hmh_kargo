@@ -163,7 +163,7 @@
   "catGadgets": "Gadgets",
   "catTech": "Tech",
   "moreStores": "More",
-  "twentyPlusStores": "10+ stores",
+  "twentyPlusStores": "10+ websites",
 
   "sheinInsideHeama": "The store, shown inside HMH KARGO",
   "openRealSite": "Open the real website",
@@ -379,6 +379,8 @@
   "howStep3Title": "We ship it to you",
   "howStep3Sub": "Track every step until it reaches your door.",
   "stockOther": "Other",
+  "websitesTitle": "Shopping websites",
+  "websitesNote": "Tap a website to open it. HMH KARGO is an independent buying service and is not affiliated with these websites.",
   "navCart": "Cart",
   "navOrders": "Orders",
   "navMe": "Me",

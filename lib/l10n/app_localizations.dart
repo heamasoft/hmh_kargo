@@ -985,7 +985,7 @@ abstract class AppLocalizations {
   /// No description provided for @twentyPlusStores.
   ///
   /// In en, this message translates to:
-  /// **'10+ stores'**
+  /// **'10+ websites'**
   String get twentyPlusStores;
 
   /// No description provided for @sheinInsideHeama.
@@ -2103,6 +2103,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Other'**
   String get stockOther;
+
+  /// No description provided for @websitesTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shopping websites'**
+  String get websitesTitle;
+
+  /// No description provided for @websitesNote.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap a website to open it. HMH KARGO is an independent buying service and is not affiliated with these websites.'**
+  String get websitesNote;
 
   /// No description provided for @navCart.
   ///

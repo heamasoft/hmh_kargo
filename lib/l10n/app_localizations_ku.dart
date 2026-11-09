@@ -479,7 +479,7 @@ class AppLocalizationsKu extends AppLocalizations {
   String get moreStores => 'زیاتر';
 
   @override
-  String get twentyPlusStores => 'زیاتر لە ١٠ فرۆشگا';
+  String get twentyPlusStores => 'زیاتر لە ١٠ ماڵپەڕ';
 
   @override
   String get sheinInsideHeama => 'فرۆشگاکە، لەناو HMH KARGO';
@@ -1092,6 +1092,13 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get stockOther => 'هیتر';
+
+  @override
+  String get websitesTitle => 'ماڵپەڕەکانی بازاڕکردن';
+
+  @override
+  String get websitesNote =>
+      'لە ماڵپەڕێک بدە بۆ کردنەوەی. HMH KARGO خزمەتگوزارییەکی سەربەخۆی کڕینە و پەیوەندی بەم ماڵپەڕانەوە نییە.';
 
   @override
   String get navCart => 'سەبەتە';

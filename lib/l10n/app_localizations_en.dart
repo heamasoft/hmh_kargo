@@ -478,7 +478,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get moreStores => 'More';
 
   @override
-  String get twentyPlusStores => '10+ stores';
+  String get twentyPlusStores => '10+ websites';
 
   @override
   String get sheinInsideHeama => 'The store, shown inside HMH KARGO';
@@ -1090,6 +1090,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get stockOther => 'Other';
+
+  @override
+  String get websitesTitle => 'Shopping websites';
+
+  @override
+  String get websitesNote =>
+      'Tap a website to open it. HMH KARGO is an independent buying service and is not affiliated with these websites.';
 
   @override
   String get navCart => 'Cart';

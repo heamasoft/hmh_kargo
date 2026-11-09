@@ -25,6 +25,7 @@ import '../../widgets/product_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
 import '../../widgets/order_anywhere_card.dart';
+import '../../widgets/store_tile.dart';
 import '../../providers/shell_controller.dart';
 import '../webstore/open_store.dart';
 
@@ -212,12 +213,21 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-            // Where a grid of shops used to be: no shop is named or shown here
-            // (guideline 4.1). The shopper says where they want to buy.
+            // First, the shopper's own way in: any website, any link, a shared
+            // cart. HMH KARGO is a buying service, not anyone's shop window.
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 18),
               child: OrderAnywhereCard(),
             ),
+            const SizedBox(height: 22),
+            // Websites to open, shown as a browser shows saved links: the
+            // address in plain text on a plain tile — no logo, no brand colour.
+            SectionHeader(
+              title: l.websitesTitle,
+              action: l.seeAll,
+              onAction: () => context.read<ShellController>().goToTab(1),
+            ),
+            _StoresGrid(stores: catalog.stores.take(8).toList(), loading: catalog.loadingStores),
             ..._buildReadyNow(l),
             ..._buildTrending(l, catalog),
           ],
@@ -416,6 +426,85 @@ class _HomeScreenState extends State<HomeScreen> {
           showFav: false,
           showPrice: false,
           onTap: () => _openTrending(items[i]),
+        ),
+      ),
+    );
+  }
+}
+class _StoresGrid extends StatelessWidget {
+  final List stores;
+  final bool loading;
+  const _StoresGrid({required this.stores, required this.loading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading && stores.isEmpty) {
+      return const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
+    }
+    // Wrap (not a fixed-aspect grid) so each card sizes to its own content —
+    // it can never overflow, whatever the device width or text scale.
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 18),
+      child: LayoutBuilder(
+        builder: (context, c) {
+          const gap = 8.0;
+          final w = (c.maxWidth - gap * 2) / 3;
+          return Wrap(
+            spacing: gap,
+            runSpacing: gap,
+            children: [
+              ...stores.map(
+                (s) => SizedBox(
+                  width: w,
+                  child: StoreTile(store: s, onTap: () => openStore(context, s)),
+                ),
+              ),
+              SizedBox(width: w, child: const _MoreStoresTile()),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+/// The "+ More" tile, shaped like [StoreTile] (icon + name, no card).
+class _MoreStoresTile extends StatelessWidget {
+  const _MoreStoresTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    return GestureDetector(
+      onTap: () => context.read<ShellController>().goToTab(1),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: StoreTile.iconSize,
+              height: StoreTile.iconSize,
+              decoration: StoreTile.iconDecoration(color: AppColors.midnight),
+              alignment: Alignment.center,
+              child: const Icon(Icons.add, color: Colors.white, size: 28),
+            ),
+            const SizedBox(height: 9),
+            Text(
+              l.moreStores,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 1),
+            Text(
+              l.twentyPlusStores,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppFonts.body(fontSize: 10.5, color: AppColors.muted),
+            ),
+          ],
         ),
       ),
     );

@@ -158,7 +158,7 @@
   "catGadgets": "إلكترونيات",
   "catTech": "تقنية",
   "moreStores": "المزيد",
-  "twentyPlusStores": "أكثر من 10 متاجر",
+  "twentyPlusStores": "أكثر من 10 مواقع",
 
   "sheinInsideHeama": "المتجر، داخل HMH KARGO",
   "openRealSite": "افتح الموقع الحقيقي",
@@ -359,6 +359,8 @@
   "howStep3Title": "نشحنه إليك",
   "howStep3Sub": "تابع كل خطوة حتى يصل إلى بابك.",
   "stockOther": "أخرى",
+  "websitesTitle": "مواقع التسوق",
+  "websitesNote": "اضغط على موقع لفتحه. HMH KARGO خدمة شراء مستقلة وغير تابعة لهذه المواقع.",
   "navCart": "السلة",
   "navOrders": "الطلبات",
   "navMe": "حسابي",
