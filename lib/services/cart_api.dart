@@ -25,8 +25,8 @@ class CartApi {
       'charge_currency': 'IQD',
       'charge_amount': product.priceIqd,
       'iqd_price': product.priceIqd,
-      'color': color,
-      'size': size,
+      'color': fitVariant(color),
+      'size': fitVariant(size),
       'qty': qty,
     });
     return Cart.fromJson(json);
@@ -54,8 +54,8 @@ class CartApi {
       'charge_currency': c.chargeCurrency,
       'charge_amount': c.chargeAmount,
       'iqd_price': c.iqdPrice,
-      'color': color,
-      'size': size,
+      'color': fitVariant(color),
+      'size': fitVariant(size),
       'note': note,
       'sku': sku,
       'qty': qty,
@@ -82,4 +82,16 @@ class CartApi {
     final cleaned = usd.replaceAll(RegExp(r'[^0-9.]'), '');
     return double.tryParse(cleaned) ?? 0;
   }
+}
+
+/// A colour or size as the server takes it: at most 60 characters.
+///
+/// A store's bundle can name its option at length ("D / Eyelash Book *1 +
+/// Bond & Seal *1 + Tweezers *1 + Brush *1"), and a server that still checks
+/// for 60 refuses the whole item over it. The first 60 characters say which
+/// option it is; the link and the admin's own look at it say the rest.
+String? fitVariant(String? v) {
+  if (v == null) return null;
+  final t = v.trim();
+  return t.length <= 60 ? t : t.substring(0, 60).trimRight();
 }

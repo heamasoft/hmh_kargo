@@ -1,5 +1,6 @@
 import '../models/captured_product.dart';
 import 'api_client.dart';
+import 'cart_api.dart' show fitVariant;
 
 /// Sends a scraped product to the API, which prices it in IQD.
 class CaptureApi {
@@ -56,8 +57,8 @@ class CaptureApi {
       if (imageUrl != null) 'image_url': imageUrl,
       'source_price': sourcePrice,
       if (sourceCurrency != null) 'source_currency': sourceCurrency,
-      if (color != null) 'color': color,
-      if (size != null) 'size': size,
+      if (color != null) 'color': fitVariant(color),
+      if (size != null) 'size': fitVariant(size),
     });
     return CapturedProduct.fromJson(json);
   }
