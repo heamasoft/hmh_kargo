@@ -171,8 +171,8 @@ class CaptureController extends Controller
             'image_url' => ['nullable', 'string', 'max:1024'],
             'source_price' => ['required', 'numeric', 'min:0'],
             'source_currency' => ['nullable', 'string', 'size:3'],
-            'color' => ['nullable', 'string', 'max:60'],
-            'size' => ['nullable', 'string', 'max:60'],
+            'color' => ['nullable', 'string', 'max:255'],
+            'size' => ['nullable', 'string', 'max:255'],
         ]);
 
         $store = isset($data['store_key'])

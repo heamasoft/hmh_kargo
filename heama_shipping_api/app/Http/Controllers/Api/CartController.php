@@ -41,8 +41,8 @@ class CartController extends Controller
             'charge_currency' => ['nullable', 'string', 'size:3'],
             'charge_amount' => ['nullable', 'numeric', 'min:0'],
             'iqd_price' => ['nullable', 'numeric', 'min:0'],
-            'color' => ['nullable', 'string', 'max:60'],
-            'size' => ['nullable', 'string', 'max:60'],
+            'color' => ['nullable', 'string', 'max:255'],
+            'size' => ['nullable', 'string', 'max:255'],
             'sku' => ['nullable', 'string', 'max:120'],
             'note' => ['nullable', 'string', 'max:500'],
             'qty' => ['nullable', 'integer', 'min:1', 'max:99'],
@@ -123,8 +123,8 @@ class CartController extends Controller
 
         $data = $request->validate([
             'qty' => ['nullable', 'integer', 'min:1', 'max:99'],
-            'color' => ['nullable', 'string', 'max:60'],
-            'size' => ['nullable', 'string', 'max:60'],
+            'color' => ['nullable', 'string', 'max:255'],
+            'size' => ['nullable', 'string', 'max:255'],
             'note' => ['nullable', 'string', 'max:500'],
             // The all-in unit price, set by hand. Admins only — see below.
             'charge_amount' => ['nullable', 'numeric', 'min:0'],
