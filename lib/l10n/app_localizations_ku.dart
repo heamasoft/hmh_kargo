@@ -1043,6 +1043,33 @@ class AppLocalizationsKu extends AppLocalizations {
   String get navStores => 'بازاڕ';
 
   @override
+  String get browserTipTitle => 'لە ماڵپەڕەکە بکڕە';
+
+  @override
+  String get browserTipSub =>
+      'ماڵپەڕەکە لە وێبگەڕەکەدا دەکرێتەوە. کاتێک ئەوەی دەتەوێت دۆزیتەوە، بەستەرەکەی بگەڕێنەوە ئێرە.';
+
+  @override
+  String get browserTipStep1 => 'بەرهەمەکە بدۆزەوە، یان سەبەتەکەت پڕ بکە';
+
+  @override
+  String get browserTipStep2 => 'لە هاوبەشکردن بدە، پاشان کۆپی، و پەڕەکە دابخە';
+
+  @override
+  String get browserTipStep3 =>
+      'لە بەستەری بەرهەم یان هێنانی سەبەتە بدە — بەستەرەکە خۆکار پڕ دەکرێتەوە';
+
+  @override
+  String get browserTipOpen => 'ماڵپەڕەکە بکەرەوە';
+
+  @override
+  String get readingProduct => 'بەرهەمەکە دەخوێنرێتەوە…';
+
+  @override
+  String get readingProductSub =>
+      'نرخ و قەبارە و ڕەنگەکان وەردەگرین. چەند چرکەیەک دەخایەنێت.';
+
+  @override
   String get anyWebsiteTitle => 'لە هەر ماڵپەڕێک داوا بکە';
 
   @override

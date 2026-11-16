@@ -1260,6 +1260,21 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     final start = _forceRegion(rawStart) ?? rawStart;
     _url = start;
     _pendingCapture = widget.captureOnOpen;
+    // Behind our own cover the shopper can't fall back on the page itself, so
+    // if the reading never ends, the add sheet comes up anyway with the link
+    // in it, for the server to read.
+    if (_covered) {
+      _coverTimer = Timer(const Duration(seconds: 35), () {
+        if (!mounted || _sheetShown) return;
+        dlog('store', 'covered read timed out — handing the link to the sheet');
+        _showSheetThenLeave(() => showCaptureSheet(
+              context,
+              initialUrl: _url,
+              storeKey: widget.store.id,
+              autoServerFetch: true,
+            ));
+      });
+    }
     _captureApi = CaptureApi(context.read<ApiClient>());
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
@@ -1379,8 +1394,63 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   @override
   void dispose() {
     _probeTimer?.cancel();
+    _coverTimer?.cancel();
     super.dispose();
   }
+
+  /// On iPhone and iPad a pasted link is read with the page kept out of sight
+  /// under our own loading screen (guideline 4.1(b) — see
+  /// [storesInSystemBrowser]). A shop's human check is the exception: only the
+  /// shopper can answer it, so the page shows while it's up.
+  bool get _covered => storesInSystemBrowser && widget.captureOnOpen && !_onChallengePage;
+
+  Timer? _coverTimer;
+  bool _sheetShown = false;
+
+  /// Shows the add sheet; on a covered read, leaves this screen once it closes
+  /// — there is no page here for the shopper to go back to.
+  void _showSheetThenLeave(Future<void> Function() show) {
+    _sheetShown = true;
+    _coverTimer?.cancel();
+    final leave = storesInSystemBrowser && widget.captureOnOpen;
+    show().then((_) {
+      if (leave && mounted) Navigator.pop(context);
+    });
+  }
+
+  /// Our own screen over the page while it's read.
+  Widget _cover(AppLocalizations l) => Container(
+        color: Colors.white,
+        alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: AppColors.pomegranate.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.add_link_rounded, size: 30, color: AppColors.pomegranate),
+            ),
+            const SizedBox(height: 18),
+            Text(l.readingProduct,
+                textAlign: TextAlign.center, style: AppFonts.display(fontSize: 18)),
+            const SizedBox(height: 6),
+            Text(l.readingProductSub,
+                textAlign: TextAlign.center,
+                style: AppFonts.body(fontSize: 12.5, color: AppColors.muted, height: 1.4)),
+            const SizedBox(height: 22),
+            const SizedBox(
+              width: 26,
+              height: 26,
+              child: CircularProgressIndicator(strokeWidth: 2.5, color: AppColors.pomegranate),
+            ),
+          ],
+        ),
+      );
 
   /// Re-checks product signals a few times as the SPA renders.
   void _runProbe() {
@@ -1580,6 +1650,15 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         'Shein is showing prices in $pageCur, but this store is priced in $storeCur. '
         'Open Shein\'s menu (☰), set the currency to $storeCur, then try again.',
       );
+      // Behind the cover there's no menu to reach: hand the link to the sheet.
+      if (_covered) {
+        _showSheetThenLeave(() => showCaptureSheet(
+              context,
+              initialUrl: _url,
+              storeKey: widget.store.id,
+              autoServerFetch: true,
+            ));
+      }
       return;
     }
 
@@ -1597,12 +1676,14 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
       // fills the sheet with another product's name and another product's
       // price — worse than an empty sheet, because it looks right.
       setState(() => _capturing = false);
-      showCaptureSheet(
-        context,
-        initialUrl: _url,
-        storeKey: widget.store.id,
-        autoServerFetch: _productUrl.hasMatch(_url),
-      );
+      _showSheetThenLeave(() => showCaptureSheet(
+            context,
+            initialUrl: _url,
+            storeKey: widget.store.id,
+            // Behind the cover there's no page to fall back on: always let the
+            // server have a go at the link.
+            autoServerFetch: _covered || _productUrl.hasMatch(_url),
+          ));
       return;
     }
     _openCaptureSheet(r);
@@ -1614,7 +1695,7 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
   void _openCaptureSheet(ScrapeResult r) {
     if (!mounted) return;
     setState(() => _capturing = false);
-    showCaptureSheet(
+    _showSheetThenLeave(() => showCaptureSheet(
       context,
       initialUrl: r.url.isNotEmpty ? r.url : _url,
       initialTitle: r.title,
@@ -1636,7 +1717,7 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
       sizeOptions: r.sizeOptions,
       sizePrices: r.sizePrices,
       storeKey: widget.store.id,
-    );
+    ));
   }
 
   void _openCart() {
@@ -1712,16 +1793,33 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
         bottom: false,
         child: Column(
           children: [
-            _topBar(host),
-            if (_progress < 1)
+            if (_covered)
+              Container(
+                color: Colors.white,
+                padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                alignment: AlignmentDirectional.centerStart,
+                child: BackChip(onTap: () => Navigator.pop(context), size: 34),
+              )
+            else
+              _topBar(host),
+            if (_progress < 1 && !_covered)
               LinearProgressIndicator(
                 value: _progress == 0 ? null : _progress,
                 minHeight: 2.5,
                 backgroundColor: AppColors.cloud,
                 color: AppColors.pomegranate,
               ),
-            Expanded(child: WebViewWidget(controller: _controller)),
-            _footer(l),
+            Expanded(
+              child: Stack(
+                children: [
+                  // Laid out even when covered: the page only renders its
+                  // price and sizes while it has a size on screen.
+                  WebViewWidget(controller: _controller),
+                  if (_covered) Positioned.fill(child: _cover(l)),
+                ],
+              ),
+            ),
+            if (!_covered) _footer(l),
           ],
         ),
       ),

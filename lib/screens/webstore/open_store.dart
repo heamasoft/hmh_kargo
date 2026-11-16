@@ -1,12 +1,15 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/store.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../router.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_typography.dart';
 import '../../utils/launcher.dart';
 import '../../utils/link_text.dart';
 import '../../utils/store_link.dart';
@@ -15,8 +18,19 @@ import '../cart/manual_item_sheet.dart';
 import 'capture_sheet.dart';
 import 'web_store_screen.dart';
 
+/// On iPhone and iPad a shop's website is never shown inside our own screens.
+///
+/// App Review rejected the app three times under guideline 4.1(b): a shop's
+/// site drawn inside an HMH screen, with our cart and add buttons over it,
+/// reads as the app presenting that shop's brand. So on iOS the site opens in
+/// the system's own browser sheet, which is Safari, not us; the shopper copies
+/// the link there and pastes it here, and a pasted link is read behind our own
+/// loading screen. Android keeps the in-app store.
+bool get storesInSystemBrowser => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+
 /// Opens a store the right way for the platform:
-///  - mobile: the in-app WebView (the capture button grabs the current URL)
+///  - iOS: the system browser sheet, after a word on bringing the link back
+///  - Android: the in-app WebView (the capture button grabs the current URL)
 ///  - web: the real site in a new tab + the capture sheet where the user
 ///    pastes the product link (the server does the scraping)
 void openStore(BuildContext context, Store store) {
@@ -24,17 +38,116 @@ void openStore(BuildContext context, Store store) {
     openUrl(store.url);
     // Web can't read another site — user pastes the link, server scrapes it.
     showCaptureSheet(context, storeKey: store.id, autoServerFetch: true);
+  } else if (storesInSystemBrowser) {
+    _openInSystemBrowser(context, store.url);
   } else {
     Navigator.pushNamed(context, Routes.webStore, arguments: store);
   }
 }
 
+const _browserTipSeenKey = 'browser_tip_seen_v1';
+
+/// Shows, the first time, how a find on the website comes back here; then
+/// opens the site in the system browser sheet.
+Future<void> _openInSystemBrowser(BuildContext context, String url) async {
+  var seen = false;
+  try {
+    seen = (await SharedPreferences.getInstance()).getBool(_browserTipSeenKey) ?? false;
+  } catch (_) {}
+  if (!seen && context.mounted) {
+    final go = await showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => const _BrowserTip(),
+    );
+    if (go != true) return;
+    try {
+      (await SharedPreferences.getInstance()).setBool(_browserTipSeenKey, true);
+    } catch (_) {}
+  }
+  await openInBrowserSheet(url);
+}
+
+class _BrowserTip extends StatelessWidget {
+  const _BrowserTip();
+
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final steps = [
+      (Icons.search_rounded, l.browserTipStep1),
+      (Icons.ios_share_rounded, l.browserTipStep2),
+      (Icons.add_link_rounded, l.browserTipStep3),
+    ];
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l.browserTipTitle, style: AppFonts.display(fontSize: 18)),
+            const SizedBox(height: 6),
+            Text(l.browserTipSub,
+                style: AppFonts.body(fontSize: 12.5, color: AppColors.muted, height: 1.4)),
+            const SizedBox(height: 16),
+            for (final s in steps)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: AppColors.pomegranate.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Icon(s.$1, size: 19, color: AppColors.pomegranate),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(s.$2,
+                          style: AppFonts.body(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.3)),
+                    ),
+                  ],
+                ),
+              ),
+            const SizedBox(height: 6),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.pomegranate,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                onPressed: () => Navigator.pop(context, true),
+                child: Text(l.browserTipOpen,
+                    style: AppFonts.body(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 /// Opens a specific product URL inside its store's WebView (e.g. a trending
-/// item). On web, opens the real page + the paste/capture sheet.
+/// item). On web, opens the real page + the paste/capture sheet. On iOS the
+/// product is read behind our own loading screen and the add sheet comes up.
 void openProductInStore(BuildContext context, Store store, String url) {
   if (kIsWeb) {
     openUrl(url);
     showCaptureSheet(context, initialUrl: url, storeKey: store.id, autoServerFetch: true);
+  } else if (storesInSystemBrowser) {
+    Navigator.pushNamed(context, Routes.webStore,
+        arguments: WebStoreArgs(store, url: url, captureOnOpen: true));
   } else {
     Navigator.pushNamed(context, Routes.webStore,
         arguments: WebStoreArgs(store, url: url));

@@ -1030,6 +1030,33 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navStores => 'تسوّق';
 
   @override
+  String get browserTipTitle => 'تسوّق من الموقع';
+
+  @override
+  String get browserTipSub =>
+      'يفتح الموقع في المتصفح. عندما تجد ما تريد، أعد رابطه إلى هنا.';
+
+  @override
+  String get browserTipStep1 => 'ابحث عن المنتج، أو املأ سلتك';
+
+  @override
+  String get browserTipStep2 => 'اضغط مشاركة ثم نسخ، وأغلق الصفحة';
+
+  @override
+  String get browserTipStep3 =>
+      'اضغط رابط المنتج أو استيراد السلة — يُملأ الرابط تلقائياً';
+
+  @override
+  String get browserTipOpen => 'افتح الموقع';
+
+  @override
+  String get readingProduct => 'جارٍ قراءة المنتج…';
+
+  @override
+  String get readingProductSub =>
+      'نجلب السعر والمقاسات والألوان. يستغرق ذلك بضع ثوانٍ.';
+
+  @override
   String get anyWebsiteTitle => 'اطلب من أي موقع';
 
   @override

@@ -1040,6 +1040,33 @@ class AppLocalizationsEn extends AppLocalizations {
   String get navStores => 'Shop';
 
   @override
+  String get browserTipTitle => 'Shop on the website';
+
+  @override
+  String get browserTipSub =>
+      'The website opens in your browser. When you find what you want, bring its link back here.';
+
+  @override
+  String get browserTipStep1 => 'Find the product, or fill your cart';
+
+  @override
+  String get browserTipStep2 => 'Tap Share, then Copy, and close the page';
+
+  @override
+  String get browserTipStep3 =>
+      'Tap Product link or Import cart — the link is filled in for you';
+
+  @override
+  String get browserTipOpen => 'Open website';
+
+  @override
+  String get readingProduct => 'Reading the product…';
+
+  @override
+  String get readingProductSub =>
+      'Getting the price, sizes and colours. This takes a few seconds.';
+
+  @override
   String get anyWebsiteTitle => 'Order from any website';
 
   @override

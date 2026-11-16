@@ -21,3 +21,17 @@ Future<void> openUrl(String url) async {
     }
   }
 }
+
+/// Opens [url] in the system's own browser sheet — Safari View Controller on
+/// iOS, a Custom Tab on Android — over the app, with its address bar and close
+/// button and nothing of ours on it. Falls back to the browser app.
+Future<void> openInBrowserSheet(String url) async {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return;
+  try {
+    final ok = await launchUrl(uri, mode: LaunchMode.inAppBrowserView);
+    if (!ok) await openUrl(url);
+  } catch (_) {
+    await openUrl(url);
+  }
+}

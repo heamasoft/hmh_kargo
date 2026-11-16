@@ -15,6 +15,7 @@ import '../../utils/format.dart';
 import '../../widgets/admin_price_field.dart';
 import '../../widgets/sign_in_required.dart';
 import '../../widgets/product_image.dart';
+import '../../utils/launcher.dart';
 import '../webstore/open_store.dart';
 import 'manual_item_sheet.dart';
 
@@ -318,6 +319,12 @@ class _CartRow extends StatelessWidget {
     store ??= stores.cast<Store?>().firstWhere(
         (s) => s!.name.toLowerCase() == item.store.toLowerCase(),
         orElse: () => null);
+    // On iOS the item is already here: just show its page, in the system
+    // browser sheet — never a shop's site inside our screens (4.1(b)).
+    if (storesInSystemBrowser) {
+      openInBrowserSheet(url.trim());
+      return;
+    }
     if (store != null) openProductInStore(context, store, url.trim());
   }
 

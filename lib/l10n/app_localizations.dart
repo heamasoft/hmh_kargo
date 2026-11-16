@@ -2008,6 +2008,54 @@ abstract class AppLocalizations {
   /// **'Shop'**
   String get navStores;
 
+  /// No description provided for @browserTipTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shop on the website'**
+  String get browserTipTitle;
+
+  /// No description provided for @browserTipSub.
+  ///
+  /// In en, this message translates to:
+  /// **'The website opens in your browser. When you find what you want, bring its link back here.'**
+  String get browserTipSub;
+
+  /// No description provided for @browserTipStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Find the product, or fill your cart'**
+  String get browserTipStep1;
+
+  /// No description provided for @browserTipStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Share, then Copy, and close the page'**
+  String get browserTipStep2;
+
+  /// No description provided for @browserTipStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap Product link or Import cart — the link is filled in for you'**
+  String get browserTipStep3;
+
+  /// No description provided for @browserTipOpen.
+  ///
+  /// In en, this message translates to:
+  /// **'Open website'**
+  String get browserTipOpen;
+
+  /// No description provided for @readingProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading the product…'**
+  String get readingProduct;
+
+  /// No description provided for @readingProductSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Getting the price, sizes and colours. This takes a few seconds.'**
+  String get readingProductSub;
+
   /// No description provided for @anyWebsiteTitle.
   ///
   /// In en, this message translates to:
