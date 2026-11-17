@@ -1054,10 +1054,16 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get browserTipStep3 =>
-      'Tap Product link or Import cart — the link is filled in for you';
+      'Come back here and tap Add to cart — the link is found for you';
 
   @override
   String get browserTipOpen => 'Open website';
+
+  @override
+  String get copiedLinkFound => 'Found a link you copied';
+
+  @override
+  String get copiedLinkAdd => 'Add to cart';
 
   @override
   String get readingProduct => 'Reading the product…';

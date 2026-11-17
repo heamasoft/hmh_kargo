@@ -2035,7 +2035,7 @@ abstract class AppLocalizations {
   /// No description provided for @browserTipStep3.
   ///
   /// In en, this message translates to:
-  /// **'Tap Product link or Import cart — the link is filled in for you'**
+  /// **'Come back here and tap Add to cart — the link is found for you'**
   String get browserTipStep3;
 
   /// No description provided for @browserTipOpen.
@@ -2043,6 +2043,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Open website'**
   String get browserTipOpen;
+
+  /// No description provided for @copiedLinkFound.
+  ///
+  /// In en, this message translates to:
+  /// **'Found a link you copied'**
+  String get copiedLinkFound;
+
+  /// No description provided for @copiedLinkAdd.
+  ///
+  /// In en, this message translates to:
+  /// **'Add to cart'**
+  String get copiedLinkAdd;
 
   /// No description provided for @readingProduct.
   ///

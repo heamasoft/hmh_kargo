@@ -1044,10 +1044,16 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get browserTipStep3 =>
-      'اضغط رابط المنتج أو استيراد السلة — يُملأ الرابط تلقائياً';
+      'ارجع إلى هنا واضغط أضف إلى السلة — نجد الرابط لك';
 
   @override
   String get browserTipOpen => 'افتح الموقع';
+
+  @override
+  String get copiedLinkFound => 'وجدنا رابطاً نسخته';
+
+  @override
+  String get copiedLinkAdd => 'أضف إلى السلة';
 
   @override
   String get readingProduct => 'جارٍ قراءة المنتج…';

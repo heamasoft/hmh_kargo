@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../../l10n/app_localizations.dart';
 import '../../providers/approvals_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/orders_provider.dart';
 import '../../providers/shell_controller.dart';
 import '../../router.dart';
+import '../../services/link_inbox.dart';
 import '../../services/push_service.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/heama_toast.dart';
@@ -14,6 +16,7 @@ import '../home/home_screen.dart';
 import '../orders/orders_screen.dart';
 import '../profile/wallet_screen.dart';
 import '../stores/stores_screen.dart';
+import '../webstore/open_store.dart';
 
 /// The tabbed container for the five primary destinations.
 /// The active tab lives in [ShellController] so any screen can switch tabs.
@@ -48,7 +51,43 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       _startSignedInWork();
+      // Links from outside: a copied one is offered, a shared one opens.
+      LinkInbox.copied.addListener(_offerCopiedLink);
+      LinkInbox.listenForShares((text) {
+        if (mounted) openPastedLink(context, text);
+      });
+      LinkInbox.check();
     });
+  }
+
+  /// "Found a link you copied — Add to cart", over whatever screen is open.
+  void _offerCopiedLink() {
+    if (!mounted) return;
+    final l = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    messenger.showSnackBar(SnackBar(
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 30),
+      content: Row(
+        children: [
+          const Icon(Icons.link_rounded, color: Colors.white, size: 20),
+          const SizedBox(width: 10),
+          Expanded(child: Text(l.copiedLinkFound)),
+        ],
+      ),
+      action: SnackBarAction(
+        label: l.copiedLinkAdd,
+        onPressed: () async {
+          final link = await LinkInbox.copiedLink();
+          if (!mounted) return;
+          if (link == null) {
+            showHeamaToast(context, l.icNotALink);
+            return;
+          }
+          openPastedLink(context, link);
+        },
+      ),
+    ));
   }
 
   /// Whether the signed-in side of the shell is running.
@@ -102,6 +141,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   @override
   void dispose() {
     _approvals?.stopPolling(); // logged out / shell gone — stop hitting the API
+    LinkInbox.copied.removeListener(_offerCopiedLink);
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
@@ -111,6 +151,8 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
     // Coming back from the background → check immediately.
     if (state == AppLifecycleState.resumed && mounted) {
       context.read<ApprovalsProvider>().refreshSilently();
+      // Back from the Shein app or the browser: did they copy a link?
+      LinkInbox.check();
     }
   }
 

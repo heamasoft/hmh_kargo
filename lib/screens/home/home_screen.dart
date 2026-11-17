@@ -464,13 +464,12 @@ class _StoresGrid extends StatelessWidget {
   }
 }
 
-/// The "+ More" tile, shaped like [StoreTile] (icon + name, no card).
+/// The "+ More" tile, shaped like [StoreTile] (a square, no label).
 class _MoreStoresTile extends StatelessWidget {
   const _MoreStoresTile();
 
   @override
   Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
     return GestureDetector(
       onTap: () => context.read<ShellController>().goToTab(1),
       behavior: HitTestBehavior.opaque,
@@ -485,13 +484,6 @@ class _MoreStoresTile extends StatelessWidget {
               decoration: StoreTile.iconDecoration(color: AppColors.midnight),
               alignment: Alignment.center,
               child: const Icon(Icons.add, color: Colors.white, size: 28),
-            ),
-            const SizedBox(height: 9),
-            Text(
-              l.moreStores,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w700),
             ),
           ],
         ),

@@ -1057,10 +1057,16 @@ class AppLocalizationsKu extends AppLocalizations {
 
   @override
   String get browserTipStep3 =>
-      'لە بەستەری بەرهەم یان هێنانی سەبەتە بدە — بەستەرەکە خۆکار پڕ دەکرێتەوە';
+      'بگەڕێوە ئێرە و لە زیادکردن بۆ سەبەتە بدە — بەستەرەکە بۆت دەدۆزینەوە';
 
   @override
   String get browserTipOpen => 'ماڵپەڕەکە بکەرەوە';
+
+  @override
+  String get copiedLinkFound => 'بەستەرێکی کۆپیکراوت دۆزرایەوە';
+
+  @override
+  String get copiedLinkAdd => 'زیادکردن بۆ سەبەتە';
 
   @override
   String get readingProduct => 'بەرهەمەکە دەخوێنرێتەوە…';

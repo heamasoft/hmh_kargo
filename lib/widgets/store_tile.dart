@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 
 import '../models/store.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_typography.dart';
 import '../utils/store_link.dart';
 
 /// A website the shopper can open: a photo of what it sells, and the site's
@@ -129,14 +128,6 @@ class StoreTile extends StatelessWidget {
                         child: Icon(symbolFor(store), size: 26, color: AppColors.ink),
                       ),
                     ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              address(store),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: AppFonts.body(fontSize: 11.5, fontWeight: FontWeight.w600),
             ),
           ],
         ),
