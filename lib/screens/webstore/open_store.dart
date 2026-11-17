@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,19 +18,19 @@ import '../cart/manual_item_sheet.dart';
 import 'capture_sheet.dart';
 import 'web_store_screen.dart';
 
-/// On iPhone and iPad a shop's website is never shown inside our own screens.
+/// On phones a shop's website is never shown inside our own screens.
 ///
 /// App Review rejected the app three times under guideline 4.1(b): a shop's
 /// site drawn inside an HMH screen, with our cart and add buttons over it,
 /// reads as the app presenting that shop's brand. So on iOS the site opens in
 /// the system's own browser sheet, which is Safari, not us; the shopper copies
 /// the link there and pastes it here, and a pasted link is read behind our own
-/// loading screen. Android keeps the in-app store.
-bool get storesInSystemBrowser => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+/// loading screen. Android does the same, so both apps work alike.
+bool get storesInSystemBrowser => !kIsWeb;
 
 /// Opens a store the right way for the platform:
-///  - iOS: the system browser sheet, after a word on bringing the link back
-///  - Android: the in-app WebView (the capture button grabs the current URL)
+///  - iOS and Android: the system browser sheet, after a word on bringing
+///    the link back
 ///  - web: the real site in a new tab + the capture sheet where the user
 ///    pastes the product link (the server does the scraping)
 void openStore(BuildContext context, Store store) {
