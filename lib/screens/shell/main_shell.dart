@@ -8,6 +8,7 @@ import '../../providers/orders_provider.dart';
 import '../../providers/shell_controller.dart';
 import '../../router.dart';
 import '../../services/link_inbox.dart';
+import '../../theme/app_colors.dart';
 import '../../services/push_service.dart';
 import '../../widgets/app_bottom_nav.dart';
 import '../../widgets/heama_toast.dart';
@@ -179,6 +180,9 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
         }
       },
       child: Scaffold(
+        // Home and Shop sit on the soft grey; the other tabs on white. The
+        // floating bar shows the page colour around it.
+        backgroundColor: index <= 1 ? AppColors.cloud : Colors.white,
         body: IndexedStack(index: index, children: _pages),
         bottomNavigationBar: AppBottomNav(
           current: index,

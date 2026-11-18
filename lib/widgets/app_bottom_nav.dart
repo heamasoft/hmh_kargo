@@ -30,73 +30,89 @@ class AppBottomNav extends StatelessWidget {
       (Icons.person_outline, Icons.person, l.navMe, 0),
     ];
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.line)),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: 64,
-          child: Row(
-            children: List.generate(items.length, (i) {
-              final (outline, filled, label, badge) = items[i];
-              final active = current == i;
-              return Expanded(
-                child: GestureDetector(
-                  onTap: () => onTap(i),
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Stack(
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.only(bottom: 10),
+      child: Container(
+        height: 68,
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: AppColors.midnight,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: const [
+            BoxShadow(color: Color(0x59211B3E), blurRadius: 30, offset: Offset(0, 12)),
+          ],
+        ),
+        child: Row(
+          children: List.generate(items.length, (i) {
+            final (outline, filled, label, badge) = items[i];
+            final active = current == i;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => onTap(i),
+                behavior: HitTestBehavior.opaque,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 220),
+                      curve: Curves.easeOutCubic,
+                      width: active ? 44 : 30,
+                      height: 30,
+                      decoration: BoxDecoration(
+                        color: active ? AppColors.pomegranate : Colors.transparent,
+                        borderRadius: BorderRadius.circular(11),
+                      ),
+                      child: Stack(
                         clipBehavior: Clip.none,
+                        alignment: Alignment.center,
                         children: [
                           Icon(
                             active ? filled : outline,
-                            size: 24,
-                            color: active ? AppColors.pomegranate : AppColors.muted,
+                            size: active ? 20 : 22,
+                            color: active ? Colors.white : AppColors.onDarkMuted,
                           ),
                           if (badge > 0)
                             PositionedDirectional(
-                              end: -8,
+                              end: active ? 2 : -4,
                               top: -4,
                               child: Container(
-                                padding: const EdgeInsets.all(4),
-                                constraints: const BoxConstraints(minWidth: 16),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.pomegranate,
-                                  shape: BoxShape.circle,
+                                padding: const EdgeInsets.symmetric(horizontal: 4),
+                                constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: AppColors.saffron,
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
                                   '$badge',
-                                  textAlign: TextAlign.center,
                                   style: AppFonts.body(
-                                    fontSize: 8.5,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.saffronInk,
                                   ),
                                 ),
                               ),
                             ),
                         ],
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        label,
-                        style: AppFonts.body(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: active ? AppColors.pomegranate : AppColors.muted,
-                        ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppFonts.body(
+                        fontSize: 10.5,
+                        fontWeight: active ? FontWeight.w800 : FontWeight.w700,
+                        color: active ? Colors.white : AppColors.onDarkMuted,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            }),
-          ),
+              ),
+            );
+          }),
         ),
       ),
     );

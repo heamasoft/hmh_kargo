@@ -2110,6 +2110,108 @@ abstract class AppLocalizations {
   /// **'Later'**
   String get safariBtnLater;
 
+  /// No description provided for @homeHello.
+  ///
+  /// In en, this message translates to:
+  /// **'Hello'**
+  String get homeHello;
+
+  /// No description provided for @walletBalance.
+  ///
+  /// In en, this message translates to:
+  /// **'Wallet balance'**
+  String get walletBalance;
+
+  /// No description provided for @pasteBoxHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste a product or cart link…'**
+  String get pasteBoxHint;
+
+  /// No description provided for @pasteAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Paste'**
+  String get pasteAction;
+
+  /// No description provided for @pasteOneProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'One product'**
+  String get pasteOneProduct;
+
+  /// No description provided for @pasteWholeCart.
+  ///
+  /// In en, this message translates to:
+  /// **'A whole shared cart'**
+  String get pasteWholeCart;
+
+  /// No description provided for @navFavourites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favourites'**
+  String get navFavourites;
+
+  /// No description provided for @orderOnTheWay.
+  ///
+  /// In en, this message translates to:
+  /// **'Your order is on the way'**
+  String get orderOnTheWay;
+
+  /// No description provided for @orderDetails.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get orderDetails;
+
+  /// No description provided for @orderSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'Order #{code} · {count} items'**
+  String orderSummary(String code, int count);
+
+  /// No description provided for @seeAllStock.
+  ///
+  /// In en, this message translates to:
+  /// **'See all {count} items in stock'**
+  String seeAllStock(int count);
+
+  /// No description provided for @haveLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Have a link?'**
+  String get haveLink;
+
+  /// No description provided for @mostPopular.
+  ///
+  /// In en, this message translates to:
+  /// **'Most popular'**
+  String get mostPopular;
+
+  /// No description provided for @allWebsites.
+  ///
+  /// In en, this message translates to:
+  /// **'All websites'**
+  String get allWebsites;
+
+  /// No description provided for @notOnList.
+  ///
+  /// In en, this message translates to:
+  /// **'Website not on the list?'**
+  String get notOnList;
+
+  /// No description provided for @notOnListSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Send us its product link, or add the item by hand with a photo and price.'**
+  String get notOnListSub;
+
+  /// No description provided for @addByHand.
+  ///
+  /// In en, this message translates to:
+  /// **'Add by hand'**
+  String get addByHand;
+
   /// No description provided for @readingProduct.
   ///
   /// In en, this message translates to:

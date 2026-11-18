@@ -2,67 +2,63 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../l10n/app_localizations.dart';
-import '../providers/auth_provider.dart';
 import '../providers/shell_controller.dart';
 import '../router.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
-import 'paste_link_button.dart';
+import 'store_tile.dart';
 
-/// Home's row of shortcuts to what the service does: take a link, take a
-/// whole cart, follow an order, add money. All ours — no shop is named.
+/// Home's row of shortcuts: bring a whole cart in, follow an order, what is
+/// already in Iraq, and what the shopper saved. (The link box and the wallet's
+/// Top up sit in the header above.)
 class QuickActions extends StatelessWidget {
   const QuickActions({super.key});
-
-  void _topUp(BuildContext context) {
-    if (!context.read<AuthProvider>().isAuthenticated) {
-      Navigator.pushNamed(context, Routes.login);
-      return;
-    }
-    Navigator.pushNamed(context, Routes.topUp);
-  }
 
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final actions = [
-      (Icons.add_link_rounded, l.productLink, () => PasteLinkButton.askForProductLink(context)),
-      (Icons.shopping_cart_checkout_rounded, l.icTitle,
+      (Icons.shopping_cart_checkout_rounded, AppColors.pomegranate, l.icTitle,
           () => Navigator.pushNamed(context, Routes.sheinCart)),
-      (Icons.local_shipping_outlined, l.trackOrder,
+      (Icons.local_shipping_outlined, AppColors.transitText, l.trackOrder,
           () => context.read<ShellController>().goToTab(3)),
-      (Icons.account_balance_wallet_outlined, l.topUp, () => _topUp(context)),
+      (Icons.inventory_2_outlined, AppColors.green, l.readyNowTitle,
+          () => Navigator.pushNamed(context, Routes.stock)),
+      (Icons.favorite_border_rounded, AppColors.pomegranateDark, l.navFavourites,
+          () => Navigator.pushNamed(context, Routes.saved)),
     ];
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           for (final a in actions)
             Expanded(
-              child: InkWell(
-                borderRadius: BorderRadius.circular(14),
-                onTap: a.$3,
+              child: Pressable(
+                onTap: a.$4,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 3),
                   child: Column(
                     children: [
                       Container(
-                        width: 48,
-                        height: 48,
+                        width: 58,
+                        height: 58,
                         decoration: BoxDecoration(
-                          color: AppColors.pomegranate.withValues(alpha: 0.09),
-                          borderRadius: BorderRadius.circular(15),
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: const [
+                            BoxShadow(color: Color(0x12211B3E), blurRadius: 14, offset: Offset(0, 4)),
+                          ],
                         ),
-                        child: Icon(a.$1, size: 23, color: AppColors.pomegranate),
+                        child: Icon(a.$1, size: 25, color: a.$2),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 8),
                       Text(
-                        a.$2,
+                        a.$3,
                         maxLines: 2,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
-                        style: AppFonts.body(fontSize: 11, fontWeight: FontWeight.w600, height: 1.2),
+                        style: AppFonts.body(fontSize: 11.5, fontWeight: FontWeight.w700, height: 1.2),
                       ),
                     ],
                   ),

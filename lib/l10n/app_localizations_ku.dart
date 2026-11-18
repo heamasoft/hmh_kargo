@@ -1100,6 +1100,62 @@ class AppLocalizationsKu extends AppLocalizations {
   String get safariBtnLater => 'دواتر';
 
   @override
+  String get homeHello => 'سڵاو';
+
+  @override
+  String get walletBalance => 'باڵانسی جزدان';
+
+  @override
+  String get pasteBoxHint => 'بەستەری بەرهەم یان سەبەتە دابنێ…';
+
+  @override
+  String get pasteAction => 'دانان';
+
+  @override
+  String get pasteOneProduct => 'یەک بەرهەم';
+
+  @override
+  String get pasteWholeCart => 'سەبەتەیەکی هاوبەشکراوی تەواو';
+
+  @override
+  String get navFavourites => 'دڵخوازەکان';
+
+  @override
+  String get orderOnTheWay => 'داواکارییەکەت لە ڕێگادایە';
+
+  @override
+  String get orderDetails => 'وردەکاری';
+
+  @override
+  String orderSummary(String code, int count) {
+    return 'داواکاری #$code · $count کاڵا';
+  }
+
+  @override
+  String seeAllStock(int count) {
+    return 'بینینی هەموو $count کاڵای بەردەست';
+  }
+
+  @override
+  String get haveLink => 'بەستەرت هەیە؟';
+
+  @override
+  String get mostPopular => 'بەناوبانگترین';
+
+  @override
+  String get allWebsites => 'هەموو ماڵپەڕەکان';
+
+  @override
+  String get notOnList => 'ماڵپەڕەکە لە لیستەکەدا نییە؟';
+
+  @override
+  String get notOnListSub =>
+      'بەستەری بەرهەمەکەمان بۆ بنێرە، یان کاڵاکە بە دەست زیاد بکە لەگەڵ وێنە و نرخ.';
+
+  @override
+  String get addByHand => 'بە دەست زیاد بکە';
+
+  @override
   String get readingProduct => 'بەرهەمەکە دەخوێنرێتەوە…';
 
   @override

@@ -493,3 +493,7 @@ class _ItemCard extends StatelessWidget {
         'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
       ][m - 1];
 }
+
+/// The shopper-facing name of an order or item status.
+String orderStatusLabel(AppLocalizations l, String status) =>
+    _OrdersScreenState.statusLabel(l, status);

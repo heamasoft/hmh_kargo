@@ -52,7 +52,6 @@ workflows:
         - ios_signing
       vars:
         BUNDLE_ID: "com.hmhkargo.app"
-        EXTENSION_BUNDLE_ID: "com.hmhkargo.app.SafariExtension"
         APP_STORE_APPLE_ID: 6802223643       # HMH Kargo — Apple ID (App Store Connect → App Information)
       flutter: stable
       xcode: latest
@@ -137,17 +136,6 @@ workflows:
             exit 1
           fi
           app-store-connect fetch-signing-files "$BUNDLE_ID" \
-            --type IOS_APP_STORE \
-            --certificate-key=@file:"$CERT_KEY" \
-            --create
-          # The Safari extension inside the app (ios/SafariExtension) is signed
-          # on its own, with its own bundle ID and profile. The bundle ID is
-          # registered on the first build (later builds find it there already,
-          # so the create fails harmlessly), then its profile is made or fetched.
-          app-store-connect bundle-ids create "$EXTENSION_BUNDLE_ID" \
-            --name "HMH Kargo Safari Extension" \
-            --platform IOS || echo "Extension bundle ID already registered."
-          app-store-connect fetch-signing-files "$EXTENSION_BUNDLE_ID" \
             --type IOS_APP_STORE \
             --certificate-key=@file:"$CERT_KEY" \
             --create

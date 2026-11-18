@@ -1087,6 +1087,62 @@ class AppLocalizationsAr extends AppLocalizations {
   String get safariBtnLater => 'لاحقاً';
 
   @override
+  String get homeHello => 'مرحباً';
+
+  @override
+  String get walletBalance => 'رصيد المحفظة';
+
+  @override
+  String get pasteBoxHint => 'الصق رابط منتج أو سلة…';
+
+  @override
+  String get pasteAction => 'لصق';
+
+  @override
+  String get pasteOneProduct => 'منتج واحد';
+
+  @override
+  String get pasteWholeCart => 'سلة مشاركة كاملة';
+
+  @override
+  String get navFavourites => 'المفضلة';
+
+  @override
+  String get orderOnTheWay => 'طلبك في الطريق';
+
+  @override
+  String get orderDetails => 'التفاصيل';
+
+  @override
+  String orderSummary(String code, int count) {
+    return 'الطلب #$code · $count منتجات';
+  }
+
+  @override
+  String seeAllStock(int count) {
+    return 'عرض كل المنتجات المتوفرة ($count)';
+  }
+
+  @override
+  String get haveLink => 'لديك رابط؟';
+
+  @override
+  String get mostPopular => 'الأكثر رواجاً';
+
+  @override
+  String get allWebsites => 'كل المواقع';
+
+  @override
+  String get notOnList => 'الموقع غير موجود في القائمة؟';
+
+  @override
+  String get notOnListSub =>
+      'أرسل لنا رابط المنتج، أو أضف المنتج يدوياً مع صورة وسعر.';
+
+  @override
+  String get addByHand => 'أضف يدوياً';
+
+  @override
   String get readingProduct => 'جارٍ قراءة المنتج…';
 
   @override

@@ -3,33 +3,34 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../l10n/app_localizations.dart';
-import '../../models/product.dart';
 import '../../models/stock_item.dart';
-import '../../models/store.dart';
 import '../../providers/approvals_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../providers/favorites_provider.dart';
 import '../../providers/locale_provider.dart';
+import '../../providers/orders_provider.dart';
+import '../../providers/shell_controller.dart';
 import '../../providers/stock_provider.dart';
 import '../../providers/wallet_provider.dart';
 import '../../router.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_typography.dart';
+import '../../utils/format.dart';
 import '../../widgets/ads_carousel.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/notification_bell.dart';
-import '../../widgets/paste_link_button.dart';
-import '../../widgets/product_card.dart';
-import '../../widgets/section_header.dart';
-import '../../widgets/stock_card.dart';
+import '../../widgets/paste_link_box.dart';
 import '../../widgets/quick_actions.dart';
 import '../../widgets/safari_button_card.dart';
 import '../../widgets/store_tile.dart';
-import '../../providers/shell_controller.dart';
-import '../webstore/open_store.dart';
+import 'home_sections.dart';
 
+/// Home, top to bottom: the header (greeting, wallet, the link box), the ads,
+/// four shortcuts, the order on its way, the shopping websites, and what is
+/// already in Iraq. Each section rises in a moment after the one above it.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -50,13 +51,11 @@ class _HomeScreenState extends State<HomeScreen> {
     // so the bell is right when the customer is looking at it.
     _shell = context.read<ShellController>()..addListener(_onTabChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final catalog = context.read<CatalogProvider>();
-      catalog.loadStores();
-      catalog.loadTrending();
-      catalog.loadAllProducts(); // fallback for the per-store rows
+      context.read<CatalogProvider>().loadStores();
       if (context.read<AuthProvider>().isAuthenticated) {
         context.read<WalletProvider>().load();
         context.read<FavoritesProvider>().syncFromServer();
+        context.read<OrdersProvider>().load();
         // Poll for shipping-fee approvals waiting on the customer (app open).
         context.read<ApprovalsProvider>().load();
         // Products already in the company, ready to buy now (titles in English).
@@ -78,270 +77,6 @@ class _HomeScreenState extends State<HomeScreen> {
     super.dispose();
   }
 
-  /// Finds the store a trending product belongs to (by id, then by name).
-  Store? _storeFor(Product p, List<Store> stores) {
-    for (final s in stores) {
-      if (p.storeId != null && s.storeId == p.storeId) return s;
-    }
-    for (final s in stores) {
-      if (s.name.toLowerCase() == p.store.toLowerCase()) return s;
-    }
-    return null;
-  }
-
-  /// Tapping a trending item opens that exact product inside its store's WebView
-  /// (Shein → Shein, Trendyol → Trendyol), ready to add to Heama.
-  void _openTrending(Product p) {
-    final catalog = context.read<CatalogProvider>();
-    final store = _storeFor(p, catalog.stores);
-    final url = p.sourceUrl;
-    if (store != null && url != null && url.trim().isNotEmpty) {
-      openProductInStore(context, store, url.trim());
-    } else if (store != null) {
-      openStore(context, store);
-    } else {
-      Navigator.pushNamed(context, Routes.product, arguments: p);
-    }
-  }
-
-  static String _langShort(String code) => code == 'ar' ? 'AR' : (code == 'ku' ? 'KU' : 'EN');
-
-  PopupMenuItem<String> _langMenuItem(String code, String name, String current) {
-    final sel = code == current;
-    return PopupMenuItem<String>(
-      value: code,
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              name,
-              style: AppFonts.body(fontSize: 14, fontWeight: sel ? FontWeight.w700 : FontWeight.w600),
-            ),
-          ),
-          if (sel) const Icon(Icons.check, size: 18, color: AppColors.pomegranate),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final catalog = context.watch<CatalogProvider>();
-    final langCode = context.watch<LocaleProvider>().locale.languageCode;
-
-    return Scaffold(
-      backgroundColor: Colors.white,
-      // Light status-bar icons over the navy header.
-      body: AnnotatedRegion<SystemUiOverlayStyle>(
-        value: SystemUiOverlayStyle.light,
-        child: ListView(
-          padding: const EdgeInsets.only(bottom: 24),
-          children: [
-            // The brand header — the Me page's navy gradient, with the ads on it.
-            Container(
-              margin: const EdgeInsets.only(bottom: 18),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [AppColors.midnight, AppColors.midnight700],
-                ),
-                borderRadius: BorderRadius.vertical(bottom: Radius.circular(28)),
-              ),
-              child: SafeArea(
-                bottom: false,
-                child: Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(18, 8, 18, 16),
-                      child: Row(
-                        children: [
-                          Image.asset('assets/logo/hmh_kargo_emblem_white.png', width: 34, height: 34),
-                          const SizedBox(width: 9),
-                          Text(l.appName, style: AppFonts.display(fontSize: 20, color: Colors.white)),
-                          const Spacer(),
-                          // A product link from any shop, pasted here rather
-                          // than by opening that store and finding its own
-                          // paste field first.
-                          const PasteLinkButton(),
-                          const SizedBox(width: 2),
-                          // What the admin is waiting on an answer for — a
-                          // changed shipping price — found from the first
-                          // screen instead of inside an order.
-                          const NotificationBell(),
-                          const SizedBox(width: 4),
-                          PopupMenuButton<String>(
-                            offset: const Offset(0, 42),
-                            color: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                            onSelected: (code) => context.read<LocaleProvider>().setLocale(Locale(code)),
-                            itemBuilder: (_) => [
-                              _langMenuItem('en', 'English', langCode),
-                              _langMenuItem('ar', 'العربية', langCode),
-                              _langMenuItem('ku', 'کوردی', langCode),
-                            ],
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.language, size: 15, color: Colors.white),
-                                  const SizedBox(width: 5),
-                                  Text(
-                                    _langShort(langCode),
-                                    style: AppFonts.body(
-                                      fontSize: 11.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const Icon(Icons.expand_more, size: 16, color: AppColors.onDarkMuted),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // Ads the admins publish (Me → Home ads); nothing shows without any.
-                    const AdsCarousel(),
-                  ],
-                ),
-              ),
-            ),
-            // Shortcuts to what we do — a link, a cart, an order, the wallet.
-            const QuickActions(),
-            const SafariButtonCard(),
-            const SizedBox(height: 18),
-            // Websites to open, shown as a browser shows saved links: the
-            // address in plain text on a plain tile — no logo, no brand colour.
-            SectionHeader(
-              title: l.websitesTitle,
-              action: l.seeAll,
-              onAction: () => context.read<ShellController>().goToTab(1),
-            ),
-            _StoresGrid(stores: catalog.stores.take(8).toList(), loading: catalog.loadingStores),
-            ..._buildReadyNow(l),
-            ..._buildTrending(l, catalog),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// "Ready now" — a preview of in-stock products (already in the company),
-  /// with a See-all link to the full stock screen. Hidden when nothing's in stock.
-  List<Widget> _buildReadyNow(AppLocalizations l) {
-    final stock = context.watch<StockProvider>();
-    if (!stock.hasAny) return const [];
-    // Shein first, then others; show up to 10 in the preview row.
-    final preview = [...stock.shein, ...stock.other].take(10).toList();
-
-    return [
-      const SizedBox(height: 22),
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 14, 0, 16),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFEAF7EF), Color(0xFFF4FBF7)],
-            ),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.green.withValues(alpha: 0.22)),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(right: 14),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: AppColors.green,
-                        borderRadius: BorderRadius.circular(11),
-                      ),
-                      child: const Icon(Icons.bolt, color: Colors.white, size: 20),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(l.readyNowTitle, style: AppFonts.display(fontSize: 16)),
-                          Text(
-                            l.readyNowSub,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: AppFonts.body(fontSize: 11, color: AppColors.muted),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, Routes.stock),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
-                        decoration: BoxDecoration(
-                          color: AppColors.green,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              l.seeAll,
-                              style: AppFonts.body(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 3),
-                            const Icon(Icons.arrow_forward, size: 13, color: Colors.white),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              SizedBox(
-                height: 244,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.only(right: 14),
-                  itemCount: preview.length,
-                  separatorBuilder: (_, __) => const SizedBox(width: 10),
-                  itemBuilder: (context, i) => SizedBox(
-                    width: 150,
-                    child: StockCard(
-                      item: preview[i],
-                      busy: _busyStockId == preview[i].itemId,
-                      onAdd: () => _addStock(preview[i]),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    ];
-  }
-
   Future<void> _addStock(StockItem item) async {
     final l = AppLocalizations.of(context);
     setState(() => _busyStockId = item.itemId);
@@ -356,136 +91,263 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  /// Trending shown per store (Trending on Shein, Trending on Trendyol…), so each
-  /// row's items open in that store. Falls back to one generic row if no store
-  /// matches the products.
-  List<Widget> _buildTrending(AppLocalizations l, CatalogProvider catalog) {
-    // Prefer curated trending; fall back to the full catalog so each store still
-    // shows items even before anything is flagged as trending.
-    final source = catalog.trending.isNotEmpty ? catalog.trending : catalog.allProducts;
-
-    if (source.isEmpty) {
-      if (catalog.loadingTrending || catalog.stores.isEmpty) {
-        return const [SizedBox(height: 250, child: Center(child: CircularProgressIndicator(strokeWidth: 2)))];
-      }
-      return const [];
+  @override
+  Widget build(BuildContext context) {
+    final l = AppLocalizations.of(context);
+    final catalog = context.watch<CatalogProvider>();
+    var step = Duration.zero;
+    Widget rise(Widget child) {
+      final w = RiseIn(delay: step, child: child);
+      step += RiseIn.step;
+      return w;
     }
 
-    // Only show trending for Shein and Trendyol — skip every other store.
-    const trendingStores = {'shein', 'trendyol'};
-
-    // Group by store, in the order stores are listed, up to 10 items each.
-    final sections = <MapEntry<Store, List<Product>>>[];
-    for (final s in catalog.stores) {
-      if (!trendingStores.contains(s.id.toLowerCase())) continue;
-      final items = source
-          .where(
-            (p) =>
-                (p.storeId != null && p.storeId == s.storeId) ||
-                p.store.toLowerCase() == s.name.toLowerCase(),
-          )
-          .take(10)
-          .toList();
-      if (items.isNotEmpty) sections.add(MapEntry(s, items));
-    }
-
-    // Nothing trending for Shein/Trendyol yet — show no trending section.
-    if (sections.isEmpty) return const [];
-
-    // One row, named for what it is rather than for whose shop it came from:
-    // the app names no other company (guideline 4.1). The items alternate
-    // between the stores so no one shop leads.
-    final merged = <Product>[];
-    final longest = sections.map((e) => e.value.length).fold(0, (a, b) => a > b ? a : b);
-    for (var i = 0; i < longest; i++) {
-      for (final entry in sections) {
-        if (i < entry.value.length) merged.add(entry.value[i]);
-      }
-    }
-    return [
-      const SizedBox(height: 22),
-      SectionHeader(title: l.trendingInIraq),
-      _trendingRow(merged),
-    ];
-  }
-
-  Widget _trendingRow(List<Product> items) {
-    return SizedBox(
-      height: 208,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 18),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (context, i) => ProductCard(
-          product: items[i],
-          width: 116,
-          imageHeight: 128,
-          showFav: false,
-          showPrice: false,
-          onTap: () => _openTrending(items[i]),
+    return Scaffold(
+      backgroundColor: AppColors.cloud,
+      // Light status-bar icons over the navy header.
+      body: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: RefreshIndicator(
+          color: AppColors.pomegranate,
+          onRefresh: () async {
+            final auth = context.read<AuthProvider>().isAuthenticated;
+            await Future.wait([
+              context.read<CatalogProvider>().loadStores(),
+              if (auth) context.read<WalletProvider>().load(),
+              if (auth) context.read<OrdersProvider>().load(),
+              if (auth) context.read<StockProvider>().load(lang: 'en'),
+            ]);
+          },
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 28),
+            children: [
+              const _HomeHeader(),
+              const SizedBox(height: 16),
+              // Ads the admins publish (Me → Home ads); nothing shows without any.
+              rise(const AdsCarousel()),
+              rise(const QuickActions()),
+              const SafariButtonCard(),
+              rise(const ActiveOrderCard()),
+              const SizedBox(height: 26),
+              rise(Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 18),
+                child: Column(
+                  children: [
+                    HomeSectionTitle(
+                      title: l.websitesTitle,
+                      action: l.seeAll,
+                      onAction: () => context.read<ShellController>().goToTab(1),
+                    ),
+                    const SizedBox(height: 14),
+                    HomeStoresGrid(stores: catalog.stores, loading: catalog.loadingStores),
+                  ],
+                ),
+              )),
+              rise(ReadyNowPanel(onAdd: _addStock, busyId: _busyStockId)),
+            ],
+          ),
         ),
       ),
     );
   }
 }
-class _StoresGrid extends StatelessWidget {
-  final List stores;
-  final bool loading;
-  const _StoresGrid({required this.stores, required this.loading});
+
+/// The navy header: who is shopping, their wallet, and the link box.
+class _HomeHeader extends StatelessWidget {
+  const _HomeHeader();
+
+  static String _langShort(String code) => code == 'ar' ? 'AR' : (code == 'ku' ? 'KU' : 'EN');
+
+  PopupMenuItem<String> _langItem(String code, String name, String current) {
+    final sel = code == current;
+    return PopupMenuItem<String>(
+      value: code,
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(name,
+                style: AppFonts.body(fontSize: 14, fontWeight: sel ? FontWeight.w700 : FontWeight.w600)),
+          ),
+          if (sel) const Icon(Icons.check, size: 18, color: AppColors.pomegranate),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (loading && stores.isEmpty) {
-      return const SizedBox(height: 120, child: Center(child: CircularProgressIndicator(strokeWidth: 2)));
-    }
-    // Wrap (not a fixed-aspect grid) so each card sizes to its own content —
-    // it can never overflow, whatever the device width or text scale.
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      child: LayoutBuilder(
-        builder: (context, c) {
-          const gap = 8.0;
-          final w = (c.maxWidth - gap * 2) / 3;
-          return Wrap(
-            spacing: gap,
-            runSpacing: gap,
-            children: [
-              ...stores.map(
-                (s) => SizedBox(
-                  width: w,
-                  child: StoreTile(store: s, onTap: () => openStore(context, s)),
-                ),
+    final l = AppLocalizations.of(context);
+    final auth = context.watch<AuthProvider>();
+    final langCode = context.watch<LocaleProvider>().locale.languageCode;
+    final name = auth.isAuthenticated ? (auth.user?.name ?? '').trim() : '';
+
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      decoration: const BoxDecoration(
+        color: AppColors.midnight,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(32)),
+      ),
+      child: Stack(
+        children: [
+          // Two soft circles for depth.
+          const PositionedDirectional(end: -70, top: -60, child: _Blob(size: 220, color: AppColors.midnight700)),
+          const PositionedDirectional(start: -40, bottom: -90, child: _Blob(size: 180, color: AppColors.welcomeTop)),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(18, 10, 18, 22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  RiseIn(
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 42,
+                          height: 42,
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: AppColors.pomegranate,
+                            borderRadius: BorderRadius.circular(13),
+                          ),
+                          child: Image.asset('assets/logo/hmh_kargo_emblem_white.png'),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(l.homeHello,
+                                  style: AppFonts.body(
+                                      fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.onDarkMuted)),
+                              Text(
+                                name.isNotEmpty ? name : l.appName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: AppFonts.display(fontSize: 19, color: Colors.white),
+                              ),
+                            ],
+                          ),
+                        ),
+                        PopupMenuButton<String>(
+                          offset: const Offset(0, 42),
+                          color: Colors.white,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                          onSelected: (code) => context.read<LocaleProvider>().setLocale(Locale(code)),
+                          itemBuilder: (_) => [
+                            _langItem('en', 'English', langCode),
+                            _langItem('ar', 'العربية', langCode),
+                            _langItem('ku', 'کوردی', langCode),
+                          ],
+                          child: Container(
+                            height: 40,
+                            padding: const EdgeInsets.symmetric(horizontal: 11),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(Icons.language, size: 15, color: Colors.white),
+                                const SizedBox(width: 5),
+                                Text(_langShort(langCode),
+                                    style: AppFonts.body(
+                                        fontSize: 12, fontWeight: FontWeight.w700, color: Colors.white)),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        // What the admin is waiting on an answer for — a
+                        // changed shipping price — found from the first screen.
+                        const NotificationBell(),
+                      ],
+                    ),
+                  ),
+                  if (auth.isAuthenticated) ...[
+                    const SizedBox(height: 18),
+                    const RiseIn(delay: RiseIn.step, child: _WalletStrip()),
+                  ],
+                  const SizedBox(height: 14),
+                  const RiseIn(delay: Duration(milliseconds: 140), child: PasteLinkBox()),
+                ],
               ),
-              SizedBox(width: w, child: const _MoreStoresTile()),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// The "+ More" tile, shaped like [StoreTile] (a square, no label).
-class _MoreStoresTile extends StatelessWidget {
-  const _MoreStoresTile();
+class _Blob extends StatelessWidget {
+  const _Blob({required this.size, required this.color});
+
+  final double size;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: Container(width: size, height: size, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+      );
+}
+
+/// The wallet balance, with Top up beside it.
+class _WalletStrip extends StatelessWidget {
+  const _WalletStrip();
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => context.read<ShellController>().goToTab(1),
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    final l = AppLocalizations.of(context);
+    final balance = context.watch<WalletProvider>().balanceIqd;
+    return Pressable(
+      onTap: () => Navigator.pushNamed(context, Routes.walletLedger),
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 12, 12),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
+        ),
+        child: Row(
           children: [
             Container(
-              width: StoreTile.iconSize,
-              height: StoreTile.iconSize,
-              decoration: StoreTile.iconDecoration(color: AppColors.midnight),
-              alignment: Alignment.center,
-              child: const Icon(Icons.add, color: Colors.white, size: 28),
+              width: 34,
+              height: 34,
+              decoration: BoxDecoration(
+                color: AppColors.saffron.withValues(alpha: 0.18),
+                borderRadius: BorderRadius.circular(11),
+              ),
+              child: const Icon(Icons.account_balance_wallet_outlined, size: 18, color: AppColors.saffron),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l.walletBalance,
+                      style: AppFonts.body(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.onDarkMuted)),
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: 0, end: balance.toDouble()),
+                    duration: const Duration(milliseconds: 900),
+                    curve: Curves.easeOutCubic,
+                    builder: (_, v, __) => Text(
+                      '${formatIqd(v)} ${l.iqd}',
+                      style: AppFonts.body(fontSize: 16, fontWeight: FontWeight.w800, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Pressable(
+              onTap: () => Navigator.pushNamed(context, Routes.topUp),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                decoration: BoxDecoration(color: AppColors.saffron, borderRadius: BorderRadius.circular(999)),
+                child: Text('+ ${l.topUp}',
+                    style: AppFonts.body(fontSize: 12.5, fontWeight: FontWeight.w800, color: AppColors.saffronInk)),
+              ),
             ),
           ],
         ),

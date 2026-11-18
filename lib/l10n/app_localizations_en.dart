@@ -1097,6 +1097,62 @@ class AppLocalizationsEn extends AppLocalizations {
   String get safariBtnLater => 'Later';
 
   @override
+  String get homeHello => 'Hello';
+
+  @override
+  String get walletBalance => 'Wallet balance';
+
+  @override
+  String get pasteBoxHint => 'Paste a product or cart link…';
+
+  @override
+  String get pasteAction => 'Paste';
+
+  @override
+  String get pasteOneProduct => 'One product';
+
+  @override
+  String get pasteWholeCart => 'A whole shared cart';
+
+  @override
+  String get navFavourites => 'Favourites';
+
+  @override
+  String get orderOnTheWay => 'Your order is on the way';
+
+  @override
+  String get orderDetails => 'Details';
+
+  @override
+  String orderSummary(String code, int count) {
+    return 'Order #$code · $count items';
+  }
+
+  @override
+  String seeAllStock(int count) {
+    return 'See all $count items in stock';
+  }
+
+  @override
+  String get haveLink => 'Have a link?';
+
+  @override
+  String get mostPopular => 'Most popular';
+
+  @override
+  String get allWebsites => 'All websites';
+
+  @override
+  String get notOnList => 'Website not on the list?';
+
+  @override
+  String get notOnListSub =>
+      'Send us its product link, or add the item by hand with a photo and price.';
+
+  @override
+  String get addByHand => 'Add by hand';
+
+  @override
   String get readingProduct => 'Reading the product…';
 
   @override

@@ -16,7 +16,12 @@ class SafariButton {
   static const _onKey = 'safari_button_on_v1';
   static const _hiddenKey = 'safari_button_card_hidden_v1';
 
-  static bool get supported => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+  /// Off while the extension is not in the iPhone build (its signing failed
+  /// on Codemagic); the card and the Safari-app path come back with it.
+  static const bool _shipped = false;
+
+  static bool get supported =>
+      _shipped && !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
   /// Whether the shopper said they switched the button on. Stores then open
   /// in the Safari app, where the button is (not in the sheet over the app,
