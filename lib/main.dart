@@ -1,3 +1,4 @@
+import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -30,6 +31,9 @@ void main() {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+  // Start listening for links early, so the one that opened the app (the
+  // HMH Kargo button in Safari) is not missed.
+  AppLinks();
   runApp(const HeamaApp());
 }
 

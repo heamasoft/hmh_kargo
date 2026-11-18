@@ -53,6 +53,23 @@
 		     TestFlight/App Store won't ask the export-compliance question. -->
 		<key>ITSAppUsesNonExemptEncryption</key>
 		<false/>
+		<!-- hmhkargo://add?url=… — sent by the HMH Kargo button on shopping
+		     websites in Safari (the SafariExtension target), to add that
+		     product to the cart. -->
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>com.hmhkargo.app</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>hmhkargo</string>
+				</array>
+			</dict>
+		</array>
+		<!-- Links are handled by the app (app_links), not by Flutter's router. -->
+		<key>FlutterDeepLinkingEnabled</key>
+		<false/>
 		<!-- Admins pick an image from Photos to publish as a home-page ad.
 		     Required by App Review for any app that opens the photo library. -->
 		<key>NSPhotoLibraryUsageDescription</key>

@@ -25,6 +25,7 @@ import '../../widgets/product_card.dart';
 import '../../widgets/section_header.dart';
 import '../../widgets/stock_card.dart';
 import '../../widgets/quick_actions.dart';
+import '../../widgets/safari_button_card.dart';
 import '../../widgets/store_tile.dart';
 import '../../providers/shell_controller.dart';
 import '../webstore/open_store.dart';
@@ -215,6 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             // Shortcuts to what we do — a link, a cart, an order, the wallet.
             const QuickActions(),
+            const SafariButtonCard(),
             const SizedBox(height: 18),
             // Websites to open, shown as a browser shows saved links: the
             // address in plain text on a plain tile — no logo, no brand colour.

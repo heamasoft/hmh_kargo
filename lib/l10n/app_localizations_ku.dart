@@ -1069,6 +1069,37 @@ class AppLocalizationsKu extends AppLocalizations {
   String get copiedLinkAdd => 'زیادکردن بۆ سەبەتە';
 
   @override
+  String get safariBtnTitle => 'بە یەک دەستلێدان لە Safari زیاد بکە';
+
+  @override
+  String get safariBtnSub =>
+      'دوگمەی HMH Kargo یەک جار چالاک بکە، ئیتر لەسەر هەموو بەرهەمێک لە ماڵپەڕەکانی بازاڕکردن لە Safari دوگمەی «زیادکردن بۆ سەبەتەی HMH Kargo» دەردەکەوێت.';
+
+  @override
+  String get safariBtnShow => 'پیشانم بدە چۆن';
+
+  @override
+  String get safariBtnStep1 =>
+      'ڕێکخستنەکان بکەرەوە، پاشان ئەپەکان، پاشان Safari، پاشان درێژکراوەکان';
+
+  @override
+  String get safariBtnStep2 => 'لە HMH Kargo بدە و چالاکی بکە';
+
+  @override
+  String get safariBtnStep3 =>
+      '«هەموو ماڵپەڕەکان» بکە بە «ڕێگەدان» — یان یەکەم جار کە فرۆشگایەک دەکرێتەوە لە ڕێگەدان بدە';
+
+  @override
+  String get safariBtnStep4 =>
+      'فرۆشگایەک لێرە بکەرەوە، پاشان لەسەر هەر بەرهەمێک لە «زیادکردن بۆ سەبەتەی HMH Kargo» بدە';
+
+  @override
+  String get safariBtnDone => 'چالاکم کرد';
+
+  @override
+  String get safariBtnLater => 'دواتر';
+
+  @override
   String get readingProduct => 'بەرهەمەکە دەخوێنرێتەوە…';
 
   @override

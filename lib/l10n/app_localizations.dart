@@ -2056,6 +2056,60 @@ abstract class AppLocalizations {
   /// **'Add to cart'**
   String get copiedLinkAdd;
 
+  /// No description provided for @safariBtnTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Add from Safari in one tap'**
+  String get safariBtnTitle;
+
+  /// No description provided for @safariBtnSub.
+  ///
+  /// In en, this message translates to:
+  /// **'Turn on the HMH Kargo button once. Then every product on shopping websites in Safari has an Add to HMH Kargo cart button.'**
+  String get safariBtnSub;
+
+  /// No description provided for @safariBtnShow.
+  ///
+  /// In en, this message translates to:
+  /// **'Show me how'**
+  String get safariBtnShow;
+
+  /// No description provided for @safariBtnStep1.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings, then Apps, then Safari, then Extensions'**
+  String get safariBtnStep1;
+
+  /// No description provided for @safariBtnStep2.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap HMH Kargo and switch it on'**
+  String get safariBtnStep2;
+
+  /// No description provided for @safariBtnStep3.
+  ///
+  /// In en, this message translates to:
+  /// **'Set All Websites to Allow — or tap Allow the first time a shop opens'**
+  String get safariBtnStep3;
+
+  /// No description provided for @safariBtnStep4.
+  ///
+  /// In en, this message translates to:
+  /// **'Open a shop here, then tap Add to HMH Kargo cart on any product'**
+  String get safariBtnStep4;
+
+  /// No description provided for @safariBtnDone.
+  ///
+  /// In en, this message translates to:
+  /// **'I have turned it on'**
+  String get safariBtnDone;
+
+  /// No description provided for @safariBtnLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Later'**
+  String get safariBtnLater;
+
   /// No description provided for @readingProduct.
   ///
   /// In en, this message translates to:

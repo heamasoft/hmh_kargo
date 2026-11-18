@@ -1066,6 +1066,37 @@ class AppLocalizationsEn extends AppLocalizations {
   String get copiedLinkAdd => 'Add to cart';
 
   @override
+  String get safariBtnTitle => 'Add from Safari in one tap';
+
+  @override
+  String get safariBtnSub =>
+      'Turn on the HMH Kargo button once. Then every product on shopping websites in Safari has an Add to HMH Kargo cart button.';
+
+  @override
+  String get safariBtnShow => 'Show me how';
+
+  @override
+  String get safariBtnStep1 =>
+      'Open Settings, then Apps, then Safari, then Extensions';
+
+  @override
+  String get safariBtnStep2 => 'Tap HMH Kargo and switch it on';
+
+  @override
+  String get safariBtnStep3 =>
+      'Set All Websites to Allow — or tap Allow the first time a shop opens';
+
+  @override
+  String get safariBtnStep4 =>
+      'Open a shop here, then tap Add to HMH Kargo cart on any product';
+
+  @override
+  String get safariBtnDone => 'I have turned it on';
+
+  @override
+  String get safariBtnLater => 'Later';
+
+  @override
   String get readingProduct => 'Reading the product…';
 
   @override

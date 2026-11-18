@@ -1,0 +1,33 @@
+{
+  "manifest_version": 3,
+  "name": "HMH Kargo",
+  "short_name": "HMH Kargo",
+  "description": "Adds an \"Add to HMH Kargo cart\" button to shopping websites, so what you find goes straight into your HMH Kargo cart.",
+  "version": "1.0",
+  "icons": {
+    "48": "images/icon-48.png",
+    "96": "images/icon-96.png",
+    "128": "images/icon-128.png",
+    "256": "images/icon-256.png",
+    "512": "images/icon-512.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.shein.com/*",
+        "*://*.trendyol.com/*",
+        "*://*.zara.com/*",
+        "*://*.mango.com/*",
+        "*://*.hm.com/*",
+        "*://*.karaca-home.com/*",
+        "*://*.uspoloassn.com/*",
+        "*://*.hepsiburada.com/*",
+        "*://*.bershka.com/*",
+        "*://*.stradivarius.com/*"
+      ],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

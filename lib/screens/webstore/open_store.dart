@@ -15,6 +15,7 @@ import '../../utils/launcher.dart';
 import '../../utils/link_text.dart';
 import '../../utils/store_link.dart';
 import '../../widgets/heama_toast.dart';
+import '../../widgets/safari_button_card.dart';
 import '../cart/manual_item_sheet.dart';
 import 'capture_sheet.dart';
 import 'web_store_screen.dart';
@@ -47,6 +48,12 @@ const _browserTipSeenKey = 'browser_tip_seen_v2';
 /// Shows, the first time, how a find on the website comes back here; then
 /// opens the site in the system browser sheet.
 Future<void> _openInSystemBrowser(BuildContext context, String url) async {
+  // The HMH Kargo button is on: the Safari app, where the button is (the
+  // sheet over the app runs no extensions).
+  if (await SafariButton.isOn()) {
+    await openUrl(url);
+    return;
+  }
   var seen = false;
   try {
     seen = (await SharedPreferences.getInstance()).getBool(_browserTipSeenKey) ?? false;

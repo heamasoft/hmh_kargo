@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:app_links/app_links.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,6 +50,8 @@ class LinkInbox {
     });
   }
 
+  static StreamSubscription<Uri>? _links;
+
   static bool get _ios => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
   static bool get _android => !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
@@ -96,6 +99,17 @@ class LinkInbox {
   /// Android "Share → HMH Kargo": [onShared] gets each shared text — the one
   /// that launched the app, and any shared while it runs.
   static Future<void> listenForShares(void Function(String text) onShared) async {
+    if (_ios) {
+      // The "Add to HMH Kargo cart" button of our Safari extension opens
+      // hmhkargo://add?url=<the page>. The stream also carries the link that
+      // launched the app.
+      _links ??= AppLinks().uriLinkStream.listen((uri) {
+        if (uri.scheme != 'hmhkargo') return;
+        final url = uri.queryParameters['url'];
+        if (url != null && url.isNotEmpty) onShared(url);
+      });
+      return;
+    }
     if (!_android) return;
     _share.setMethodCallHandler((call) async {
       if (call.method == 'shared' && call.arguments is String) onShared(call.arguments as String);

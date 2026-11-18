@@ -1056,6 +1056,37 @@ class AppLocalizationsAr extends AppLocalizations {
   String get copiedLinkAdd => 'أضف إلى السلة';
 
   @override
+  String get safariBtnTitle => 'أضف من Safari بلمسة واحدة';
+
+  @override
+  String get safariBtnSub =>
+      'فعّل زر HMH Kargo مرة واحدة، وسيظهر زر «أضف إلى سلة HMH Kargo» على كل منتج في مواقع التسوق في Safari.';
+
+  @override
+  String get safariBtnShow => 'أرني كيف';
+
+  @override
+  String get safariBtnStep1 =>
+      'افتح الإعدادات، ثم التطبيقات، ثم Safari، ثم الامتدادات';
+
+  @override
+  String get safariBtnStep2 => 'اضغط HMH Kargo وفعّله';
+
+  @override
+  String get safariBtnStep3 =>
+      'اجعل «جميع المواقع» على «سماح» — أو اضغط سماح أول مرة يُفتح فيها متجر';
+
+  @override
+  String get safariBtnStep4 =>
+      'افتح متجراً من هنا، ثم اضغط «أضف إلى سلة HMH Kargo» على أي منتج';
+
+  @override
+  String get safariBtnDone => 'لقد فعّلته';
+
+  @override
+  String get safariBtnLater => 'لاحقاً';
+
+  @override
   String get readingProduct => 'جارٍ قراءة المنتج…';
 
   @override
