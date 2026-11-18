@@ -1143,6 +1143,18 @@ class AppLocalizationsAr extends AppLocalizations {
   String get addByHand => 'أضف يدوياً';
 
   @override
+  String get importProduct => 'استورد هذا المنتج';
+
+  @override
+  String get copyLink => 'نسخ الرابط';
+
+  @override
+  String get reloadPage => 'إعادة التحميل';
+
+  @override
+  String get openInBrowser => 'فتح في Safari';
+
+  @override
   String get readingProduct => 'جارٍ قراءة المنتج…';
 
   @override

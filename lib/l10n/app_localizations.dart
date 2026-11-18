@@ -2212,6 +2212,30 @@ abstract class AppLocalizations {
   /// **'Add by hand'**
   String get addByHand;
 
+  /// No description provided for @importProduct.
+  ///
+  /// In en, this message translates to:
+  /// **'Import this product'**
+  String get importProduct;
+
+  /// No description provided for @copyLink.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy link'**
+  String get copyLink;
+
+  /// No description provided for @reloadPage.
+  ///
+  /// In en, this message translates to:
+  /// **'Reload'**
+  String get reloadPage;
+
+  /// No description provided for @openInBrowser.
+  ///
+  /// In en, this message translates to:
+  /// **'Open in Safari'**
+  String get openInBrowser;
+
   /// No description provided for @readingProduct.
   ///
   /// In en, this message translates to:

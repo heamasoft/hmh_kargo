@@ -1,33 +1,29 @@
 import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform, TargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../../models/store.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/catalog_provider.dart';
 import '../../router.dart';
-import '../../services/link_inbox.dart';
-import '../../theme/app_colors.dart';
-import '../../theme/app_typography.dart';
 import '../../utils/launcher.dart';
 import '../../utils/link_text.dart';
 import '../../utils/store_link.dart';
 import '../../widgets/heama_toast.dart';
-import '../../widgets/safari_button_card.dart';
 import '../cart/manual_item_sheet.dart';
 import 'capture_sheet.dart';
 import 'web_store_screen.dart';
 
-/// On iPhone and iPad a shop's website is never shown inside our own screens
-/// (App Review rejected that under guideline 4.1(b)): it opens in Safari's own
-/// sheet over the app, and a link copied there is offered back as "Add to
-/// cart" (see LinkInbox). Android keeps the in-app store with our footer.
+/// iPhone and iPad. A store opens in a plain browser (address, menu, close,
+/// and one "Import this product" button on product pages — nothing else of
+/// ours over the shop's page); a pasted link is read behind our own loading
+/// screen; a cart item opens in Safari's sheet. Android keeps the full in-app
+/// store with our footer.
 bool get storesInSystemBrowser => !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
 
 /// Opens a store the right way for the platform:
-///  - iOS: Safari's sheet over the app; a copied link comes back as Add to cart
+///  - iOS: a plain browser of ours, with one Import button on product pages
 ///  - Android: the in-app store page, with our footer
 ///  - web: the real site in a new tab + the capture sheet where the user
 ///    pastes the product link (the server does the scraping)
@@ -36,110 +32,10 @@ void openStore(BuildContext context, Store store) {
     openUrl(store.url);
     // Web can't read another site — user pastes the link, server scrapes it.
     showCaptureSheet(context, storeKey: store.id, autoServerFetch: true);
-  } else if (storesInSystemBrowser) {
-    _openInSystemBrowser(context, store.url);
   } else {
+    // iPhone: the plain browser (one Import button on product pages);
+    // Android: the full in-app store with our footer.
     Navigator.pushNamed(context, Routes.webStore, arguments: store);
-  }
-}
-
-const _browserTipSeenKey = 'browser_tip_seen_v2';
-
-/// Shows, the first time, how a find on the website comes back here; then
-/// opens the site in the system browser sheet.
-Future<void> _openInSystemBrowser(BuildContext context, String url) async {
-  // The HMH Kargo button is on: the Safari app, where the button is (the
-  // sheet over the app runs no extensions).
-  if (await SafariButton.isOn()) {
-    await openUrl(url);
-    return;
-  }
-  var seen = false;
-  try {
-    seen = (await SharedPreferences.getInstance()).getBool(_browserTipSeenKey) ?? false;
-  } catch (_) {}
-  if (!seen && context.mounted) {
-    final go = await showModalBottomSheet<bool>(
-      context: context,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      builder: (ctx) => const _BrowserTip(),
-    );
-    if (go != true) return;
-    try {
-      (await SharedPreferences.getInstance()).setBool(_browserTipSeenKey, true);
-    } catch (_) {}
-  }
-  LinkInbox.watchForCopies();
-  await openInBrowserSheet(url);
-}
-
-class _BrowserTip extends StatelessWidget {
-  const _BrowserTip();
-
-  @override
-  Widget build(BuildContext context) {
-    final l = AppLocalizations.of(context);
-    final steps = [
-      (Icons.search_rounded, l.browserTipStep1),
-      (Icons.ios_share_rounded, l.browserTipStep2),
-      (Icons.add_link_rounded, l.browserTipStep3),
-    ];
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(22, 22, 22, 16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l.browserTipTitle, style: AppFonts.display(fontSize: 18)),
-            const SizedBox(height: 6),
-            Text(l.browserTipSub,
-                style: AppFonts.body(fontSize: 12.5, color: AppColors.muted, height: 1.4)),
-            const SizedBox(height: 16),
-            for (final s in steps)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: AppColors.pomegranate.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(11),
-                      ),
-                      child: Icon(s.$1, size: 19, color: AppColors.pomegranate),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(s.$2,
-                          style: AppFonts.body(fontSize: 13.5, fontWeight: FontWeight.w600, height: 1.3)),
-                    ),
-                  ],
-                ),
-              ),
-            const SizedBox(height: 6),
-            SizedBox(
-              width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.pomegranate,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                ),
-                onPressed: () => Navigator.pop(context, true),
-                child: Text(l.browserTipOpen,
-                    style: AppFonts.body(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }
 

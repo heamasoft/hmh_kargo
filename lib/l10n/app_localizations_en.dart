@@ -1153,6 +1153,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get addByHand => 'Add by hand';
 
   @override
+  String get importProduct => 'Import this product';
+
+  @override
+  String get copyLink => 'Copy link';
+
+  @override
+  String get reloadPage => 'Reload';
+
+  @override
+  String get openInBrowser => 'Open in Safari';
+
+  @override
   String get readingProduct => 'Reading the product…';
 
   @override

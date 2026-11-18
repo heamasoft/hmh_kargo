@@ -1156,6 +1156,18 @@ class AppLocalizationsKu extends AppLocalizations {
   String get addByHand => 'بە دەست زیاد بکە';
 
   @override
+  String get importProduct => 'ئەم بەرهەمە هاوردە بکە';
+
+  @override
+  String get copyLink => 'کۆپیکردنی بەستەر';
+
+  @override
+  String get reloadPage => 'نوێکردنەوە';
+
+  @override
+  String get openInBrowser => 'لە Safari بیکەرەوە';
+
+  @override
   String get readingProduct => 'بەرهەمەکە دەخوێنرێتەوە…';
 
   @override

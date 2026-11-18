@@ -1782,13 +1782,19 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
     _controller.loadRequest(Uri.parse(sheinStartUrl(forced ?? resolved)));
   }
 
+  /// iPhone and iPad: the site in a plain browser of ours — the address, a
+  /// menu and close at the top, and a single "Import this product" button
+  /// that rises only on a product page. No cart, favourites or paste buttons,
+  /// and nothing else of ours over the shop's page.
+  bool get _plain => storesInSystemBrowser && !_covered;
+
   @override
   Widget build(BuildContext context) {
     final l = AppLocalizations.of(context);
     final host = Uri.tryParse(_url)?.host.replaceFirst('www.', '') ?? widget.store.name;
 
     return Scaffold(
-      backgroundColor: AppColors.cloud,
+      backgroundColor: _plain ? Colors.white : AppColors.cloud,
       body: SafeArea(
         bottom: false,
         child: Column(
@@ -1800,6 +1806,8 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
                 alignment: AlignmentDirectional.centerStart,
                 child: BackChip(onTap: () => Navigator.pop(context), size: 34),
               )
+            else if (_plain)
+              _plainBar(host, l)
             else
               _topBar(host),
             if (_progress < 1 && !_covered)
@@ -1816,11 +1824,129 @@ class _WebStoreScreenState extends State<WebStoreScreen> {
                   // price and sizes while it has a size on screen.
                   WebViewWidget(controller: _controller),
                   if (_covered) Positioned.fill(child: _cover(l)),
+                  if (_plain) _importButton(l),
                 ],
               ),
             ),
-            if (!_covered) _footer(l),
+            if (!_covered && !_plain) _footer(l),
           ],
+        ),
+      ),
+    );
+  }
+
+  // ---- Plain browser (iPhone): ⋮ · address · ✕ ----
+  Widget _plainBar(String host, AppLocalizations l) {
+    return Container(
+      height: 52,
+      padding: const EdgeInsets.symmetric(horizontal: 6),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(bottom: BorderSide(color: AppColors.line)),
+      ),
+      child: Row(
+        children: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert_rounded, color: AppColors.ink),
+            color: Colors.white,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+            onSelected: (v) {
+              switch (v) {
+                case 'copy':
+                  _copyLink();
+                case 'reload':
+                  _controller.reload();
+                case 'safari':
+                  openUrl(_url);
+              }
+            },
+            itemBuilder: (_) => [
+              _menuItem('copy', Icons.copy_rounded, l.copyLink),
+              _menuItem('reload', Icons.refresh_rounded, l.reloadPage),
+              _menuItem('safari', Icons.open_in_new_rounded, l.openInBrowser),
+            ],
+          ),
+          Expanded(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Flexible(
+                  child: Text(host,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppFonts.body(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.muted)),
+                ),
+                const SizedBox(width: 6),
+                const Icon(Icons.lock_outline_rounded, size: 15, color: AppColors.muted),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+            icon: const Icon(Icons.close_rounded, size: 26, color: AppColors.ink),
+          ),
+        ],
+      ),
+    );
+  }
+
+  PopupMenuItem<String> _menuItem(String value, IconData icon, String label) => PopupMenuItem<String>(
+        value: value,
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: AppColors.ink),
+            const SizedBox(width: 10),
+            Text(label, style: AppFonts.body(fontSize: 14, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      );
+
+  /// The one button over the page, there only while a product is open.
+  Widget _importButton(AppLocalizations l) {
+    final show = _isProductPage;
+    return Positioned(
+      left: 16,
+      right: 16,
+      bottom: MediaQuery.paddingOf(context).bottom + 16,
+      child: IgnorePointer(
+        ignoring: !show,
+        child: AnimatedSlide(
+          offset: show ? Offset.zero : const Offset(0, 1.6),
+          duration: const Duration(milliseconds: 280),
+          curve: Curves.easeOutCubic,
+          child: AnimatedOpacity(
+            opacity: show ? 1 : 0,
+            duration: const Duration(milliseconds: 200),
+            child: Material(
+              color: const Color(0xFFA4111D),
+              borderRadius: BorderRadius.circular(16),
+              elevation: 6,
+              shadowColor: const Color(0x66A4111D),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: _capturing ? null : _capture,
+                child: SizedBox(
+                  height: 60,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (_capturing)
+                        const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2.2, color: Colors.white))
+                      else
+                        const Icon(Icons.shopping_basket_outlined, size: 22, color: Colors.white),
+                      const SizedBox(width: 12),
+                      Text(l.importProduct,
+                          style: AppFonts.body(fontSize: 17, fontWeight: FontWeight.w700, color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
