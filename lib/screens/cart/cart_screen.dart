@@ -17,6 +17,7 @@ import '../../widgets/sign_in_required.dart';
 import '../../widgets/product_image.dart';
 import '../../utils/launcher.dart';
 import '../webstore/open_store.dart';
+import '../webstore/web_store_screen.dart';
 import 'manual_item_sheet.dart';
 
 class CartScreen extends StatefulWidget {
@@ -319,10 +320,17 @@ class _CartRow extends StatelessWidget {
     store ??= stores.cast<Store?>().firstWhere(
         (s) => s!.name.toLowerCase() == item.store.toLowerCase(),
         orElse: () => null);
-    // On iOS the item is already here: just show its page, in the system
-    // browser sheet — never a shop's site inside our screens (4.1(b)).
+    // On iOS the item is already here: just show its page, in the same plain
+    // browser a store opens in — which keeps Shein on the UAE storefront in
+    // dollars. (Safari's own sheet can't be told the country, and Shein then
+    // guesses one from the connection — Algeria, Bahrain…) A site we don't
+    // carry still opens in Safari's sheet.
     if (storesInSystemBrowser) {
-      openInBrowserSheet(url.trim());
+      if (store != null) {
+        Navigator.pushNamed(context, Routes.webStore, arguments: WebStoreArgs(store, url: url.trim()));
+      } else {
+        openInBrowserSheet(url.trim());
+      }
       return;
     }
     if (store != null) openProductInStore(context, store, url.trim());
